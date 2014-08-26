@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.version     = SpatialFeatures::VERSION
   s.authors     = ["Ryan Wallace", "Nicholas Jakobsen"]
   s.email       = ["contact@culturecode.ca"]
-  s.homepage    = "github.com/culturecode/spatial_features"
+  s.homepage    = "https://github.com/culturecode/spatial_features"
   s.summary     = "Adds spatial methods to a model."
   s.description = "Adds spatial methods to a model."
   s.license     = "MIT"
