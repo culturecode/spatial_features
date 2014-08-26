@@ -1,0 +1,3 @@
+= Spatial Features
+
+Adds spatial methods to a model.
