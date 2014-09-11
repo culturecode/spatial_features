@@ -1,8 +1,6 @@
 class Feature < ActiveRecord::Base
   belongs_to :spatial_model, :polymorphic => :true
 
-  self.rgeo_factory_generator = RGeo::Geos.factory_generator
-
   before_validation :sanitize_feature_type
   validates_presence_of :geog
   validate :geometry_is_valid
@@ -48,12 +46,16 @@ class Feature < ActiveRecord::Base
 
   def geometry_is_valid
     if geog?
-      instance = self.class.unscoped.invalid.from("(SELECT ST_GeometryFromText('#{self.geog}') AS geog) #{self.class.table_name}").to_a.first
+      instance = self.class.unscoped.invalid.from("(SELECT '#{sanitize_input_for_sql(self.geog)}'::geometry AS geog) #{self.class.table_name}").to_a.first
       errors.add :geog, instance.invalid_geometry_message if instance
     end
   end
 
   def sanitize_feature_type
     self.feature_type = self.feature_type.to_s.strip.downcase
+  end
+
+  def sanitize_input_for_sql(input)
+    self.class.send(:sanitize_sql_for_conditions, input)
   end
 end

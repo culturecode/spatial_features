@@ -82,7 +82,7 @@ module ArcGISKmzFeatures
   end
 
   def build_feature(feature_type, name, metadata, geom)
-    Feature.new(spatial_model: self, name: name, metadata: metadata, feature_type: feature_type, geog: geom)
+    Feature.new(:spatial_model => self, :name => name, :metadata => metadata, :feature_type => feature_type, :geog => geom)
   end
 
   def open_kmz_url(url)
