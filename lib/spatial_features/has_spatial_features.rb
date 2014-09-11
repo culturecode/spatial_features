@@ -5,7 +5,9 @@ module SpatialFeatures
       scope :with_features, lambda { where(:id => Feature.select(:spatial_model_id).where(:spatial_model_type => name)) }
       scope :without_features, lambda { where.not(:id => Feature.select(:spatial_model_id).where(:spatial_model_type => name)) }
 
-      has_many :spatial_cache, :as => :spatial_model
+      has_many :spatial_cache, :as => :spatial_model, :dependent => :delete_all
+      has_many :model_a_spatial_proximities, :as => :model_a, :class_name => 'SpatialProximity', :dependent => :delete_all
+      has_many :model_b_spatial_proximities, :as => :model_b, :class_name => 'SpatialProximity', :dependent => :delete_all
 
       extend SpatialFeatures::ClassMethods
       include SpatialFeatures::InstanceMethods
