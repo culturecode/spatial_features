@@ -29,7 +29,9 @@ module SpatialFeatures
 		def within_buffer(other, buffer_in_meters = 0, options = {})
 		  raise "Can't intersect with #{other} because it does not implement has_features" unless other.has_spatial_features?
 
-		  if other.spatial_cache_for?(self, buffer_in_meters) && options[:cache] != false # CACHED
+		  if options[:cache] != false # CACHED
+        return all.extending(UncachedRelation) unless other.spatial_cache_for?(self, buffer_in_meters) # Don't use the cache if it doesn't exist
+
 		    scope = cached_spatial_join(other)
 		      .select("#{table_name}.*, spatial_proximities.distance_in_meters, spatial_proximities.intersection_area_in_square_meters")
 

@@ -14,6 +14,9 @@ require 'spatial_features/models/spatial_proximity'
 require 'spatial_features/engine'
 
 module SpatialFeatures
+  module UncachedRelation
+    include ActiveRecord::NullRelation
+  end
 end
 
 # Load the act method
