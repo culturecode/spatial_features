@@ -41,9 +41,9 @@ module SpatialFeatures
 		      .select("#{table_name}.*")
 		      .group("#{table_name}.#{primary_key}")
 
-		    scope = scope.where('ST_DWithin(features_for.geog, features_for_other.geog, ?)', buffer_in_meters) if buffer_in_meters
-		    scope = scope.select("MIN(ST_Distance(features_for.geog, features_for_other.geog)) AS distance_in_meters") if options[:distance]
-		    scope = scope.select("SUM(ST_Area(ST_Intersection(features_for.geog, features_for_other.geog))) AS intersection_area_in_square_meters") if options[:intersection_area]
+		    scope = scope.where('ST_DWithin(features_for.geom, features_for_other.geom, ?)', buffer_in_meters) if buffer_in_meters
+		    scope = scope.select("MIN(ST_Distance(features_for.geom, features_for_other.geom)) AS distance_in_meters") if options[:distance]
+		    scope = scope.select("SUM(ST_Area(ST_Intersection(features_for.geom, features_for_other.geom))) AS intersection_area_in_square_meters") if options[:intersection_area]
 		  end
 
 		  return scope
