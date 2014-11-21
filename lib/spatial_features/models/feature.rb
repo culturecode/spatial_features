@@ -42,6 +42,7 @@ class Feature < ActiveRecord::Base
 
   def cache_derivatives
     self.class.connection.execute "UPDATE features SET geog_lowres = ST_SimplifyPreserveTopology(geog::geometry, 0.0001) WHERE id = #{self.id}"
+    self.class.connection.execute "UPDATE features SET geom = ST_Transform(geog::geometry, 26910) WHERE id = #{self.id}"
     self.class.connection.execute "UPDATE features SET kml = ST_AsKML(geog_lowres::geometry, 5) WHERE id = #{self.id}"
   end
 
