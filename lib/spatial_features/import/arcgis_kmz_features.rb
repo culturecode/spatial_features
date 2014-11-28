@@ -62,7 +62,7 @@ module ArcGISKmzFeatures
   # Use ST_Force_2D to discard z-coordinates that cause failures later in the process
   def build_geom(feature)
     if make_valid?
-      geom = ActiveRecord::Base.connection.select_value("SELECT ST_CollectionExtract(ST_MakeValid(ST_Force_2D(ST_GeomFromKML('#{feature}'))),3 )")
+      geom = ActiveRecord::Base.connection.select_value("SELECT ST_CollectionExtract(ST_MakeValid(ST_Force_2D(ST_GeomFromKML('#{feature}'))),3)")
     else
       geom = ActiveRecord::Base.connection.select_value("SELECT ST_Force_2D(ST_GeomFromKML('#{feature}'))")
     end
