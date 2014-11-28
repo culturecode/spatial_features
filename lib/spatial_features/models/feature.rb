@@ -35,7 +35,11 @@ class Feature < ActiveRecord::Base
 
   def envelope(buffer_in_meters = 0)
     envelope_json = JSON.parse(self.class.select("ST_AsGeoJSON(ST_Envelope(ST_Buffer(features.geog, #{buffer_in_meters})::geometry)) AS result").where(:id => id).first.result)
-    envelope_json["coordinates"].first.values_at(0,2)
+    envelope_json = envelope_json["coordinates"].first
+
+    raise "Can't calculate envelope for Feature #{self.id}" if envelope_json.blank?
+
+    return envelope_json.values_at(0,2)
   end
 
   private
