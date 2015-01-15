@@ -3,13 +3,12 @@ module SpatialFeatures
   # with kml for the overlapping area and a list of the record ids whose kml overlapped within that area
   def self.venn_polygons(*scopes)
     options = scopes.extract_options!
-    column = options[:simplified] ? 'geog_lowres' : 'geog'
     scope = scopes.collect do |scope|
-      scope.klass.from(scope, scope.klass.table_name).joins(:features).where('features.feature_type = ?', 'polygon').select("features.#{column}::geometry AS the_geom").to_sql
+      scope.klass.from(scope, scope.klass.table_name).joins(:features).where('features.feature_type = ?', 'polygon').select("features.geom AS the_geom").to_sql
     end.join(' UNION ')
 
     sql = "
-      SELECT scope.id, scope.type, ST_AsKML(geom) AS kml FROM ST_Dump((
+      SELECT scope.id, scope.type, ST_AsKML(venn_polygons.geom) AS kml FROM ST_Dump((
         SELECT ST_Polygonize(the_geom) AS the_geom FROM (
 
           SELECT ST_Union(the_geom) AS the_geom FROM (
@@ -26,13 +25,20 @@ module SpatialFeatures
       )) AS venn_polygons
     "
 
+    # If we have a target model, throw away all venn_polygons not bounded by the target
+    if options[:target]
+      sql <<
+        "INNER JOIN features
+          ON features.spatial_model_type = '#{options[:target].class}' AND features.spatial_model_id = #{options[:target].id} AND ST_Intersects(features.geom, venn_polygons.geom)"
+    end
+
     # Join with the original polygons so we can determine which original polygons each venn polygon came from
     scope = scopes.collect do |scope|
-      scope.klass.from(scope, scope.klass.table_name).joins(:features).where('features.feature_type = ?', 'polygon').select("#{scope.klass.table_name}.id, features.spatial_model_type AS type, features.#{column}").to_sql
+      scope.klass.from(scope, scope.klass.table_name).joins(:features).where('features.feature_type = ?', 'polygon').select("#{scope.klass.table_name}.id, features.spatial_model_type AS type, features.geom").to_sql
     end.join(' UNION ')
     sql <<
       "INNER JOIN (#{scope}) AS scope
-        ON ST_Covers(scope.#{column}, ST_PointOnSurface(venn_polygons.geom)) -- Shrink the venn polygons so they don't share edges with the original polygons which could cause varying results due to tiny inaccuracy"
+        ON ST_Covers(scope.geom, ST_PointOnSurface(venn_polygons.geom)) -- Shrink the venn polygons so they don't share edges with the original polygons which could cause varying results due to tiny inaccuracy"
 
     # Eager load the records for each venn polygon
     eager_load_hash = Hash.new {|hash, key| hash[key] = []}

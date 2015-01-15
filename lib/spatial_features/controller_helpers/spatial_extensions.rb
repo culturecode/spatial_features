@@ -14,7 +14,7 @@ module SpatialExtensions
   end
 
   def abstract_venn_polygons_action(scope, target, &block)
-    @venn_polygons = SpatialFeatures.venn_polygons(scope_for_search(scope).intersecting(target), target.class.where(:id => target), :simplified => false)
+    @venn_polygons = SpatialFeatures.venn_polygons(scope_for_search(scope).intersecting(target), target.class.where(:id => target), :target => target)
     @klass = klass_for_search(scope)
     @target = target
 
