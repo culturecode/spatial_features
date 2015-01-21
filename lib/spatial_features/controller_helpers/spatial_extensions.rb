@@ -1,6 +1,24 @@
 module SpatialExtensions
   private
 
+  def abstract_refresh_geometry_action(model, cache_classes)
+    queue = "#{model.class}/#{model.id}/update_features"
+
+    # Destroy old failed jobs
+    Delayed::Job.where(:queue => queue).where.not(:failed_at => nil).destroy_all
+
+    Delayed::Job.enqueue(
+      ArcGISUpdateFeaturesJob.new(
+        :spatial_model_type => model.class,
+        :spatial_model_id => model.id,
+        :cache_classes => cache_classes
+      ),
+      :queue => queue
+    )
+
+    redirect_to :back
+  end
+
   def abstract_proximity_action(scope, target, distance, &block)
     @nearby_records = scope_for_search(scope).within_buffer(target, distance, :distance => true, :intersection_area => true).order('distance_in_meters ASC, intersection_area_in_square_meters DESC, id ASC')
     @target = target

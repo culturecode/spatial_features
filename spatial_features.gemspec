@@ -18,6 +18,7 @@ Gem::Specification.new do |s|
   s.test_files = Dir["test/**/*"]
 
   s.add_dependency "rails", "~> 4.0"
+  s.add_dependency "delayed_job_active_record"
 
   s.add_development_dependency "pg"
 end

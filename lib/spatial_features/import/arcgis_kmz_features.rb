@@ -28,6 +28,14 @@ module ArcGISKmzFeatures
     return true
   end
 
+  def updating_features?
+    Delayed::Job.where(queue: "#{self.class}/#{self.id}/update_features", failed_at: nil).exists?
+  end
+
+  def feature_update_error
+    (Delayed::Job.where(queue: "#{self.class}/#{self.id}/update_features").where.not(failed_at: nil).first.try(:last_error) || '').split("\n").first
+  end
+
   private
 
   def replace_features(kml_array)
