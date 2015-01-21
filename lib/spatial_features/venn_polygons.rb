@@ -29,7 +29,7 @@ module SpatialFeatures
     if options[:target]
       sql <<
         "INNER JOIN features
-          ON features.spatial_model_type = '#{options[:target].class}' AND features.spatial_model_id = #{options[:target].id} AND ST_Intersects(features.geom, venn_polygons.geom)"
+          ON features.spatial_model_type = '#{options[:target].class}' AND features.spatial_model_id = #{options[:target].id} AND ST_Intersects(features.geom, venn_polygons.geom) "
     end
 
     # Join with the original polygons so we can determine which original polygons each venn polygon came from
