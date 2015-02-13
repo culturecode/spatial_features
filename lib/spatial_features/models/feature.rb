@@ -7,7 +7,7 @@ class Feature < ActiveRecord::Base
   validates_inclusion_of :feature_type, :in => ['polygon', 'point', 'line']
   after_save :cache_derivatives
 
-  store :metadata
+  store_accessor :metadata
 
   def self.polygons
     where(:feature_type => 'polygon')
