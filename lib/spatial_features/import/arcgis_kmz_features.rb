@@ -2,7 +2,8 @@ module ArcGISKmzFeatures
   require 'open-uri'
   require 'digest/md5'
 
-  def update_features!
+  def update_features!(options = {})
+    @make_valid = options[:make_valid]
     @feature_error_messages = []
     kml_array = []
     cache_kml = ''
@@ -105,7 +106,7 @@ module ArcGISKmzFeatures
 
   # Can be overridden to use PostGIS to force geometry to be valid
   def make_valid?
-    false
+    !!@make_valid
   end
 
   class UpdateError < StandardError; end
