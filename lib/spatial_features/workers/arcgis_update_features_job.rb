@@ -4,12 +4,17 @@ class ArcGISUpdateFeaturesJob < Struct.new(:options)
 
     if model.update_features!
       options[:cache_classes].each {|klass| SpatialFeatures.cache_record_proximity(model, klass) }
+      after_feature_update(model)
     end
   rescue => e
     raise "Can't refresh geometry: #{normalize_message(e.message)}"
   end
 
   private
+
+  def after_feature_update(model)
+    # stub to be overridden
+  end
 
   NUMBER_REGEX = /-?\d+\.\d+/
 
