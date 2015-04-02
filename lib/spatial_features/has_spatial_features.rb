@@ -19,7 +19,8 @@ module SpatialFeatures
 		# NOTE: features are never updated, only deleted and created, therefore we can
 		# tell if they have changed by finding the maximum id and count instead of needing timestamps
 		def features_cache_key
-		  "#{name}/#{Feature.where(:spatial_model_type => self).maximum(:id)}-#{Feature.where(:spatial_model_type => self).count}"
+      max_id, count = Feature.where(:spatial_model_type => self).pluck("MAX(id), COUNT(*)").first
+		  "#{name}/#{max_id}-#{count}"
 		end
 
 		def intersecting(other, options = {})
@@ -86,7 +87,8 @@ module SpatialFeatures
     end
 
     def features_cache_key
-		  "#{self.class.name}/#{self.id}-#{features.maximum(:id)}-#{features.size}"
+      max_id, count = features.pluck("MAX(id), COUNT(*)").first
+		  "#{self.class.name}/#{self.id}-#{max_id}-#{count}"
 		end
 
 		def polygons?
