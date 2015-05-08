@@ -45,8 +45,8 @@ module ArcGISKmzFeatures
 
     ActiveRecord::Base.transaction do
       self.features.destroy_all
-      self.features = new_features # Update the association so after_feature_update knows about the new features
-      self.features.each(&:save)
+      new_features.each(&:save)
+      self.clear_association_cache # clear_association_cache so after_feature_update knows about the new features
 
       @feature_error_messages.concat new_features.collect {|feature| "Feature #{feature.name}: #{feature.errors.full_messages.to_sentence}" if feature.errors.present? }.compact.flatten
       if @feature_error_messages.present?
