@@ -27,14 +27,6 @@ class Feature < ActiveRecord::Base
     where(:feature_type => 'point')
   end
 
-  def self.for_kml(options = {})
-    if options[:simplified]
-      select("features.name, features.kml, features.metadata").where("features.name IS NULL OR features.name NOT IN ('s', 't')")
-    else
-      select("features.name, ST_AsKML(features.geog, 6) AS kml, features.metadata")
-    end
-  end
-
   def self.invalid
     select('features.*, ST_IsValidReason(geog::geometry) AS invalid_geometry_message').where.not('ST_IsValid(geog::geometry)')
   end
