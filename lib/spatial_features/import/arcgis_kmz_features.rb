@@ -3,6 +3,7 @@ module ArcGISKmzFeatures
   require 'digest/md5'
 
   def update_features!(options = {})
+    @skip_invalid = options[:skip_invalid]
     @make_valid = options[:make_valid]
     @feature_error_messages = []
     kml_array = []
@@ -49,7 +50,7 @@ module ArcGISKmzFeatures
       self.clear_association_cache # clear_association_cache so after_feature_update knows about the new features
 
       @feature_error_messages.concat new_features.collect {|feature| "Feature #{feature.name}: #{feature.errors.full_messages.to_sentence}" if feature.errors.present? }.compact.flatten
-      if @feature_error_messages.present?
+      if @feature_error_messages.present? && !@skip_invalid
         raise UpdateError, "Error updating #{self.class} #{self.id}. #{@feature_error_messages.to_sentence}"
       end
     end
