@@ -40,13 +40,22 @@ class Feature < ActiveRecord::Base
     return envelope_json.values_at(0,2)
   end
 
-  private
+  def self.cache_derivatives(options = {})
+    options.reverse_merge! :lowres_simplification => 0.0001, :lowres_precision => 5
 
-  def cache_derivatives
-    self.class.connection.execute "UPDATE features SET geog_lowres = ST_SimplifyPreserveTopology(geog::geometry, 0.0001) WHERE id = #{self.id}"
-    self.class.connection.execute "UPDATE features SET geom = ST_Transform(geog::geometry, 26910) WHERE id = #{self.id}"
-    self.class.connection.execute "UPDATE features SET kml = ST_AsKML(geog_lowres::geometry, 5) WHERE id = #{self.id}"
+    update_all("geom        = ST_Transform(geog::geometry, 26910),
+                geog_lowres = ST_SimplifyPreserveTopology(geog::geometry, #{options[:lowres_simplification]})"
+                .squish)
+    update_all("kml         = ST_AsKML(features.geog, 6),
+                kml_lowres  = ST_AsKML(geog_lowres::geometry, #{options[:lowres_precision]})"
+                .squish)
   end
+
+  def cache_derivatives(*args)
+    self.class.where(:id => self.id).cache_derivatives(*args)
+  end
+
+  private
 
   def geometry_is_valid
     if geog?
