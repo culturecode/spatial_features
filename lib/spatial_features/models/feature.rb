@@ -56,7 +56,7 @@ class Feature < ActiveRecord::Base
   end
 
   def kml(options = {})
-    options[:lowres] ? kml_lowres : super
+    options[:lowres] ? kml_lowres : super()
   end
 
   private
