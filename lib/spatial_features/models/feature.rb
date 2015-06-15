@@ -55,6 +55,10 @@ class Feature < ActiveRecord::Base
     self.class.where(:id => self.id).cache_derivatives(*args)
   end
 
+  def kml(options = {})
+    options[:lowres] ? kml_lowres : super
+  end
+
   private
 
   def geometry_is_valid
