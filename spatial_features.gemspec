@@ -18,7 +18,7 @@ Gem::Specification.new do |s|
   s.test_files = Dir["test/**/*"]
 
   s.add_dependency "rails", '~> 4.2', '>= 4.2.0'
-  s.add_dependency "delayed_job_active_record"
+  s.add_dependency "delayed_job_active_record", '~> 0'
 
-  s.add_development_dependency "pg"
+  s.add_development_dependency "pg", '~> 0'
 end
