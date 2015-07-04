@@ -3,7 +3,7 @@ class ArcGISUpdateFeaturesJob < Struct.new(:options)
     model = options[:spatial_model_type].find(options[:spatial_model_id])
 
     if model.update_features!
-      options[:cache_classes].each {|klass| SpatialFeatures.cache_record_proximity(model, klass) }
+      Array(options[:cache_classes]).each {|klass| SpatialFeatures.cache_record_proximity(model, klass) }
       after_feature_update(model)
     end
   rescue => e
