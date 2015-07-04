@@ -3,19 +3,8 @@ module SpatialExtensions
 
   def abstract_refresh_geometry_action(models, cache_classes)
     Array.wrap(models).each do |model|
-      queue = "#{model.class}/#{model.id}/update_features"
-
-      # Destroy old failed jobs
-      Delayed::Job.where(:queue => queue).where.not(:failed_at => nil).destroy_all
-
-      Delayed::Job.enqueue(
-        ArcGISUpdateFeaturesJob.new(
-          :spatial_model_type => model.class,
-          :spatial_model_id => model.id,
-          :cache_classes => cache_classes
-        ),
-        :queue => queue
-      )
+      model.failed_feature_update_jobs.destroy_all
+      model.queue_feature_update!(:cache_classes => cache_classes)
     end
 
     redirect_to :back
