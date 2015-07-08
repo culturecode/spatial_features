@@ -31,8 +31,10 @@ class ArcGISUpdateFeaturesJob < Struct.new(:options)
       end
     end
 
-    if normalized_messages.present?
+    if normalized_messages.many?
       return '<ul><li>' + normalized_messages.join('</li><li>') + '</li></ul>'
+    elsif normalized_messages.present?
+      normalized_messages.first
     else
       return message
     end
