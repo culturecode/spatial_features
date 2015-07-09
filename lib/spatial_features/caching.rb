@@ -61,6 +61,6 @@ module SpatialFeatures
     SpatialCache.create!(
       :spatial_model => model,
       :intersection_model_type => klass.name,
-      :cache_distance => default_cache_buffer_in_meters)
+      :intersection_cache_distance => default_cache_buffer_in_meters)
   end
 end

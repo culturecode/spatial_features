@@ -18,5 +18,25 @@ execute("
       kml_lowres text,
       metadata hstore
   );
+
+  CREATE TABLE spatial_caches (
+      id integer NOT NULL,
+      intersection_model_type character varying(255),
+      spatial_model_type character varying(255),
+      spatial_model_id integer,
+      created_at timestamp without time zone,
+      updated_at timestamp without time zone,
+      intersection_cache_distance double precision
+  );
+
+  CREATE TABLE spatial_proximities (
+      id integer NOT NULL,
+      model_a_type character varying(255),
+      model_a_id integer,
+      model_b_type character varying(255),
+      model_b_id integer,
+      distance_in_meters double precision,
+      intersection_area_in_square_meters double precision
+  );    
 ")
 ```
