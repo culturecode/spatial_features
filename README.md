@@ -12,11 +12,11 @@ execute("
       name character varying(255),
       feature_type character varying(255),
       geog geography,
+      kml text,
       geog_lowres geography(Geometry,4326),
       geom geometry(Geometry,26910),
-      kml text,
+      metadata hstore,
       kml_lowres text,
-      metadata hstore
   );
 
   CREATE TABLE spatial_caches (
