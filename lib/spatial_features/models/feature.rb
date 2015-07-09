@@ -31,6 +31,10 @@ class Feature < ActiveRecord::Base
     select('features.*, ST_IsValidReason(geog::geometry) AS invalid_geometry_message').where.not('ST_IsValid(geog::geometry)')
   end
 
+  def self.valid
+    where('ST_IsValid(geog::geometry)')
+  end  
+
   def envelope(buffer_in_meters = 0)
     envelope_json = JSON.parse(self.class.select("ST_AsGeoJSON(ST_Envelope(ST_Buffer(features.geog, #{buffer_in_meters})::geometry)) AS result").where(:id => id).first.result)
     envelope_json = envelope_json["coordinates"].first
