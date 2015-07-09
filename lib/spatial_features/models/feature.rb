@@ -33,7 +33,7 @@ class Feature < ActiveRecord::Base
 
   def self.valid
     where('ST_IsValid(geog::geometry)')
-  end  
+  end
 
   def envelope(buffer_in_meters = 0)
     envelope_json = JSON.parse(self.class.select("ST_AsGeoJSON(ST_Envelope(ST_Buffer(features.geog, #{buffer_in_meters})::geometry)) AS result").where(:id => id).first.result)
@@ -47,7 +47,8 @@ class Feature < ActiveRecord::Base
   def self.cache_derivatives(options = {})
     options.reverse_merge! :lowres_simplification => 0.0001, :lowres_precision => 5
 
-    update_all("geom        = ST_Transform(geog::geometry, 26910),
+    update_all("area        = ST_Area(geog),
+                geom        = ST_Transform(geog::geometry, 26910),
                 geog_lowres = ST_SimplifyPreserveTopology(geog::geometry, #{options[:lowres_simplification]})"
                 .squish)
     update_all("kml         = ST_AsKML(features.geog, 6),

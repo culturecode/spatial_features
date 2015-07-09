@@ -17,6 +17,7 @@ execute("
       geom geometry(Geometry,26910),
       metadata hstore,
       kml_lowres text,
+      area double precision
   );
 
   CREATE TABLE spatial_caches (
