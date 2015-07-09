@@ -139,7 +139,7 @@ module SpatialFeatures
 		end
 
 		def features_area_in_square_meters
-		  @features_area_in_square_meters ||= features.sum('ST_Area(features.geog_lowres)')
+		  @features_area_in_square_meters ||= features.sum('features.area')
 		end
 
 		def features_area_in_hectares
