@@ -5,7 +5,7 @@ module SpatialFeatures
     options = scopes.extract_options!
     scope = scopes.collect do |scope|
       scope.joins(:features).where('features.feature_type = ?', 'polygon').except(:select).select("features.geom AS the_geom").to_sql
-    end.join(' UNION ')
+    end.reject(&:blank?).join(' UNION ')  # NullRelation.to_sql returns empty string, so reject it
 
     sql = "
       SELECT scope.id, scope.type, ST_AsKML(venn_polygons.geom) AS kml FROM ST_Dump((
@@ -35,7 +35,8 @@ module SpatialFeatures
     # Join with the original polygons so we can determine which original polygons each venn polygon came from
     scope = scopes.collect do |scope|
       scope.joins(:features).where('features.feature_type = ?', 'polygon').except(:select).select("#{scope.klass.table_name}.id, features.spatial_model_type AS type, features.geom").to_sql
-    end.join(' UNION ')
+    end.reject(&:blank?).join(' UNION ')  # NullRelation.to_sql returns empty string, so reject it
+
     sql <<
       "INNER JOIN (#{scope}) AS scope
         ON ST_Covers(scope.geom, ST_PointOnSurface(venn_polygons.geom)) -- Shrink the venn polygons so they don't share edges with the original polygons which could cause varying results due to tiny inaccuracy"
