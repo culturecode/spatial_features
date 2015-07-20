@@ -4,7 +4,7 @@ module SpatialFeatures
   def self.venn_polygons(*scopes)
     options = scopes.extract_options!
     scope = scopes.collect do |scope|
-      scope.klass.from(scope, scope.klass.table_name).joins(:features).where('features.feature_type = ?', 'polygon').select("features.geom AS the_geom").to_sql
+      scope.joins(:features).where('features.feature_type = ?', 'polygon').except(:select).select("features.geom AS the_geom").to_sql
     end.join(' UNION ')
 
     sql = "
@@ -34,7 +34,7 @@ module SpatialFeatures
 
     # Join with the original polygons so we can determine which original polygons each venn polygon came from
     scope = scopes.collect do |scope|
-      scope.klass.from(scope, scope.klass.table_name).joins(:features).where('features.feature_type = ?', 'polygon').select("#{scope.klass.table_name}.id, features.spatial_model_type AS type, features.geom").to_sql
+      scope.joins(:features).where('features.feature_type = ?', 'polygon').except(:select).select("#{scope.klass.table_name}.id, features.spatial_model_type AS type, features.geom").to_sql
     end.join(' UNION ')
     sql <<
       "INNER JOIN (#{scope}) AS scope
