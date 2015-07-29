@@ -153,7 +153,7 @@ module SpatialFeatures
 		def spatial_cache_for?(klass, buffer_in_meters)
 		  if cache = spatial_cache_for(klass)
 		    return cache.intersection_cache_distance.nil? if buffer_in_meters.nil? # cache must be total if no buffer_in_meters
-        return false if has_spatial_features_hash? && features_hash != cache.features_hash # cache must be for current features
+        return false if cache.stale? # cache must be for current features
 		    return true if cache.intersection_cache_distance.nil? # always good if cache is total
 
 		    return buffer_in_meters <= cache.intersection_cache_distance
