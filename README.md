@@ -27,7 +27,8 @@ execute("
       spatial_model_id integer,
       created_at timestamp without time zone,
       updated_at timestamp without time zone,
-      intersection_cache_distance double precision
+      intersection_cache_distance double precision,
+      features_hash character varying(255)
   );
 
   CREATE TABLE spatial_proximities (
@@ -38,6 +39,6 @@ execute("
       model_b_id integer,
       distance_in_meters double precision,
       intersection_area_in_square_meters double precision
-  );    
+  );
 ")
 ```
