@@ -58,9 +58,11 @@ module SpatialFeatures
   end
 
   def self.create_spatial_cache(model, klass)
-    SpatialCache.create!(
-      :spatial_model => model,
-      :intersection_model_type => klass.name,
-      :intersection_cache_distance => default_cache_buffer_in_meters)
+    SpatialCache.create! do |cache|
+      cache.spatial_model               = model
+      cache.intersection_model_type     = klass.name
+      cache.intersection_cache_distance = default_cache_buffer_in_meters
+      cache.features_hash               = model.features_hash if model.has_spatial_features_hash?
+    end
   end
 end
