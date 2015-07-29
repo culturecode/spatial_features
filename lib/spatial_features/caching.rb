@@ -49,11 +49,12 @@ module SpatialFeatures
 
     scope = klass.within_buffer(record, default_cache_buffer_in_meters, :intersection_area => true, :distance => true, :cache => false)
     scope.find_each do |klass_record|
-      SpatialProximity.create!(
-        :model_a => record_is_a ? record : klass_record,
-        :model_b => record_is_a ? klass_record : record,
-        :distance_in_meters => klass_record.distance_in_meters,
-        :intersection_area_in_square_meters => klass_record.intersection_area_in_square_meters)
+      SpatialProximity.create! do |proximity|
+        proximity.model_a                            = record_is_a ? record : klass_record
+        proximity.model_b                            = record_is_a ? klass_record : record
+        proximity.distance_in_meters                 = klass_record.distance_in_meters
+        proximity.intersection_area_in_square_meters = klass_record.intersection_area_in_square_meters
+      end
     end
   end
 
