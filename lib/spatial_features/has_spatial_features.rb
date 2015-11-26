@@ -28,10 +28,8 @@ module SpatialFeatures
     end
 
     def within_buffer(other, buffer_in_meters = 0, options = {})
-      raise "Can't intersect with #{other} because it does not implement has_features" unless other.has_spatial_features?
-
       if options[:cache] != false # CACHED
-        return all.extending(UncachedRelation) unless other.spatial_cache_for?(self, buffer_in_meters) # Don't use the cache if it doesn't exist
+        return all.extending(UncachedRelation) unless class_for(other).spatial_cache_for?(self, buffer_in_meters) # Don't use the cache if it doesn't exist
 
         scope = cached_spatial_join(other)
           .select("#{table_name}.*, spatial_proximities.distance_in_meters, spatial_proximities.intersection_area_in_square_meters")
@@ -62,22 +60,56 @@ module SpatialFeatures
       Feature.points.where(:spatial_model_type => self.class)
     end
 
+    def spatial_cache_for?(other, buffer_in_meters)
+      if cache = spatial_cache_for(other)
+        return cache.intersection_cache_distance.nil? if buffer_in_meters.nil? # cache must be total if no buffer_in_meters
+        return false if cache.stale? # cache must be for current features
+        return true if cache.intersection_cache_distance.nil? # always good if cache is total
+
+        return buffer_in_meters <= cache.intersection_cache_distance
+      else
+        return false
+      end
+    end
+
+    private
+
     def cached_spatial_join(other)
       raise "Cannot use cached spatial join for the same class" if other.class.name == self.name
 
       other_column = other.class.name < self.name ? :model_a : :model_b
       self_column = other_column == :model_a ? :model_b : :model_a
 
-      joins("INNER JOIN spatial_proximities ON spatial_proximities.#{self_column}_type = '#{self}' AND spatial_proximities.#{self_column}_id = #{table_name}.id AND spatial_proximities.#{other_column}_type = '#{other.class}' AND spatial_proximities.#{other_column}_id = '#{other.id}'")
+      joins("INNER JOIN spatial_proximities ON spatial_proximities.#{self_column}_type = '#{self}' AND spatial_proximities.#{self_column}_id = #{table_name}.id AND spatial_proximities.#{other_column}_type = '#{other.class}' AND spatial_proximities.#{other_column}_id IN (#{ids_sql_for(other)})")
     end
 
     def joins_features_for(other, table_alias = 'features_for')
       joins_features(table_alias)
-      .joins(%Q(INNER JOIN features "#{table_alias}_other" ON "#{table_alias}_other".spatial_model_type = '#{other.class.name}' AND "#{table_alias}_other".spatial_model_id = #{other.id}))
+        .joins(%Q(INNER JOIN features "#{table_alias}_other" ON "#{table_alias}_other".spatial_model_type = '#{class_for(other)}' AND "#{table_alias}_other".spatial_model_id IN (#{ids_sql_for(other)})))
     end
 
     def joins_features(table_alias = 'features_for')
       joins(%Q(INNER JOIN features "#{table_alias}" ON "#{table_alias}".spatial_model_type = '#{name}' AND "#{table_alias}".spatial_model_id = #{table_name}.id))
+    end
+
+    def spatial_cache_for(other)
+      SpatialCache.where(:spatial_model_type => self, :intersection_model_type => class_for(other)).first
+    end
+
+    # Returns the class for the given, class, scope, or record
+    def class_for(other)
+      case other
+      when ActiveRecord::Base
+        other.class
+      when ActiveRecord::Relation
+        other.klass
+      else
+        other
+      end
+    end
+
+    def ids_sql_for(other)
+      other.is_a?(ActiveRecord::Relation) ? other.unscope(:select).select(:id).to_sql : other.id
     end
   end
 
@@ -144,22 +176,6 @@ module SpatialFeatures
 
     def features_area_in_hectares
       Formatters::HECTARES.call(features_area_in_square_meters)
-    end
-
-    def spatial_cache_for(klass)
-      spatial_cache.where(:intersection_model_type => klass).first
-    end
-
-    def spatial_cache_for?(klass, buffer_in_meters)
-      if cache = spatial_cache_for(klass)
-        return cache.intersection_cache_distance.nil? if buffer_in_meters.nil? # cache must be total if no buffer_in_meters
-        return false if cache.stale? # cache must be for current features
-        return true if cache.intersection_cache_distance.nil? # always good if cache is total
-
-        return buffer_in_meters <= cache.intersection_cache_distance
-      else
-        return false
-      end
     end
   end
 end
