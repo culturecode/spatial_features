@@ -49,6 +49,13 @@ module SpatialFeatures
       return scope
     end
 
+    def covering(other)
+      scope = joins_features_for(other).select("#{table_name}.*").group("#{table_name}.#{primary_key}")
+      scope = scope.where('ST_Covers(features_for.geom, features_for_other.geom)')
+
+      return scope
+    end
+
     def polygons
       features.polygons
     end
@@ -150,6 +157,10 @@ module SpatialFeatures
     # Returns true if the model stores a hash of the features so we don't need to process the features if they haven't changed
     def has_spatial_features_hash?
       respond_to?(:features_hash)
+    end
+
+    def covers?(other)
+      self.class.covering(other).exists?(self)
     end
 
     def intersects?(other)
