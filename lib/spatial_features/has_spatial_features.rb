@@ -19,7 +19,7 @@ module SpatialFeatures
     # NOTE: features are never updated, only deleted and created, therefore we can
     # tell if they have changed by finding the maximum id and count instead of needing timestamps
     def features_cache_key
-      max_id, count = Feature.where(:spatial_model_type => self).pluck("MAX(id), COUNT(*)").first
+      max_id, count = features.pluck("MAX(id), COUNT(*)").first
       "#{name}/#{max_id}-#{count}"
     end
 
@@ -50,15 +50,15 @@ module SpatialFeatures
     end
 
     def polygons
-      Feature.polygons.where(:spatial_model_type => self)
+      features.polygons
     end
 
     def lines
-      Feature.lines.where(:spatial_model_type => self)
+      features.lines
     end
 
     def points
-      Feature.points.where(:spatial_model_type => self)
+      features.points
     end
 
     def spatial_cache_for?(other, buffer_in_meters)
@@ -74,6 +74,8 @@ module SpatialFeatures
     end
 
 
+    def features
+      Feature.where(:spatial_model_type => self, :spatial_model_id => all)
     end
 
     def joins_features_for(other, table_alias = 'features_for')
