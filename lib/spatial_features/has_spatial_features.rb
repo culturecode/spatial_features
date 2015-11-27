@@ -87,12 +87,14 @@ module SpatialFeatures
     private
 
     def cached_spatial_join(other)
-      raise "Cannot use cached spatial join for the same class" if other.class.name == self.name
+      other_class = class_for(other)
 
-      other_column = other.class.name < self.name ? :model_a : :model_b
+      raise "Cannot use cached spatial join for the same class" if self == other_class
+
+      other_column = other_class.name < self.name ? :model_a : :model_b
       self_column = other_column == :model_a ? :model_b : :model_a
 
-      joins("INNER JOIN spatial_proximities ON spatial_proximities.#{self_column}_type = '#{self}' AND spatial_proximities.#{self_column}_id = #{table_name}.id AND spatial_proximities.#{other_column}_type = '#{other.class}' AND spatial_proximities.#{other_column}_id IN (#{ids_sql_for(other)})")
+      joins("INNER JOIN spatial_proximities ON spatial_proximities.#{self_column}_type = '#{self}' AND spatial_proximities.#{self_column}_id = #{table_name}.id AND spatial_proximities.#{other_column}_type = '#{other_class}' AND spatial_proximities.#{other_column}_id IN (#{ids_sql_for(other)})")
     end
 
     def spatial_cache_for(other)
