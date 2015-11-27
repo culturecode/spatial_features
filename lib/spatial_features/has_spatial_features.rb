@@ -33,6 +33,7 @@ module SpatialFeatures
 
         scope = cached_spatial_join(other)
           .select("#{table_name}.*, spatial_proximities.distance_in_meters, spatial_proximities.intersection_area_in_square_meters")
+          .group("#{table_name}.#{primary_key}")
 
         scope = scope.where("spatial_proximities.distance_in_meters <= ?", buffer_in_meters) if buffer_in_meters
       else # NON-CACHED
