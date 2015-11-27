@@ -72,15 +72,7 @@ module SpatialFeatures
       end
     end
 
-    private
 
-    def cached_spatial_join(other)
-      raise "Cannot use cached spatial join for the same class" if other.class.name == self.name
-
-      other_column = other.class.name < self.name ? :model_a : :model_b
-      self_column = other_column == :model_a ? :model_b : :model_a
-
-      joins("INNER JOIN spatial_proximities ON spatial_proximities.#{self_column}_type = '#{self}' AND spatial_proximities.#{self_column}_id = #{table_name}.id AND spatial_proximities.#{other_column}_type = '#{other.class}' AND spatial_proximities.#{other_column}_id IN (#{ids_sql_for(other)})")
     end
 
     def joins_features_for(other, table_alias = 'features_for')
@@ -90,6 +82,17 @@ module SpatialFeatures
 
     def joins_features(table_alias = 'features_for')
       joins(%Q(INNER JOIN features "#{table_alias}" ON "#{table_alias}".spatial_model_type = '#{name}' AND "#{table_alias}".spatial_model_id = #{table_name}.id))
+    end
+
+    private
+
+    def cached_spatial_join(other)
+      raise "Cannot use cached spatial join for the same class" if other.class.name == self.name
+
+      other_column = other.class.name < self.name ? :model_a : :model_b
+      self_column = other_column == :model_a ? :model_b : :model_a
+
+      joins("INNER JOIN spatial_proximities ON spatial_proximities.#{self_column}_type = '#{self}' AND spatial_proximities.#{self_column}_id = #{table_name}.id AND spatial_proximities.#{other_column}_type = '#{other.class}' AND spatial_proximities.#{other_column}_id IN (#{ids_sql_for(other)})")
     end
 
     def spatial_cache_for(other)
@@ -109,7 +112,7 @@ module SpatialFeatures
     end
 
     def ids_sql_for(other)
-      other.is_a?(ActiveRecord::Relation) ? other.unscope(:select).select(:id).to_sql : other.id
+      other.is_a?(ActiveRecord::Base) ? other.id : other.unscope(:select).select(:id).to_sql
     end
   end
 
@@ -151,8 +154,7 @@ module SpatialFeatures
     def total_intersection_area_in_square_meters(klass, options = {})
       self.class
         .select(%Q(ST_Area(ST_Intersection(ST_Union(features_for.geog_lowres::geometry), ST_Union(features_for_other.geog_lowres::geometry))::geography) AS intersection_area_in_square_meters))
-        .joins(%Q(INNER JOIN features "features_for" ON "features_for".spatial_model_type = '#{self.class}' AND "features_for".spatial_model_id = #{self.class.table_name}.id))
-        .joins(%Q(INNER JOIN features "features_for_other" ON "features_for_other".spatial_model_type = '#{klass}'))
+        .joins_features_for(klass)
         .where(:id => self.id)
         .where('ST_DWithin(features_for.geog_lowres, features_for_other.geog_lowres, 0)')
         .group("#{self.class.table_name}.id")
