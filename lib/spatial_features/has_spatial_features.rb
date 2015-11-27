@@ -49,15 +49,15 @@ module SpatialFeatures
     end
 
     def polygons
-      Feature.polygons.where(:spatial_model_type => self.class)
+      Feature.polygons.where(:spatial_model_type => self)
     end
 
     def lines
-      Feature.lines.where(:spatial_model_type => self.class)
+      Feature.lines.where(:spatial_model_type => self)
     end
 
     def points
-      Feature.points.where(:spatial_model_type => self.class)
+      Feature.points.where(:spatial_model_type => self)
     end
 
     def spatial_cache_for?(other, buffer_in_meters)
