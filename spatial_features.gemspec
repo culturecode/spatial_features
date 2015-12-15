@@ -21,4 +21,5 @@ Gem::Specification.new do |s|
   s.add_dependency "delayed_job_active_record", '~> 4.0.3'
 
   s.add_development_dependency "pg", '~> 0'
+  s.add_development_dependency "rspec"
 end
