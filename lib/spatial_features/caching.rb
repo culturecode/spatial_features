@@ -5,16 +5,18 @@ module SpatialFeatures
   # Create or update the spatial cache of a spatial class in relation to another
   # NOTE: Arguments are order independent, so their names do not reflect the _a _b
   # naming scheme used in other cache methods
-  def self.cache_proximity(klass, clazz)
-    clear_cache(klass, clazz)
+  def self.cache_proximity(*klasses)
+    klasses.combination(2).each do |klass, clazz|
+      clear_cache(klass, clazz)
 
-    klass.find_each do |record|
-      create_spatial_proximities(record, clazz)
-      create_spatial_cache(record, clazz)
-    end
+      klass.find_each do |record|
+        create_spatial_proximities(record, clazz)
+        create_spatial_cache(record, clazz)
+      end
 
-    clazz.find_each do |record|
-      create_spatial_cache(record, klass)
+      clazz.find_each do |record|
+        create_spatial_cache(record, klass)
+      end
     end
   end
 
