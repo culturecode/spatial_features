@@ -6,14 +6,13 @@ end
 
 Bundler::GemHelper.install_tasks
 
-require 'rake/testtask'
+require 'rspec/core/rake_task'
+require 'bundler/gem_tasks'
 
-Rake::TestTask.new(:test) do |t|
-  t.libs << 'lib'
-  t.libs << 'test'
-  t.pattern = 'test/**/*_test.rb'
-  t.verbose = false
+# Default directory to look in is `/specs`
+# Run with `rake spec`
+RSpec::Core::RakeTask.new(:spec) do |task|
+  task.rspec_opts = ['--color', '--format', 'documentation']
 end
 
-
-task default: :test
+task :default => :spec
