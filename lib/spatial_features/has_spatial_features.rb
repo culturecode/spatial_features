@@ -82,13 +82,19 @@ module SpatialFeatures
       Feature.where(:spatial_model_type => self, :spatial_model_id => all)
     end
 
+    # Returns a scope that includes the features for this record as the table_alias and the features for other as #{table_alias}_other
+    # Can be used to perform spatial calculations on the relationship between the two sets of features
     def joins_features_for(other, table_alias = 'features_for')
       joins_features(table_alias)
-        .joins(%Q(INNER JOIN features "#{table_alias}_other" ON "#{table_alias}_other".spatial_model_type = '#{class_for(other)}' AND "#{table_alias}_other".spatial_model_id IN (#{ids_sql_for(other)})))
+        .joins_features("#{table_alias}_other", class_for(other), spatial_model_id = ids_sql_for(other))
     end
 
-    def joins_features(table_alias = 'features_for')
-      joins(%Q(INNER JOIN features "#{table_alias}" ON "#{table_alias}".spatial_model_type = '#{name}' AND "#{table_alias}".spatial_model_id = #{table_name}.id))
+    # Returns a scope that includes the features for this record as the table_alias
+    # Default arguments can be overridden to include features for a different set of records
+    def joins_features(table_alias = 'features_for', spatial_model_type = name, spatial_model_id = "#{table_name}.id")
+      joins %Q(INNER JOIN features "#{table_alias}"
+               ON "#{table_alias}".spatial_model_type = '#{spatial_model_type}'
+               AND "#{table_alias}".spatial_model_id IN (#{spatial_model_id}))
     end
 
     private
