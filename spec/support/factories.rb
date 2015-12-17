@@ -3,6 +3,9 @@ def create_record_with_polygon(klass, *coordinates)
   coordinates.each do |coords|
     record.features << build_polygon(coords)
   end
+
+  SpatialFeatures.cache_proximity(*Feature.pluck(:spatial_model_type).uniq.collect(&:constantize)) # automatically update spatial cache
+
   record
 end
 
