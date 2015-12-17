@@ -19,41 +19,41 @@ describe SpatialFeatures do
     end
 
     shared_examples_for 'buffering a record with a single feature' do
-      let!(:triangle) { create_record_with_polygon(BufferedRecord, '0 0, 1 0, 1 1, 0 0') }
-      let!(:square) { create_record_with_polygon(Shape, '0 0, 1 0, 1 1, 0 1, 0 0') }
-      let!(:outlier) { create_record_with_polygon(Outlier, '0 2,1 2,1 3,0 3,0 2') }
+      let!(:buffered_record) { create_record_with_polygon(BufferedRecord, Rectangle.new(1, 0.5)) }
+      let!(:shape) { create_record_with_polygon(Shape, Rectangle.new(1, 1)) }
+      let!(:outlier) { create_record_with_polygon(Outlier, Rectangle.new(1, 1, :x => 2)) }
 
       it 'returns a ActiveRecord::Relation' do
-        expect(Shape.within_buffer(triangle, 0, options)).to be_a(ActiveRecord::Relation)
+        expect(Shape.within_buffer(buffered_record, 0, options)).to be_a(ActiveRecord::Relation)
       end
 
       context 'without a buffer' do
         it 'returns records that intersect spatially with the given record' do
-          expect(Shape.within_buffer(triangle, 0, options)).to contain_exactly(square)
+          expect(Shape.within_buffer(buffered_record, 0, options)).to contain_exactly(shape)
         end
 
         it 'does not return records that do not intersect spatially with the given record' do
-          expect(Outlier.within_buffer(triangle, 0, options)).not_to include(outlier)
+          expect(Outlier.within_buffer(buffered_record, 0, options)).not_to include(outlier)
         end
       end
 
       context 'with a buffer' do
         it 'returns records within the buffer distance of the given record' do
-          expect(Outlier.within_buffer(square, 1, options)).to include(outlier)
+          expect(Outlier.within_buffer(shape, 1, options)).to include(outlier)
         end
 
         it 'does not return records outside of the buffer distance of the given record' do
-          expect(Outlier.within_buffer(square, 0.9, options)).not_to include(outlier)
+          expect(Outlier.within_buffer(shape, 0.9, options)).not_to include(outlier)
         end
       end
 
       with_options(:distance => true) do
         it 'includes the minimum distance of each record to the given record as the "distance_in_meters" attribute' do
-          expect(Shape.within_buffer(triangle, 0, options).first).to have_attribute(:distance_in_meters)
+          expect(Shape.within_buffer(buffered_record, 0, options).first).to have_attribute(:distance_in_meters)
         end
 
         it 'returns 0 as the distance if the shapes overlap' do
-          expect(Shape.within_buffer(triangle, 0, options).first.distance_in_meters).to eq(0)
+          expect(Shape.within_buffer(buffered_record, 0, options).first.distance_in_meters).to eq(0)
         end
 
         it 'returns an accurate distance between non-overlapping shapes' do
@@ -64,13 +64,13 @@ describe SpatialFeatures do
 
       with_options(:distance => false) do
         it 'does not include distance' do
-          expect(Shape.within_buffer(triangle, 0, options).first).not_to have_attribute(:distance_in_meters)
+          expect(Shape.within_buffer(buffered_record, 0, options).first).not_to have_attribute(:distance_in_meters)
         end
       end
 
       with_options(:intersection_area => true) do
         it 'includes for each record, the area in square meters that is intersected by the given record as the "intersection_area_in_square_meters" attribute' do
-          expect(Shape.within_buffer(triangle, 0, options).first).to have_attribute(:intersection_area_in_square_meters)
+          expect(Shape.within_buffer(buffered_record, 0, options).first).to have_attribute(:intersection_area_in_square_meters)
         end
 
         it 'returns 0 as the overlap if the shapes do not overlap' do
@@ -78,32 +78,32 @@ describe SpatialFeatures do
         end
 
         it 'returns an accurate overlap area in square meters' do
-          expect(Shape.within_buffer(triangle, 0, options).first.intersection_area_in_square_meters).to be_within(TOLERANCE).of(0.5)
+          expect(Shape.within_buffer(buffered_record, 0, options).first.intersection_area_in_square_meters).to be_within(TOLERANCE).of(0.5)
         end
       end
 
       with_options(:intersection_area => false) do
         it 'does not include intersection area' do
-          expect(Shape.within_buffer(triangle, 0, options).first).not_to have_attribute(:intersection_area_in_square_meters)
+          expect(Shape.within_buffer(buffered_record, 0, options).first).not_to have_attribute(:intersection_area_in_square_meters)
         end
       end
     end
 
     shared_examples_for 'buffering a record with overlapping features' do
-      let!(:triangle) { create_record_with_polygon(BufferedRecord, '0 0, 1 0, 1 1, 0 0', '0 0, 1 0, 1 1, 0 0') }
-      let!(:square) { create_record_with_polygon(Shape, '0 0, 1 0, 1 1, 0 1, 0 0') }
+      let!(:triangle) { create_record_with_polygon(BufferedRecord, Rectangle.new(1, 0.5), Rectangle.new(0.5, 1)) }
+      let!(:square) { create_record_with_polygon(Shape, Rectangle.new(1, 1)) }
 
       with_options({:intersection_area => true}, '#intersection_area') do
         it 'returns the correct value for a single overlapping record' do
-          expect(Shape.within_buffer(triangle, 0, options).first.intersection_area_in_square_meters).to be_within(TOLERANCE).of(0.5)
+          expect(Shape.within_buffer(triangle, 0, options).first.intersection_area_in_square_meters).to be_within(TOLERANCE).of(0.75)
         end
 
         it 'returns the correct value for multiple overlapping records' do
-          create_record_with_polygon(Shape, '0 0, 0.5 0, 0.5 0.5, 0 0.5, 0 0')
+          create_record_with_polygon(Shape, Rectangle.new(0.5, 0.5))
           squares = Shape.within_buffer(triangle, 0, options).order(:id)
 
-          expect(squares.first.intersection_area_in_square_meters).to be_within(TOLERANCE).of(0.5)
-          expect(squares.last.intersection_area_in_square_meters).to be_within(TOLERANCE).of(0.125)
+          expect(squares.first.intersection_area_in_square_meters).to be_within(TOLERANCE).of(0.75)
+          expect(squares.last.intersection_area_in_square_meters).to be_within(TOLERANCE).of(0.25)
         end
 
         it 'does not duplicate records that overlap multiple features' do
@@ -119,48 +119,48 @@ describe SpatialFeatures do
     end
 
     shared_examples_for 'buffering a scope with overlapping features' do
-      let(:scope) do
+      let(:buffered_scope) do
         BufferedRecord.tap do |klass|
-          create_record_with_polygon(klass, '0 0, 1 0, 1 1, 0 0')
-          create_record_with_polygon(klass, '0 0, 2 0, 2 2, 0 0')
+          create_record_with_polygon(klass, Rectangle.new(1, 0.5))
+          create_record_with_polygon(klass, Rectangle.new(0.5, 1))
         end
       end
 
-      let!(:square) { create_record_with_polygon(Shape, '0 0, 1 0, 1 1, 0 1, 0 0') }
-      let!(:outlier) { create_record_with_polygon(Outlier, '0 4,3 4,3 5,0 5,0 4') }
+      let!(:shape) { create_record_with_polygon(Shape, Rectangle.new(1, 1)) }
+      let!(:outlier) { create_record_with_polygon(Outlier, Rectangle.new(1, 1, :x => 2)) }
 
       it 'returns the overlapping records' do
-        expect(Shape.within_buffer(scope, 0, options)).to include(square)
+        expect(Shape.within_buffer(buffered_scope, 0, options)).to include(shape)
       end
 
       it 'does not return non-overlapping records' do
-        expect(Outlier.within_buffer(scope, 0, options)).not_to include(outlier)
+        expect(Outlier.within_buffer(buffered_scope, 0, options)).not_to include(outlier)
       end
 
       it 'returns non-overlapping records within the buffer range' do
-        expect(Outlier.within_buffer(scope, 2, options)).to include(outlier)
+        expect(Outlier.within_buffer(buffered_scope, 2, options)).to include(outlier)
       end
 
       it 'does not duplicate records returned' do
-        records = Shape.within_buffer(scope, 0, options).to_a
+        records = Shape.within_buffer(buffered_scope, 0, options).to_a
         expect { records.uniq }.not_to change { records.length }
       end
 
       with_options(:intersection_area => true) do
         it 'returns the correct value for a single overlapping record' do
-          expect(Shape.within_buffer(scope, 0, options).first.intersection_area_in_square_meters).to be_within(TOLERANCE).of(0.5)
+          expect(Shape.within_buffer(buffered_scope, 0, options).first.intersection_area_in_square_meters).to be_within(TOLERANCE).of(0.75)
         end
 
         it 'returns the correct value for multiple overlapping records' do
-          create_record_with_polygon(Shape, '0 0, 0.5 0, 0.5 0.5, 0 0.5, 0 0')
-          squares = Shape.within_buffer(scope, 0, options).order(:id)
+          create_record_with_polygon(Shape, Rectangle.new(0.5, 0.5))
+          squares = Shape.within_buffer(buffered_scope, 0, options).order(:id)
 
-          expect(squares.first.intersection_area_in_square_meters).to be_within(TOLERANCE).of(0.5)
-          expect(squares.last.intersection_area_in_square_meters).to be_within(TOLERANCE).of(0.125)
+          expect(squares.first.intersection_area_in_square_meters).to be_within(TOLERANCE).of(0.75)
+          expect(squares.last.intersection_area_in_square_meters).to be_within(TOLERANCE).of(0.25)
         end
 
         it 'returns 0 for non-overlapping records' do
-          expect(Outlier.within_buffer(scope, 2, options).first.intersection_area_in_square_meters).to eq(0)
+          expect(Outlier.within_buffer(buffered_scope, 2, options).first.intersection_area_in_square_meters).to eq(0)
         end
       end
     end
