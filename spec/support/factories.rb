@@ -9,7 +9,23 @@ def create_record_with_polygon(klass, *coordinates)
   record
 end
 
+class Rectangle
+  def initialize(width, height, options = {})
+    y_min = options[:y].to_f
+    x_min = options[:x].to_f
+    y_max = height + y_min
+    x_max = width + x_min
+    @coordinates = "#{y_min} #{x_min}, #{y_max} #{x_min}, #{y_max} #{x_max}, #{y_min} #{x_max}, #{y_min} #{x_min}"
+  end
+
+  def to_s
+    @coordinates
+  end
+end
+
 def build_polygon(coordinates)
+  coordinates = coordinates.to_s
+
   # Avoid crossing the equator for test values in order to avoid projection error
   raise 'For test purposes, coordinates cannot be negative' if coordinates.include?('-')
 

@@ -28,7 +28,7 @@ module SpatialFeatures
     end
 
     def within_buffer(other, buffer_in_meters = 0, options = {})
-      if options[:cache] != false && other.is_a?(ActiveRecord::Base) # CACHED
+      if options[:cache] != false && other.is_a?(ActiveRecord::Base) # Cache only works on single records, not scopes
         return all.extending(UncachedRelation) unless class_for(other).spatial_cache_for?(self, buffer_in_meters) # Don't use the cache if it doesn't exist
 
         scope = cached_spatial_join(other).select("#{table_name}.*")
