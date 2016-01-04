@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    spatial_features (1.4.2)
+    spatial_features (1.4.3)
       delayed_job_active_record (~> 4.0.3)
       rails (~> 4.2, >= 4.2.0)
 
@@ -64,7 +64,7 @@ GEM
     mime-types (2.99)
     mini_portile2 (2.0.0)
     minitest (5.8.3)
-    nokogiri (1.6.7)
+    nokogiri (1.6.7.1)
       mini_portile2 (~> 2.0.0.rc2)
     pg (0.18.4)
     rack (1.6.4)

@@ -27,6 +27,10 @@ describe SpatialFeatures do
         expect(Shape.within_buffer(buffered_record, 0, options)).to be_a(ActiveRecord::Relation)
       end
 
+      it 'generates valid SQL and returns no records when the buffered record is new' do
+        expect(Shape.within_buffer(BufferedRecord.new, 0, options)).to be_empty
+      end
+
       context 'without a buffer' do
         it 'returns records that intersect spatially with the given record' do
           expect(Shape.within_buffer(buffered_record, 0, options)).to contain_exactly(shape)

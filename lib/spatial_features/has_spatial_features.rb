@@ -28,8 +28,13 @@ module SpatialFeatures
     end
 
     def within_buffer(other, buffer_in_meters = 0, options = {})
-      if options[:cache] != false && other.is_a?(ActiveRecord::Base) # Cache only works on single records, not scopes
-        return all.extending(UncachedRelation) unless class_for(other).spatial_cache_for?(self, buffer_in_meters) # Don't use the cache if it doesn't exist
+      return none if other.is_a?(ActiveRecord::Base) && other.new_record?
+
+      # Cache only works on single records, not scopes.
+      # This is because the cached intersection_area doesn't account for overlaps between the features in the scope.
+      if options[:cache] != false && other.is_a?(ActiveRecord::Base)
+        # Don't use the cache if it doesn't exist
+        return all.extending(UncachedRelation) unless class_for(other).spatial_cache_for?(self, buffer_in_meters)
 
         scope = cached_spatial_join(other).select("#{table_name}.*")
         scope = scope.where("spatial_proximities.distance_in_meters <= ?", buffer_in_meters) if buffer_in_meters
@@ -126,7 +131,11 @@ module SpatialFeatures
     end
 
     def ids_sql_for(other)
-      other.is_a?(ActiveRecord::Base) ? other.id : other.unscope(:select).select(:id).to_sql
+      if other.is_a?(ActiveRecord::Base)
+        other.id || '0'
+      else
+        other.unscope(:select).select(:id).to_sql
+      end
     end
   end
 
