@@ -127,12 +127,12 @@ module ArcGISKmzFeatures
 
     return nil
 
-  rescue SocketError, Errno::ECONNREFUSED => e
-    e.message.replace "ArcGIS Server is not responding. Ensure ArcGIS Server is running and accessible at #{[url.scheme, "//#{url.host}", url.port].select(&:present?).join(':')}."
-    raise e
-  rescue OpenURI::HTTPError => e
-    e.message.replace "ArcGIS Map Service not found. Ensure ArcGIS Server is running and accessible at #{url}."
-    raise e
+  rescue SocketError, Errno::ECONNREFUSED
+    raise UpdateError, "ArcGIS Server is not responding. Ensure ArcGIS Server is running and accessible at #{[url.scheme, "//#{url.host}", url.port].select(&:present?).join(':')}."
+  rescue OpenURI::HTTPError
+    raise UpdateError, "ArcGIS Map Service not found. Ensure ArcGIS Server is running and accessible at #{url}."
+  rescue => e
+    raise UpdateError, e.message
   end
 
   # Can be overridden to use PostGIS to force geometry to be valid
