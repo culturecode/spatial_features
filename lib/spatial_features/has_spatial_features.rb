@@ -1,7 +1,11 @@
 module SpatialFeatures
   module ActMethod
     def has_spatial_features(options = {})
-      has_many :features, :as => :spatial_model, :dependent => :delete_all
+      extend ClassMethods
+      include InstanceMethods
+
+      has_many :features, lambda { extending FeaturesAssociationExtensions }, :as => :spatial_model, :dependent => :delete_all
+
       scope :with_features, lambda { where(:id => Feature.select(:spatial_model_id).where(:spatial_model_type => name)) }
       scope :without_features, lambda { where.not(:id => Feature.select(:spatial_model_id).where(:spatial_model_type => name)) }
 
@@ -9,8 +13,9 @@ module SpatialFeatures
       has_many :model_a_spatial_proximities, :as => :model_a, :class_name => 'SpatialProximity', :dependent => :delete_all
       has_many :model_b_spatial_proximities, :as => :model_b, :class_name => 'SpatialProximity', :dependent => :delete_all
 
-      extend SpatialFeatures::ClassMethods
-      include SpatialFeatures::InstanceMethods
+      after_save :update_features_area, :if => :features_hash_changed? if has_features_area? && has_spatial_features_hash?
+
+      delegate :has_spatial_features_hash?, :has_features_area?, :to => self
     end
   end
 
@@ -81,7 +86,6 @@ module SpatialFeatures
       end
     end
 
-
     def features
       Feature.where(:spatial_model_type => self, :spatial_model_id => all)
     end
@@ -99,6 +103,16 @@ module SpatialFeatures
       joins %Q(INNER JOIN features "#{table_alias}"
                ON "#{table_alias}".spatial_model_type = '#{spatial_model_type}'
                AND "#{table_alias}".spatial_model_id IN (#{spatial_model_id}))
+    end
+
+    # Returns true if the model stores a hash of the features so we don't need to process the features if they haven't changed
+    def has_spatial_features_hash?
+      column_names.include? 'features_hash'
+    end
+
+    # Returns true if the model stores a cache of the features area
+    def has_features_area?
+      column_names.include? 'features_area'
     end
 
     private
@@ -165,17 +179,30 @@ module SpatialFeatures
       features.present?
     end
 
-    # Returns true if the model stores a hash of the features so we don't need to process the features if they haven't changed
-    def has_spatial_features_hash?
-      respond_to?(:features_hash)
-    end
-
     def covers?(other)
       self.class.covering(other).exists?(self)
     end
 
     def intersects?(other)
       self.class.intersecting(other).exists?(self)
+    end
+
+    def total_intersection_area_in_hectares(klass)
+      Formatters::HECTARES.call(total_intersection_area_in_square_meters(klass))
+    end
+
+    def total_intersection_area_percentage(klass)
+      return 0.0 unless features_area_in_square_meters > 0
+
+      ((total_intersection_area_in_square_meters(klass) / features_area_in_square_meters) * 100).round(1)
+    end
+
+    def features_area_in_hectares
+      Formatters::HECTARES.call(features_area_in_square_meters)
+    end
+
+    def features_area_in_square_meters
+      @features_area_in_square_meters ||= features.area
     end
 
     def total_intersection_area_in_square_meters(klass, options = {})
@@ -189,22 +216,14 @@ module SpatialFeatures
         .try(:intersection_area_in_square_meters) || 0
     end
 
-    def total_intersection_area_in_hectares(klass)
-      Formatters::HECTARES.call(total_intersection_area_in_square_meters(klass))
+    def update_features_area
+      update_column :features_area, features.area
     end
+  end
 
-    def total_intersection_area_percentage(klass)
-      return 0.0 unless features_area_in_square_meters > 0
-
-      ((total_intersection_area_in_square_meters(klass) / features_area_in_square_meters) * 100).round(1)
-    end
-
-    def features_area_in_square_meters
-      @features_area_in_square_meters ||= features.sum('features.area')
-    end
-
-    def features_area_in_hectares
-      Formatters::HECTARES.call(features_area_in_square_meters)
+  module FeaturesAssociationExtensions
+    def area(options = {})
+      options[:cache] == false ? connection.select_value(all.select('ST_Area(ST_UNION(geom))')).to_f : proxy_association.owner.features_area
     end
   end
 end

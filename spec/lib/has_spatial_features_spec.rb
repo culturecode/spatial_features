@@ -169,16 +169,35 @@ describe SpatialFeatures do
       end
     end
 
+    shared_examples_for 'calculating the area of a record' do
+      it 'returns the correct value for a single feature' do
+        record = create_record_with_polygon(Shape, Rectangle.new(1, 1))
+        expect(record.features.area(options)).to be_within(TOLERANCE).of(1)
+      end
+
+      it 'returns the correct value for a multiple non-overlapping features' do
+        record = create_record_with_polygon(Shape, Rectangle.new(1, 1), Rectangle.new(1, 1, :x => 2))
+        expect(record.features.area(options)).to be_within(TOLERANCE).of(2)
+      end
+
+      it 'returns the correct value for a multiple overlapping features' do
+        record = create_record_with_polygon(Shape, Rectangle.new(1, 1), Rectangle.new(1, 1, :x => 0.5))
+        expect(record.features.area(options)).to be_within(TOLERANCE).of(1.5)
+      end
+    end
+
     with_options :cache => false do
       it_behaves_like 'buffering a record with a single feature'
       it_behaves_like 'buffering a record with overlapping features'
       it_behaves_like 'buffering a scope with overlapping features'
+      it_behaves_like 'calculating the area of a record'
     end
 
     with_options :cache => true do
       it_behaves_like 'buffering a record with a single feature'
       it_behaves_like 'buffering a record with overlapping features'
       it_behaves_like 'buffering a scope with overlapping features'
+      it_behaves_like 'calculating the area of a record'
     end
   end
 
