@@ -45,7 +45,7 @@ class Feature < ActiveRecord::Base
   end
 
   def self.cache_derivatives(options = {})
-    options.reverse_merge! :lowres_simplification => 0.0001, :lowres_precision => 5
+    options.reverse_merge! :lowres_simplification => 0.00001, :lowres_precision => 5
 
     update_all("area        = ST_Area(geog),
                 geom        = ST_Transform(geog::geometry, 26910),
