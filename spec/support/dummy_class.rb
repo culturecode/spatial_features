@@ -7,6 +7,8 @@ class CreateDummyTable < ActiveRecord::Migration
       column_names.each do |name|
         t.column name, :string
       end
+      t.column :features_hash, :string
+      t.column :features_area, :decimal
     end
   end
 end
