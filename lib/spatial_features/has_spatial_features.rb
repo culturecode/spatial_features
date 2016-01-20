@@ -217,13 +217,17 @@ module SpatialFeatures
     end
 
     def update_features_area
-      update_column :features_area, features.area
+      update_column :features_area, features.area(:cache => false)
     end
   end
 
   module FeaturesAssociationExtensions
     def area(options = {})
-      options[:cache] == false ? connection.select_value(all.select('ST_Area(ST_UNION(geom))')).to_f : proxy_association.owner.features_area
+      if options[:cache] == false
+        connection.select_value(all.select('ST_Area(ST_UNION(geom))')).try(:to_f)
+      else
+        proxy_association.owner.features_area
+      end
     end
   end
 end
