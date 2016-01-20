@@ -187,18 +187,10 @@ module SpatialFeatures
       self.class.intersecting(other).exists?(self)
     end
 
-    def total_intersection_area_in_hectares(klass)
-      Formatters::HECTARES.call(total_intersection_area_in_square_meters(klass))
-    end
-
     def total_intersection_area_percentage(klass)
       return 0.0 unless features_area_in_square_meters > 0
 
       ((total_intersection_area_in_square_meters(klass) / features_area_in_square_meters) * 100).round(1)
-    end
-
-    def features_area_in_hectares
-      Formatters::HECTARES.call(features_area_in_square_meters)
     end
 
     def features_area_in_square_meters
