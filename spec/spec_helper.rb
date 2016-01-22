@@ -35,7 +35,7 @@ ActiveRecord::Schema.define(:version => 0) do
     t.string :intersection_model_type
     t.decimal :intersection_cache_distance
     t.string :features_hash
-    t.timestamps
+    t.timestamps :null => false
   end
 
   create_table :spatial_proximities, :force => true do |t|
