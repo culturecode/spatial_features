@@ -8,6 +8,9 @@ Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each { |f| require f }
 
 ActiveRecord::Base.establish_connection(:adapter => "postgresql", :database => "spatial_features_test")
 
+# Load OID initializer
+Dir["#{File.dirname(__FILE__)}/../config/initializers/**/*.rb"].each { |f| require f }
+
 ActiveRecord::Schema.define(:version => 0) do
   execute("
     CREATE EXTENSION IF NOT EXISTS hstore SCHEMA public;
