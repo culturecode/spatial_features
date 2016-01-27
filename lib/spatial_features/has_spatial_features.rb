@@ -39,7 +39,7 @@ module SpatialFeatures
       # This is because the cached intersection_area doesn't account for overlaps between the features in the scope.
       if options[:cache] != false && other.is_a?(ActiveRecord::Base)
         # Don't use the cache if it doesn't exist
-        return all.extending(UncachedRelation) unless class_for(other).spatial_cache_for?(self, buffer_in_meters)
+        return all.extending(UncachedRelation) unless other.spatial_cache_for?(class_for(self), buffer_in_meters)
 
         scope = cached_spatial_join(other).select("#{table_name}.*")
         scope = scope.where("spatial_proximities.distance_in_meters <= ?", buffer_in_meters) if buffer_in_meters
@@ -72,18 +72,6 @@ module SpatialFeatures
 
     def points
       features.points
-    end
-
-    def spatial_cache_for?(other, buffer_in_meters)
-      if cache = spatial_cache_for(other)
-        return cache.intersection_cache_distance.nil? if buffer_in_meters.nil? # cache must be total if no buffer_in_meters
-        return false if cache.stale? # cache must be for current features
-        return true if cache.intersection_cache_distance.nil? # always good if cache is total
-
-        return buffer_in_meters <= cache.intersection_cache_distance
-      else
-        return false
-      end
     end
 
     def features
@@ -126,10 +114,6 @@ module SpatialFeatures
       self_column = other_column == :model_a ? :model_b : :model_a
 
       joins("INNER JOIN spatial_proximities ON spatial_proximities.#{self_column}_type = '#{self}' AND spatial_proximities.#{self_column}_id = #{table_name}.id AND spatial_proximities.#{other_column}_type = '#{other_class}' AND spatial_proximities.#{other_column}_id IN (#{ids_sql_for(other)})")
-    end
-
-    def spatial_cache_for(other)
-      SpatialCache.where(:spatial_model_type => self, :intersection_model_type => class_for(other)).first
     end
 
     # Returns the class for the given, class, scope, or record
@@ -206,6 +190,22 @@ module SpatialFeatures
         .group("#{self.class.table_name}.id")
         .first
         .try(:intersection_area_in_square_meters) || 0
+    end
+
+    def spatial_cache_for?(klass, buffer_in_meters)
+      if cache = spatial_cache_for(klass)
+        return cache.intersection_cache_distance.nil? if buffer_in_meters.nil? # cache must be total if no buffer_in_meters
+        return false if cache.stale? # cache must be for current features
+        return true if cache.intersection_cache_distance.nil? # always good if cache is total
+
+        return buffer_in_meters <= cache.intersection_cache_distance
+      else
+        return false
+      end
+    end
+
+    def spatial_cache_for(klass)
+      spatial_cache.where(:intersection_model_type => klass).first
     end
 
     def update_features_area
