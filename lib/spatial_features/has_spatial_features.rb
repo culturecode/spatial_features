@@ -6,8 +6,8 @@ module SpatialFeatures
 
       has_many :features, lambda { extending FeaturesAssociationExtensions }, :as => :spatial_model, :dependent => :delete_all
 
-      scope :with_features, lambda { where(:id => Feature.select(:spatial_model_id).where(:spatial_model_type => name)) }
-      scope :without_features, lambda { where.not(:id => Feature.select(:spatial_model_id).where(:spatial_model_type => name)) }
+      scope :with_features, lambda { joins(:features).uniq }
+      scope :without_features, lambda { joins("LEFT OUTER JOIN features ON features.spatial_model_type = '#{name}' AND features.spatial_model_id = #{table_name}.id").where("features.id IS NULL") }
 
       has_many :spatial_cache, :as => :spatial_model, :dependent => :delete_all
       has_many :model_a_spatial_proximities, :as => :model_a, :class_name => 'SpatialProximity', :dependent => :delete_all
