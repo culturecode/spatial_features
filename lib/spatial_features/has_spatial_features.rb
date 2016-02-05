@@ -215,7 +215,7 @@ module SpatialFeatures
 
   module FeaturesAssociationExtensions
     def area(options = {})
-      if options[:cache] == false
+      if options[:cache] == false || !proxy_association.owner.class.has_features_area?
         connection.select_value(all.select('ST_Area(ST_UNION(geom))')).try(:to_f)
       else
         proxy_association.owner.features_area
