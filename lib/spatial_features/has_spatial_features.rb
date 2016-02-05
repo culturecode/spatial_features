@@ -75,7 +75,7 @@ module SpatialFeatures
     end
 
     def features
-      Feature.where(:spatial_model_type => self)
+      Feature.where(:spatial_model_type => self, :spatial_model_id => all)
     end
 
     # Returns a scope that includes the features for this record as the table_alias and the features for other as #{table_alias}_other
