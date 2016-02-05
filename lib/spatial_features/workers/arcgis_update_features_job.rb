@@ -43,7 +43,7 @@ class ArcGISUpdateFeaturesJob < Struct.new(:options)
   COORDINATE_REGEX = /<LinearRing><coordinates>\s*((?:#{NUMBER_REGEX},#{NUMBER_REGEX},#{NUMBER_REGEX}\s*)+)<\/coordinates><\/LinearRing>/
   def invalid_kml_reason(message)
     message.scan(COORDINATE_REGEX).collect do |match|
-      coords = match[0].split(/(?:,0\.0+)?\s+/).chunk {|c| c }.map(&:first)
+      coords = match[0].remove(/,0\.0+/).split(/\s+/).chunk {|c| c }.map(&:first)
 
       "Sliver polygon detected at #{coords.first}" if coords.length < 4
     end.compact
