@@ -24,8 +24,8 @@ module SpatialFeatures
     # NOTE: features are never updated, only deleted and created, therefore we can
     # tell if they have changed by finding the maximum id and count instead of needing timestamps
     def features_cache_key
-      max_id, count = features.pluck("MAX(id), COUNT(*)").first
-      "#{name}/#{max_id}-#{count}"
+      # Do two separate queries because it is much faster for some reason
+      "#{name}/#{features.maximum(:id)}-#{features.count}"
     end
 
     def intersecting(other, options = {})
