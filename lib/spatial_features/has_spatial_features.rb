@@ -189,15 +189,14 @@ module SpatialFeatures
       @features_area_in_square_meters ||= features.area
     end
 
-    def total_intersection_area_in_square_meters(klass, options = {})
-      self.class
-        .select(%Q(ST_Area(ST_Intersection(ST_Union(features_for.geog_lowres::geometry), ST_Union(features_for_other.geog_lowres::geometry))::geography) AS intersection_area_in_square_meters))
-        .joins_features_for(klass)
-        .where(:id => self.id)
-        .where('ST_DWithin(features_for.geog_lowres, features_for_other.geog_lowres, 0)')
-        .group("#{self.class.table_name}.id")
-        .first
-        .try(:intersection_area_in_square_meters) || 0
+    def total_intersection_area_in_square_meters(other)
+      scope = self.class.where(:id => self.id)
+                .joins_features_for(other)
+                .where('ST_DWithin(features_for.geog_lowres, features_for_other.geog_lowres, 0)')
+                .select('ST_Area(ST_Intersection(ST_Union(features_for.geog_lowres::geometry), ST_Union(features_for_other.geog_lowres::geometry))::geography) AS intersection_area_in_square_meters')
+                .reorder(nil) # Avoid default scopes that order on columns that aren't present
+
+      self.class.connection.select_value(scope).to_f
     end
 
     def spatial_cache_for?(klass, buffer_in_meters)
