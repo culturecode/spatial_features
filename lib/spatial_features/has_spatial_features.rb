@@ -107,6 +107,10 @@ module SpatialFeatures
       column_names.include? 'features_area'
     end
 
+    def area_in_square_meters
+      features.area_in_square_meters
+    end
+
     private
 
     def cached_spatial_join(other)
