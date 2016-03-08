@@ -49,10 +49,10 @@ module SpatialFeatures
         scope = scope.select("spatial_proximities.intersection_area_in_square_meters") if options[:intersection_area]
       else # NON-CACHED
         scope = joins_features_for(other).select("#{table_name}.*").group("#{table_name}.#{primary_key}")
-        scope = scope.where('ST_Intersects(features_for.geom, features_for_other.geom)') if buffer_in_meters == 0 # Optimize the 0 buffer case, ST_DWithin was slower in testing
-        scope = scope.where('ST_DWithin(features_for.geom, features_for_other.geom, ?)', buffer_in_meters) if buffer_in_meters.to_f > 0
-        scope = scope.select("MIN(ST_Distance(features_for.geom, features_for_other.geom)) AS distance_in_meters") if options[:distance]
-        scope = scope.select("ST_Area(ST_Intersection(ST_UNION(features_for.geom), ST_UNION(features_for_other.geom))) AS intersection_area_in_square_meters") if options[:intersection_area]
+        scope = scope.where('ST_Intersects(features.geom, features_for_other.geom)') if buffer_in_meters == 0 # Optimize the 0 buffer case, ST_DWithin was slower in testing
+        scope = scope.where('ST_DWithin(features.geom, features_for_other.geom, ?)', buffer_in_meters) if buffer_in_meters.to_f > 0
+        scope = scope.select("MIN(ST_Distance(features.geom, features_for_other.geom)) AS distance_in_meters") if options[:distance]
+        scope = scope.select("ST_Area(ST_Intersection(ST_UNION(features.geom), ST_UNION(features_for_other.geom))) AS intersection_area_in_square_meters") if options[:intersection_area]
       end
 
       return scope
@@ -60,7 +60,7 @@ module SpatialFeatures
 
     def covering(other)
       scope = joins_features_for(other).select("#{table_name}.*").group("#{table_name}.#{primary_key}")
-      scope = scope.where('ST_Covers(features_for.geom, features_for_other.geom)')
+      scope = scope.where('ST_Covers(features.geom, features_for_other.geom)')
 
       return scope
     end
@@ -88,16 +88,13 @@ module SpatialFeatures
     # Returns a scope that includes the features for this record as the table_alias and the features for other as #{table_alias}_other
     # Can be used to perform spatial calculations on the relationship between the two sets of features
     def joins_features_for(other, table_alias = 'features_for')
-      joins_features(table_alias)
-        .joins_features("#{table_alias}_other", class_for(other), spatial_model_id = ids_sql_for(other))
+      joins(:features).joins(%Q(INNER JOIN (#{other_features_union(other).to_sql}) AS "#{table_alias}_other" ON 1=1))
     end
 
-    # Returns a scope that includes the features for this record as the table_alias
-    # Default arguments can be overridden to include features for a different set of records
-    def joins_features(table_alias = 'features_for', spatial_model_type = name, spatial_model_id = "#{table_name}.id")
-      joins %Q(INNER JOIN features "#{table_alias}"
-               ON "#{table_alias}".spatial_model_type = '#{spatial_model_type}'
-               AND "#{table_alias}".spatial_model_id IN (#{spatial_model_id}))
+    def other_features_union(other)
+      scope = Feature.select('ST_Union(geom) AS geom').where(:spatial_model_type => class_for(other))
+      scope = scope.where(:spatial_model_id => other) unless class_for(other) == other
+      return scope
     end
 
     # Returns true if the model stores a hash of the features so we don't need to process the features if they haven't changed
