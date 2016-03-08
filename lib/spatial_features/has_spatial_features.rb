@@ -9,6 +9,8 @@ module SpatialFeatures
       scope :with_features, lambda { joins(:features).uniq }
       scope :without_features, lambda { joins("LEFT OUTER JOIN features ON features.spatial_model_type = '#{name}' AND features.spatial_model_id = #{table_name}.id").where("features.id IS NULL") }
 
+      scope :with_stale_spatial_cache, lambda { joins(:spatial_cache).where("#{table_name}.features_hash != spatial_caches.features_hash").uniq } if has_spatial_features_hash?
+
       has_many :spatial_cache, :as => :spatial_model, :dependent => :delete_all
       has_many :model_a_spatial_proximities, :as => :model_a, :class_name => 'SpatialProximity', :dependent => :delete_all
       has_many :model_b_spatial_proximities, :as => :model_b, :class_name => 'SpatialProximity', :dependent => :delete_all
