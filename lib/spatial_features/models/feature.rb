@@ -32,6 +32,14 @@ class Feature < ActiveRecord::Base
     unscoped { connection.select_value(select('ST_Area(ST_Union(geom))').from(current_scope, :features)).to_f }
   end
 
+  def self.total_intersection_area_in_square_meters(other)
+    scope = join_other_features(other)
+      .where('ST_DWithin(features.geog_lowres, other_features.geog_lowres, 0)')
+      .select('ST_Area(ST_Intersection(ST_Union(features.geog_lowres::geometry), ST_Union(other_features.geog_lowres::geometry))::geography) AS intersection_area_in_square_meters')
+
+    connection.select_value(scope).to_f
+  end
+
   def self.invalid
     select('features.*, ST_IsValidReason(geog::geometry) AS invalid_geometry_message').where.not('ST_IsValid(geog::geometry)')
   end
@@ -70,6 +78,10 @@ class Feature < ActiveRecord::Base
   end
 
   private
+
+  def self.join_other_features(other)
+    joins('INNER JOIN features AS other_features ON true').where(:other_features => {:id => other})
+  end
 
   def geometry_is_valid
     if geog?
