@@ -34,7 +34,7 @@ class Feature < ActiveRecord::Base
 
   def self.total_intersection_area_in_square_meters(other)
     scope = join_other_features(other)
-      .where('ST_DWithin(features.geog_lowres, other_features.geog_lowres, 0)')
+      .where('ST_Intersects(features.geog_lowres, other_features.geog_lowres)')
       .select('ST_Area(ST_Intersection(ST_Union(features.geog_lowres::geometry), ST_Union(other_features.geog_lowres::geometry))::geography) AS intersection_area_in_square_meters')
 
     connection.select_value(scope).to_f
