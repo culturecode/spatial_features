@@ -76,7 +76,7 @@ module SpatialFeatures
     # Returns a scope that includes the features for this record as the table_alias and the features for other as #{table_alias}_other
     # Can be used to perform spatial calculations on the relationship between the two sets of features
     def joins_features_for(other, table_alias = 'features_for')
-      joins(:features).joins(%Q(INNER JOIN (#{other_features_union(other).to_sql}) AS "#{table_alias}_other" ON 1=1))
+      joins(:features).joins(%Q(INNER JOIN (#{other_features_union(other).to_sql}) AS "#{table_alias}_other" ON true))
     end
 
     def other_features_union(other)
