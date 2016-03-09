@@ -40,22 +40,10 @@ module SpatialFeatures
       # Cache only works on single records, not scopes.
       # This is because the cached intersection_area doesn't account for overlaps between the features in the scope.
       if options[:cache] != false && other.is_a?(ActiveRecord::Base)
-        # Don't use the cache if it doesn't exist
-        return all.extending(UncachedRelation) unless other.spatial_cache_for?(class_for(self), buffer_in_meters)
-
-        scope = cached_spatial_join(other).select("#{table_name}.*")
-        scope = scope.where("spatial_proximities.distance_in_meters <= ?", buffer_in_meters) if buffer_in_meters
-        scope = scope.select("spatial_proximities.distance_in_meters") if options[:distance]
-        scope = scope.select("spatial_proximities.intersection_area_in_square_meters") if options[:intersection_area]
-      else # NON-CACHED
-        scope = joins_features_for(other).distinct.select("#{table_name}.*")
-        scope = scope.where('ST_Intersects(features.geom, features_for_other.geom)') if buffer_in_meters == 0 # Optimize the 0 buffer case, ST_DWithin was slower in testing
-        scope = scope.where('ST_DWithin(features.geom, features_for_other.geom, ?)', buffer_in_meters) if buffer_in_meters.to_f > 0
-        scope = scope.select("MIN(ST_Distance(features.geom, features_for_other.geom)) AS distance_in_meters") if options[:distance]
-        scope = scope.select("ST_Area(ST_Intersection(ST_UNION(features.geom), ST_UNION(features_for_other.geom))) AS intersection_area_in_square_meters") if options[:intersection_area]
+        cached_within_buffer_scope(other, buffer_in_meters, options)
+      else
+        uncached_within_buffer_scope(other, buffer_in_meters, options)
       end
-
-      return scope
     end
 
     def covering(other)
@@ -112,6 +100,34 @@ module SpatialFeatures
     end
 
     private
+
+    def cached_within_buffer_scope(other, buffer_in_meters, options)
+      # Don't use the cache if it doesn't exist
+      return all.extending(UncachedRelation) unless other.spatial_cache_for?(class_for(self), buffer_in_meters)
+
+      scope = cached_spatial_join(other).select("#{table_name}.*")
+      scope = scope.where("spatial_proximities.distance_in_meters <= ?", buffer_in_meters) if buffer_in_meters
+      scope = scope.select("spatial_proximities.distance_in_meters") if options[:distance]
+      scope = scope.select("spatial_proximities.intersection_area_in_square_meters") if options[:intersection_area]
+      return scope
+    end
+
+    def uncached_within_buffer_scope(other, buffer_in_meters, options)
+      scope = joins_features_for(other).select("#{table_name}.*")
+      scope = scope.where('ST_Intersects(features.geom, features_for_other.geom)') if buffer_in_meters == 0 # Optimize the 0 buffer case, ST_DWithin was slower in testing
+      scope = scope.where('ST_DWithin(features.geom, features_for_other.geom, ?)', buffer_in_meters) if buffer_in_meters.to_f > 0
+
+      # Ensure records with multiple features don't appear multiple times
+      if options[:distance] || options[:intersection_area]
+        scope = scope.group("#{table_name}.#{primary_key}") # Aggregate functions require grouping
+      else
+        scope = scope.distinct
+      end
+
+      scope = scope.select("MIN(ST_Distance(features.geom, features_for_other.geom)) AS distance_in_meters") if options[:distance]
+      scope = scope.select("ST_Area(ST_Intersection(ST_UNION(features.geom), ST_UNION(features_for_other.geom))) AS intersection_area_in_square_meters") if options[:intersection_area]
+      return scope
+    end
 
     def cached_spatial_join(other)
       other_class = class_for(other)

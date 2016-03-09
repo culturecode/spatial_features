@@ -186,11 +186,16 @@ describe SpatialFeatures do
       end
     end
 
+    shared_examples_for 'counting records' do
+      it 'returns the correct count'
+    end
+
     with_options :cache => false do
       it_behaves_like 'buffering a record with a single feature'
       it_behaves_like 'buffering a record with overlapping features'
       it_behaves_like 'buffering a scope with overlapping features'
       it_behaves_like 'calculating the area of a record'
+      it_behaves_like 'counting records'
     end
 
     with_options :cache => true do
@@ -198,6 +203,7 @@ describe SpatialFeatures do
       it_behaves_like 'buffering a record with overlapping features'
       it_behaves_like 'buffering a scope with overlapping features'
       it_behaves_like 'calculating the area of a record'
+      it_behaves_like 'counting records'
     end
   end
 
