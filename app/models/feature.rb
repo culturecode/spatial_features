@@ -69,6 +69,17 @@ class Feature < ActiveRecord::Base
                 .squish)
   end
 
+  def feature_bounds
+    bounds = <<-SQL
+      ST_XMax(ST_Transform (geom, 4326)) AS e,
+      ST_YMax(ST_Transform (geom, 4326)) AS n,
+      ST_XMin(ST_Transform (geom, 4326)) AS w,
+      ST_YMin(ST_Transform (geom, 4326)) AS s
+    SQL
+
+    return Feature.connection.select_one(Feature.where(id: id).select(bounds))
+  end
+
   def cache_derivatives(*args)
     self.class.where(:id => self.id).cache_derivatives(*args)
   end
