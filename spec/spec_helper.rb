@@ -6,6 +6,9 @@ require 'spatial_features'
 # Load support files
 Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each { |f| require f }
 
+# Load app files
+Dir["#{File.dirname(__FILE__)}/../app/**/*.rb"].each { |f| require f }
+
 ActiveRecord::Base.establish_connection(:adapter => "postgresql", :database => "spatial_features_test")
 
 # Load OID initializer
@@ -28,6 +31,10 @@ ActiveRecord::Schema.define(:version => 0) do
     t.column :geom, 'geometry(Geometry,26910)'
     t.text :kml
     t.text :kml_lowres
+    t.decimal :north
+    t.decimal :east
+    t.decimal :south
+    t.decimal :west
   end
 
   create_table :spatial_caches, :force => true do |t|

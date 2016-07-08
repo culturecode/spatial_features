@@ -65,8 +65,16 @@ class Feature < ActiveRecord::Base
                 geog_lowres = ST_SimplifyPreserveTopology(geog::geometry, #{options[:lowres_simplification]})"
                 .squish)
     update_all("kml         = ST_AsKML(features.geog, 6),
-                kml_lowres  = ST_AsKML(geog_lowres::geometry, #{options[:lowres_precision]})"
+                kml_lowres  = ST_AsKML(geog_lowres::geometry, #{options[:lowres_precision]}),
+                north       = ST_YMax(ST_Transform (geom, 4326)),
+                east        = ST_XMax(ST_Transform (geom, 4326)),
+                south       = ST_YMin(ST_Transform (geom, 4326)),
+                west        = ST_XMin(ST_Transform (geom, 4326))"
                 .squish)
+  end
+
+  def feature_bounds
+    {n: north, e: east, s: south, w: west}
   end
 
   def cache_derivatives(*args)
