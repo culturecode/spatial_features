@@ -7,10 +7,6 @@ require 'spatial_features/import/arcgis_kmz_features'
 
 require 'spatial_features/controller_helpers/spatial_extensions'
 
-require 'spatial_features/models/feature'
-require 'spatial_features/models/spatial_cache'
-require 'spatial_features/models/spatial_proximity'
-
 require 'spatial_features/workers/arcgis_update_features_job'
 
 require 'spatial_features/engine'

@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe SpatialFeatures do
+describe Feature do
   describe "::within_buffer" do
     TOLERANCE = 0.000001 # Because calculations are performed using projected geometry, there will be a slight inaccuracy
     BufferedRecord = new_dummy_class
@@ -205,13 +205,5 @@ describe SpatialFeatures do
       it_behaves_like 'calculating the area of a record'
       it_behaves_like 'counting records'
     end
-  end
-
-  describe 'caching' do
-    it 'is equivalent to cache all records using cache_record_proximity or cache_proximity'
-  end
-
-  describe '::with_stale_spatial_cache' do
-    it 'returns records whose features have been updated without updating the corresponding spatial cache'
   end
 end
