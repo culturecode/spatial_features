@@ -66,10 +66,10 @@ class Feature < ActiveRecord::Base
                 .squish)
     update_all("kml         = ST_AsKML(features.geog, 6),
                 kml_lowres  = ST_AsKML(geog_lowres::geometry, #{options[:lowres_precision]}),
-                north       = ST_YMax(ST_Transform (geom, 4326)),
-                east        = ST_XMax(ST_Transform (geom, 4326)),
-                south       = ST_YMin(ST_Transform (geom, 4326)),
-                west        = ST_XMin(ST_Transform (geom, 4326))"
+                north       = ST_YMax(geog::geometry),
+                east        = ST_XMax(geog::geometry),
+                south       = ST_YMin(geog::geometry),
+                west        = ST_XMin(geog::geometry)"
                 .squish)
   end
 
