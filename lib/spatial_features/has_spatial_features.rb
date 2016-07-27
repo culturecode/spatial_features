@@ -206,7 +206,8 @@ module SpatialFeatures
     end
 
     def total_intersection_area_in_square_meters(other)
-      features.total_intersection_area_in_square_meters(other.features)
+      other = other.intersecting(self) unless other.is_a?(ActiveRecord::Base)
+      return features.total_intersection_area_in_square_meters(other.features)
     end
 
     def spatial_cache_for?(klass, buffer_in_meters)
