@@ -31,13 +31,15 @@ def build_polygon(coordinates)
   # Avoid crossing the equator for test values in order to avoid projection error
   raise 'For test purposes, coordinates cannot be negative' if coordinates.include?('-')
 
-  geom_projection_offset_lng = 1
-  geom_projection_offset_lat = 1
+  # Offset to be within NAD83 boundary
+  geom_projection_offset_easting = 497042
+  geom_projection_offset_northing = 6155650
+
   coordinates = coordinates.split(/\s*,\s*/).collect do |pair|
-    lng, lat = pair.split
-    lng = lng.to_f + geom_projection_offset_lng
-    lat = lat.to_f + geom_projection_offset_lat
-    "#{lng} #{lat}"
+    easting, northing = pair.split
+    easting = easting.to_f + geom_projection_offset_easting
+    northing = northing.to_f + geom_projection_offset_northing
+    "#{easting} #{northing}"
   end.join(',')
 
   geog = Feature.connection.select_value("
