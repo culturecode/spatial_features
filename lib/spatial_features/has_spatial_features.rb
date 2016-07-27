@@ -69,7 +69,7 @@ module SpatialFeatures
       if all == unscoped
         Feature.where(:spatial_model_type => self)
       else
-        Feature.where(:spatial_model_type => self, :spatial_model_id => all)
+        Feature.where(:spatial_model_type => self, :spatial_model_id => all.unscope(:select))
       end
     end
 
