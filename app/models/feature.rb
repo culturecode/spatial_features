@@ -61,7 +61,7 @@ class Feature < ActiveRecord::Base
     options.reverse_merge! :lowres_simplification => 0.00001, :lowres_precision => 5
 
     update_all("area        = ST_Area(geog),
-                geom        = ST_Transform(geog::geometry, 26910),
+                geom        = ST_Transform(geog::geometry, #{detect_srid('geom')}),
                 geog_lowres = ST_SimplifyPreserveTopology(geog::geometry, #{options[:lowres_simplification]})"
                 .squish)
     update_all("kml         = ST_AsKML(features.geog, 6),
@@ -86,6 +86,10 @@ class Feature < ActiveRecord::Base
   end
 
   private
+
+  def self.detect_srid(column_name)
+    connection.select_value("SELECT Find_SRID('public', '#{table_name}', '#{column_name}')")
+  end
 
   def self.join_other_features(other)
     joins('INNER JOIN features AS other_features ON true').where(:other_features => {:id => other})
