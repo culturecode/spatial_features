@@ -66,7 +66,7 @@ module SpatialFeatures
     end
 
     def features
-      if all == unscoped.all
+      if all == unscoped
         Feature.where(:spatial_model_type => self)
       else
         Feature.where(:spatial_model_type => self, :spatial_model_id => all)
