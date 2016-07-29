@@ -2,6 +2,14 @@ module SpatialFeatures
   mattr_accessor :default_cache_buffer_in_meters
   self.default_cache_buffer_in_meters = 100
 
+  def self.update_spatial_cache(scope)
+    scope.with_stale_spatial_cache.includes(:spatial_cache).find_each do |record|
+      record.spatial_cache.each do |spatial_cache|
+        cache_record_proximity(record, spatial_cache.intersection_model_type) if spatial_cache.stale?
+      end
+    end
+  end
+
   # Create or update the spatial cache of a spatial class in relation to another
   # NOTE: Arguments are order independent, so their names do not reflect the _a _b
   # naming scheme used in other cache methods
@@ -41,13 +49,14 @@ module SpatialFeatures
   end
 
   def self.clear_record_cache(record, klass)
-    record.spatial_cache.where(:intersection_model_type => klass.name).delete_all
-    SpatialProximity.where(:model_a_type => record.class.name, :model_a_id => record.id, :model_b_type => klass.name).delete_all
-    SpatialProximity.where(:model_b_type => record.class.name, :model_b_id => record.id, :model_a_type => klass.name).delete_all
+    record.spatial_cache.where(:intersection_model_type => klass).delete_all
+    SpatialProximity.where(:model_a_type => record.class, :model_a_id => record.id, :model_b_type => klass).delete_all
+    SpatialProximity.where(:model_b_type => record.class, :model_b_id => record.id, :model_a_type => klass).delete_all
   end
 
   def self.create_spatial_proximities(record, klass)
-    record_is_a = record.class.name < klass.name
+    klass = klass.to_s.constantize
+    record_is_a = record.class.to_s < klass.to_s
 
     scope = klass.within_buffer(record, default_cache_buffer_in_meters, :intersection_area => true, :distance => true, :cache => false)
     scope.find_each do |klass_record|
@@ -63,7 +72,7 @@ module SpatialFeatures
   def self.create_spatial_cache(model, klass)
     SpatialCache.create! do |cache|
       cache.spatial_model               = model
-      cache.intersection_model_type     = klass.name
+      cache.intersection_model_type     = klass
       cache.intersection_cache_distance = default_cache_buffer_in_meters
       cache.features_hash               = model.features_hash if model.has_spatial_features_hash?
     end
