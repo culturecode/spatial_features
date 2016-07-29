@@ -42,7 +42,7 @@ class Feature < ActiveRecord::Base
   end
 
   def self.intersecting(other)
-    join_other_features(other).where('ST_Intersects(features.geog_lowres, other_features.geog_lowres)').uniq
+    join_other_features(other).where('ST_Intersects(features.geom_lowres, other_features.geom_lowres)').uniq
   end
 
   def self.invalid
@@ -63,19 +63,25 @@ class Feature < ActiveRecord::Base
   end
 
   def self.cache_derivatives(options = {})
-    options.reverse_merge! :lowres_simplification => 0.00001, :lowres_precision => 5
+    options.reverse_merge! :lowres_simplification => 2, :lowres_precision => 5
 
-    update_all("area        = ST_Area(geog),
-                geom        = ST_Transform(geog::geometry, #{detect_srid('geom')}),
-                geog_lowres = ST_SimplifyPreserveTopology(geog::geometry, #{options[:lowres_simplification]})"
-                .squish)
-    update_all("kml         = ST_AsKML(features.geog, 6),
-                kml_lowres  = ST_AsKML(geog_lowres::geometry, #{options[:lowres_precision]}),
-                north       = ST_YMax(geog::geometry),
-                east        = ST_XMax(geog::geometry),
-                south       = ST_YMin(geog::geometry),
-                west        = ST_XMin(geog::geometry)"
-                .squish)
+    update_all <<-SQL.squish
+      geom        = ST_Transform(geog::geometry, #{detect_srid('geom')}),
+      north       = ST_YMax(geog::geometry),
+      east        = ST_XMax(geog::geometry),
+      south       = ST_YMin(geog::geometry),
+      west        = ST_XMin(geog::geometry),
+      area        = ST_Area(geog)
+    SQL
+
+    update_all <<-SQL.squish
+      geom_lowres = ST_SimplifyPreserveTopology(geom, #{options[:lowres_simplification]})
+    SQL
+
+    update_all <<-SQL.squish
+      kml         = ST_AsKML(geog, 6),
+      kml_lowres  = ST_AsKML(geom_lowres, #{options[:lowres_precision]})
+    SQL
   end
 
   def feature_bounds
