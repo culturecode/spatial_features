@@ -3,7 +3,7 @@ module SpatialFeatures
   self.default_cache_buffer_in_meters = 100
 
   def self.update_proximity(*klasses)
-    klasses.combination(2).each do |klass, clazz|
+    klasses.permutation(2).each do |klass, clazz|
       klass.without_spatial_cache(clazz).find_each do |record|
         cache_record_proximity(record, clazz)
       end
