@@ -27,8 +27,8 @@ ActiveRecord::Schema.define(:version => 0) do
     t.hstore :metadata
     t.decimal :area
     t.column :geog, :geography
-    t.column :geog_lowres, 'geography(Geometry,4326)'
     t.column :geom, 'geometry(Geometry,26910)'
+    t.column :geom_lowres, 'geometry(Geometry,26910)'
     t.text :kml
     t.text :kml_lowres
     t.decimal :north
