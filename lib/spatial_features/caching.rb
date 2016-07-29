@@ -2,6 +2,18 @@ module SpatialFeatures
   mattr_accessor :default_cache_buffer_in_meters
   self.default_cache_buffer_in_meters = 100
 
+  def self.update_proximity(*klasses)
+    klasses.combination(2).each do |klass, clazz|
+      klass.without_spatial_cache(clazz).find_each do |record|
+        cache_record_proximity(record, clazz)
+      end
+    end
+
+    klasses.each do |klass|
+      update_stale_spatial_cache(klass)
+    end
+  end
+
   def self.update_spatial_cache(scope)
     scope.with_stale_spatial_cache.includes(:spatial_cache).find_each do |record|
       record.spatial_cache.each do |spatial_cache|
