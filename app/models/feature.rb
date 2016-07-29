@@ -32,12 +32,10 @@ class Feature < ActiveRecord::Base
     unscoped { connection.select_value(select('ST_Area(ST_Union(geom))').from(current_scope, :features)).to_f }
   end
 
-  def self.total_intersection_area_in_square_meters(other)
-    other_features = unscoped.flattened_features.where(:id => intersecting(other).select('other_features.id'))
-
+  def self.total_intersection_area_in_square_meters(other_features)
     unscoped
-      .from("(#{flattened_features.to_sql}) features, (#{other_features.to_sql}) other_features")
-      .pluck('ST_Area(ST_Intersection(features.geom, other_features.geom))')
+      .from("(#{select("ST_Union(geom) AS geom").to_sql}) features, (#{other_features.to_sql}) other_features")
+      .pluck('ST_Area(ST_UNION(ST_Intersection(features.geom, other_features.geom)))')
       .first.to_f
   end
 
@@ -97,10 +95,6 @@ class Feature < ActiveRecord::Base
   end
 
   private
-
-  def self.flattened_features
-    select('ST_Union(features.geom) AS geom')
-  end
 
   def self.detect_srid(column_name)
     connection.select_value("SELECT Find_SRID('public', '#{table_name}', '#{column_name}')")
