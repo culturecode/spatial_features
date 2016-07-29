@@ -37,7 +37,7 @@ class Feature < ActiveRecord::Base
 
     unscoped
       .from("(#{flattened_features.to_sql}) features, (#{other_features.to_sql}) other_features")
-      .pluck('ST_Area(ST_Intersection(features.geom, other_features.geom)::geography)')
+      .pluck('ST_Area(ST_Intersection(features.geom, other_features.geom))')
       .first.to_f
   end
 
@@ -93,7 +93,7 @@ class Feature < ActiveRecord::Base
   private
 
   def self.flattened_features
-    select('ST_Union(features.geog_lowres::geometry) AS geom')
+    select('ST_Union(features.geom) AS geom')
   end
 
   def self.detect_srid(column_name)
