@@ -127,7 +127,7 @@ module SpatialFeatures
       end
 
       scope = scope.select("MIN(ST_Distance(features.geom, features_for_other.geom)) AS distance_in_meters") if options[:distance]
-      scope = scope.select("ST_Area(ST_Intersection(ST_UNION(features.geom), ST_UNION(features_for_other.geom))) AS intersection_area_in_square_meters") if options[:intersection_area]
+      scope = scope.select("ST_Area(ST_UNION(ST_Intersection(features.geom, features_for_other.geom))) AS intersection_area_in_square_meters") if options[:intersection_area]
       return scope
     end
 
