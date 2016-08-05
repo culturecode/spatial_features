@@ -13,30 +13,23 @@ class CreateDummyTable < ActiveRecord::Migration
   end
 end
 
-def new_dummy_class(*column_names, &block)
+def new_dummy_class(class_name = "Dummy#{$DUMMY_CLASS_COUNTER}", *column_names, &block)
   $DUMMY_CLASS_COUNTER += 1
-  klass_name = "Dummy#{$DUMMY_CLASS_COUNTER}"
 
   # Create the class
-  eval("class #{klass_name} < ActiveRecord::Base; end")
-  klass = klass_name.constantize
+  klass = Class.new(ActiveRecord::Base)
 
+  # Name the class
+  Object.send(:remove_const, class_name) if Object.const_defined?(class_name)
+  Object.const_set(class_name, klass)
+
+  # Create the table
   klass.table_name = "dummies_#{$DUMMY_CLASS_COUNTER}"
   CreateDummyTable.make_table(klass.table_name, column_names.flatten)
 
+  # Init the class
   klass.has_spatial_features
-
-  # If the class is Dummy1 this returns :dummy1
-  klass.class_eval do
-    def self.association_name
-      self.name.underscore.to_sym
-    end
-  end
-
-  # Eval anything inside the dummy class
-  if block_given?
-    klass.instance_eval(&block)
-  end
+  klass.instance_eval(&block) if block_given?
 
   return klass
 end

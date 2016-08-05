@@ -25,7 +25,11 @@ class Rectangle
   end
 end
 
-def build_polygon(coordinates)
+def create_polygon(*args)
+  build_polygon(*args).save!
+end
+
+def build_polygon(coordinates, attributes = {})
   coordinates = coordinates.to_s
 
   # Avoid crossing the equator for test values in order to avoid projection error
@@ -46,5 +50,5 @@ def build_polygon(coordinates)
     SELECT ST_Transform(ST_GeometryFromText( 'POLYGON((#{coordinates}))', 26910 ), 4326)
   ")
 
-  Feature.polygons.new(:geog => geog)
+  Feature.polygons.new(attributes.merge :geog => geog)
 end
