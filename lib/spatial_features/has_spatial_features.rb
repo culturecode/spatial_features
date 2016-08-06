@@ -10,7 +10,7 @@ module SpatialFeatures
       scope :without_features, lambda { joins("LEFT OUTER JOIN features ON features.spatial_model_type = '#{name}' AND features.spatial_model_id = #{table_name}.id").where("features.id IS NULL") }
 
       scope :with_spatial_cache, lambda {|klass| joins(:spatial_cache).where(:spatial_caches => { :intersection_model_type =>  klass }).uniq }
-      scope :without_spatial_cache, lambda {|klass| where.not(:id => with_spatial_cache(klass)) }
+      scope :without_spatial_cache, lambda {|klass| joins("LEFT OUTER JOIN #{SpatialCache.table_name} ON spatial_model_id = #{table_name}.id AND spatial_model_type = '#{name}' and intersection_model_type = '#{klass}'").where('spatial_model_id IS NULL') }
       scope :with_stale_spatial_cache, lambda { joins(:spatial_cache).where("#{table_name}.features_hash != spatial_caches.features_hash").uniq } if has_spatial_features_hash?
 
       has_many :spatial_cache, :as => :spatial_model, :dependent => :delete_all
