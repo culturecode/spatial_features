@@ -64,21 +64,23 @@ class Feature < ActiveRecord::Base
     options.reverse_merge! :lowres_simplification => 2, :lowres_precision => 5
 
     update_all <<-SQL.squish
-      geom        = ST_Transform(geog::geometry, #{detect_srid('geom')}),
-      north       = ST_YMax(geog::geometry),
-      east        = ST_XMax(geog::geometry),
-      south       = ST_YMin(geog::geometry),
-      west        = ST_XMin(geog::geometry),
-      area        = ST_Area(geog)
+      geom         = ST_Transform(geog::geometry, #{detect_srid('geom')}),
+      north        = ST_YMax(geog::geometry),
+      east         = ST_XMax(geog::geometry),
+      south        = ST_YMin(geog::geometry),
+      west         = ST_XMin(geog::geometry),
+      area         = ST_Area(geog),
+      centroid     = ST_PointOnSurface(geog::geometry)
     SQL
 
     update_all <<-SQL.squish
-      geom_lowres = ST_SimplifyPreserveTopology(geom, #{options[:lowres_simplification]})
+      geom_lowres  = ST_SimplifyPreserveTopology(geom, #{options[:lowres_simplification]})
     SQL
 
     update_all <<-SQL.squish
-      kml         = ST_AsKML(geog, 6),
-      kml_lowres  = ST_AsKML(geom_lowres, #{options[:lowres_precision]})
+      kml          = ST_AsKML(geog, 6),
+      kml_lowres   = ST_AsKML(geom_lowres, #{options[:lowres_precision]})
+      kml_centroid = ST_AsKML(centroid)
     SQL
   end
 
@@ -91,7 +93,9 @@ class Feature < ActiveRecord::Base
   end
 
   def kml(options = {})
-    options[:lowres] ? kml_lowres : super()
+    geometry = options[:lowres] ? kml_lowres : super()
+    geometry = "<MultiGeometry>#{geometry}#{kml_centroid}</MultiGeometry>" if options[:centroid]
+    return geometry
   end
 
   private

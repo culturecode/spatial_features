@@ -21,7 +21,9 @@ execute("
       north numeric(9,6),
       east numeric(9,6),
       south numeric(9,6),
-      west numeric(9,6)
+      west numeric(9,6),
+      centroid geography,
+      kml_centroid text
   );
 
   CREATE TABLE spatial_caches (
