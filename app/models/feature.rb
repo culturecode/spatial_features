@@ -79,7 +79,7 @@ class Feature < ActiveRecord::Base
 
     update_all <<-SQL.squish
       kml          = ST_AsKML(geog, 6),
-      kml_lowres   = ST_AsKML(geom_lowres, #{options[:lowres_precision]})
+      kml_lowres   = ST_AsKML(geom_lowres, #{options[:lowres_precision]}),
       kml_centroid = ST_AsKML(centroid)
     SQL
   end
