@@ -238,7 +238,7 @@ module SpatialFeatures
       if options[:cache] == false || !proxy_association.owner.class.has_features_area?
         pluck('ST_Area(ST_UNION(geom))').first.to_f
       else
-        proxy_association.owner.features_area
+        proxy_association.owner.features_area.to_f
       end
     end
   end
