@@ -24,6 +24,10 @@ module SpatialFeatures
   end
 
   module ClassMethods
+    def acts_like_spatial_features?
+      true
+    end
+
     # Add methods to generate cache keys for a record or all records of this class
     # NOTE: features are never updated, only deleted and created, therefore we can
     # tell if they have changed by finding the maximum id and count instead of needing timestamps
@@ -164,7 +168,7 @@ module SpatialFeatures
   end
 
   module InstanceMethods
-    def has_spatial_features?
+    def acts_like_spatial_features?
       true
     end
 
