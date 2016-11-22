@@ -10,7 +10,7 @@ module SpatialFeatures
     end
 
     klasses.each do |klass|
-      update_stale_spatial_cache(klass)
+      update_spatial_cache(klass)
     end
   end
 
@@ -71,7 +71,7 @@ module SpatialFeatures
     record_is_a = record.class.to_s < klass.to_s
 
     scope = klass.within_buffer(record, default_cache_buffer_in_meters, :intersection_area => true, :distance => true, :cache => false)
-    scope.find_each do |klass_record|
+    scope.each do |klass_record|
       SpatialProximity.create! do |proximity|
         proximity.model_a                            = record_is_a ? record : klass_record
         proximity.model_b                            = record_is_a ? klass_record : record

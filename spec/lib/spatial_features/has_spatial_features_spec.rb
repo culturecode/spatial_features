@@ -1,13 +1,14 @@
 require 'spec_helper'
 
 describe SpatialFeatures do
+  TOLERANCE = 0.000001 # Because calculations are performed using projected geometry, there will be a slight inaccuracy
+
   describe '::features' do
     it 'returns the features of a class'
     it 'returns the features of a scope'
   end
 
   describe '#total_intersection_area_in_square_meters' do
-    TOLERANCE = 0.000001 # Because calculations are performed using projected geometry, there will be a slight inaccuracy
     new_dummy_class('House')
     new_dummy_class('Disaster')
 
@@ -21,8 +22,24 @@ describe SpatialFeatures do
     end
   end
 
+  describe '::covering' do
+    new_dummy_class('House')
+    new_dummy_class('Disaster')
+
+    let(:house) { create_record_with_polygon(House, Rectangle.new(1, 1)) }
+    let(:disaster) { create_record_with_polygon(Disaster, Rectangle.new(1, 1)) }
+
+    it 'returns records that fully cover other' do
+      expect(House.covering(disaster)).to include(house)
+    end
+
+    it 'does not returns records that partially cover other' do
+      other_house = create_record_with_polygon(House, Rectangle.new(2, 1))
+      expect(House.covering(disaster)).not_to include(other_house)
+    end
+  end
+
   describe "::within_buffer" do
-    TOLERANCE = 0.000001 # Because calculations are performed using projected geometry, there will be a slight inaccuracy
     new_dummy_class('BufferedRecord')
     new_dummy_class('Shape')
     new_dummy_class('Outlier')

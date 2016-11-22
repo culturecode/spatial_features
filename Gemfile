@@ -12,3 +12,10 @@ gemspec
 
 # To use debugger
 # gem 'debugger'
+
+group :test do
+  gem 'pry'
+  gem 'pry-byebug'
+end
+
+require 'pry'
