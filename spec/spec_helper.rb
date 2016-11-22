@@ -31,6 +31,8 @@ ActiveRecord::Schema.define(:version => 0) do
     t.column :geom_lowres, 'geometry(Geometry,26910)'
     t.text :kml
     t.text :kml_lowres
+    t.column :centroid, :geography
+    t.text :kml_centroid
     t.decimal :north
     t.decimal :east
     t.decimal :south
