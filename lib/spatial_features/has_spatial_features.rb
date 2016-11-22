@@ -1,25 +1,32 @@
 module SpatialFeatures
   module ActMethod
     def has_spatial_features(options = {})
-      extend ClassMethods
-      include InstanceMethods
+      unless acts_like?(:spatial_features)
+        extend ClassMethods
+        include InstanceMethods
 
-      has_many :features, lambda { extending FeaturesAssociationExtensions }, :as => :spatial_model, :dependent => :delete_all
+        class_attribute :spatial_features_options
+        self.spatial_features_options = {}
 
-      scope :with_features, lambda { joins(:features).uniq }
-      scope :without_features, lambda { joins("LEFT OUTER JOIN features ON features.spatial_model_type = '#{name}' AND features.spatial_model_id = #{table_name}.id").where("features.id IS NULL") }
+        has_many :features, lambda { extending FeaturesAssociationExtensions }, :as => :spatial_model, :dependent => :delete_all
 
-      scope :with_spatial_cache, lambda {|klass| joins(:spatial_cache).where(:spatial_caches => { :intersection_model_type =>  klass }).uniq }
-      scope :without_spatial_cache, lambda {|klass| joins("LEFT OUTER JOIN #{SpatialCache.table_name} ON spatial_model_id = #{table_name}.id AND spatial_model_type = '#{name}' and intersection_model_type = '#{klass}'").where('spatial_model_id IS NULL') }
-      scope :with_stale_spatial_cache, lambda { joins(:spatial_cache).where("#{table_name}.features_hash != spatial_caches.features_hash").uniq } if has_spatial_features_hash?
+        scope :with_features, lambda { joins(:features).uniq }
+        scope :without_features, lambda { joins("LEFT OUTER JOIN features ON features.spatial_model_type = '#{name}' AND features.spatial_model_id = #{table_name}.id").where("features.id IS NULL") }
 
-      has_many :spatial_cache, :as => :spatial_model, :dependent => :delete_all
-      has_many :model_a_spatial_proximities, :as => :model_a, :class_name => 'SpatialProximity', :dependent => :delete_all
-      has_many :model_b_spatial_proximities, :as => :model_b, :class_name => 'SpatialProximity', :dependent => :delete_all
+        scope :with_spatial_cache, lambda {|klass| joins(:spatial_cache).where(:spatial_caches => { :intersection_model_type =>  klass }).uniq }
+        scope :without_spatial_cache, lambda {|klass| joins("LEFT OUTER JOIN #{SpatialCache.table_name} ON spatial_model_id = #{table_name}.id AND spatial_model_type = '#{name}' and intersection_model_type = '#{klass}'").where('spatial_model_id IS NULL') }
+        scope :with_stale_spatial_cache, lambda { joins(:spatial_cache).where("#{table_name}.features_hash != spatial_caches.features_hash").uniq } if has_spatial_features_hash?
 
-      after_save :update_features_area, :if => :features_hash_changed? if has_features_area? && has_spatial_features_hash?
+        has_many :spatial_cache, :as => :spatial_model, :dependent => :delete_all
+        has_many :model_a_spatial_proximities, :as => :model_a, :class_name => 'SpatialProximity', :dependent => :delete_all
+        has_many :model_b_spatial_proximities, :as => :model_b, :class_name => 'SpatialProximity', :dependent => :delete_all
 
-      delegate :has_spatial_features_hash?, :has_features_area?, :to => self
+        after_save :update_features_area, :if => :features_hash_changed? if has_features_area? && has_spatial_features_hash?
+
+        delegate :has_spatial_features_hash?, :has_features_area?, :to => self
+      end
+
+      self.spatial_features_options.merge!(options)
     end
   end
 
