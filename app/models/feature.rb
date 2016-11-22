@@ -7,6 +7,12 @@ class Feature < ActiveRecord::Base
   validates_inclusion_of :feature_type, :in => ['polygon', 'point', 'line']
   after_save :cache_derivatives
 
+  GEOM_COLUMN = "geom_lowres"
+  FEATURES_ALIAS = 'features'
+  OTHER_FEATURES_ALIAS = 'other_features'
+  FEATURES_AND_OTHER_FEATURES = "#{FEATURES_ALIAS}.#{GEOM_COLUMN}, #{OTHER_FEATURES_ALIAS}.#{GEOM_COLUMN}"
+
+
   def self.with_metadata(k, v)
     if k.present? && v.present?
       where('metadata->? = ?', k, v)
@@ -33,14 +39,35 @@ class Feature < ActiveRecord::Base
   end
 
   def self.total_intersection_area_in_square_meters(other_features)
-    unscoped
-      .from("(#{select("ST_Union(geom) AS geom").to_sql}) features, (#{other_features.to_sql}) other_features")
-      .pluck('ST_Area(ST_UNION(ST_Intersection(features.geom, other_features.geom)))')
+      select("ST_Union(#{FEATURES_ALIAS}.#{GEOM_COLUMN}) AS #{GEOM_COLUMN}")
+      .join_features(other_features)
+      .pluck("ST_Area(ST_UNION(ST_Intersection(#{FEATURES_AND_OTHER_FEATURES})))")
       .first.to_f
   end
 
-  def self.intersecting(other)
-    join_other_features(other).where('ST_Intersects(features.geom_lowres, other_features.geom_lowres)').uniq
+  def self.within_buffer(other, buffer_in_meters, options = {})
+    distance, intersection_area = options[:distance], options[:intersection_area]
+
+    if buffer_in_meters.to_f == 0
+      intersecting(other, options)
+    elsif distance || intersection_area
+      join_features(intersecting(other, :intersection_area => true, :group => options[:group]), 'LEFT OUTER', 'USING (id)', 'other_features')
+        .join_features(not_intersecting(other, :distance => true, :group => options[:group]), 'LEFT OUTER', 'USING (id)', 'disjoint_features')
+    else
+      join_features(other).where("ST_DWithin(#{FEATURES_AND_OTHER_FEATURES}, ?)", buffer_in_meters).with_option_scopes(options)
+    end
+  end
+
+  def self.intersecting(other, options = {})
+    join_features(other, options[:join]).where("ST_Intersects(#{FEATURES_AND_OTHER_FEATURES})").with_option_scopes(options)
+  end
+
+  def self.not_intersecting(other, options = {})
+    join_features(other, options[:join]).where.not("ST_Intersects(#{FEATURES_AND_OTHER_FEATURES})").with_option_scopes(options)
+  end
+
+  def self.covering(other)
+    join_features(other).where("ST_Covers(#{FEATURES_AND_OTHER_FEATURES})")
   end
 
   def self.invalid
@@ -98,14 +125,57 @@ class Feature < ActiveRecord::Base
     return geometry
   end
 
+  protected
+
+  def self.with_option_scopes(options)
+    scope = all
+
+    if options[:group]
+      scope = scope.unscope(:select)
+      scope = scope.with_grouped_distance if options[:distance]
+      scope = scope.with_grouped_intersection_area if options[:intersection_area]
+    else
+      scope = scope.with_distance if options[:distance]
+      scope = scope.with_intersection_area if options[:intersection_area]
+    end
+
+    return scope
+  end
+
+  def self.with_distance
+    select_table.select("ST_Distance(#{FEATURES_AND_OTHER_FEATURES}) AS distance_in_meters")
+  end
+
+  def self.with_intersection_area
+    select_table.select("ST_Area(ST_Intersection(#{FEATURES_AND_OTHER_FEATURES})) AS intersection_area_in_square_meters")
+  end
+
+  def self.with_grouped_distance
+    in_feature_groups.select("MIN(ST_Distance(#{FEATURES_AND_OTHER_FEATURES})) AS distance_in_meters")
+  end
+
+  def self.with_grouped_intersection_area
+    in_feature_groups.select("ST_Area(ST_Union(ST_Intersection(#{FEATURES_AND_OTHER_FEATURES}))) AS intersection_area_in_square_meters")
+  end
+
+  def self.in_feature_groups
+    columns = "#{FEATURES_ALIAS}.spatial_model_id, #{FEATURES_ALIAS}.spatial_model_type"
+    group(columns).select(columns)
+  end
+
+  def self.join_features(other_features, join_type = "INNER", condition = "ON true", other_alias = OTHER_FEATURES_ALIAS)
+    other_features = other_features.is_a?(ActiveRecord::Base) ? unscoped { where(:id => other_features) } : unscoped { other_features.all }
+    joins("#{join_type} JOIN (#{other_features.to_sql}) #{other_alias} #{condition}")
+  end
+
+  def self.select_table(table_name = FEATURES_ALIAS)
+    unscope(:select) == all ? select("#{table_name}.*") : self
+  end
+
   private
 
   def self.detect_srid(column_name)
     connection.select_value("SELECT Find_SRID('public', '#{table_name}', '#{column_name}')")
-  end
-
-  def self.join_other_features(other)
-    joins('INNER JOIN features AS other_features ON true').where(:other_features => {:id => other})
   end
 
   def geometry_is_valid

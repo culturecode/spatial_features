@@ -1,4 +1,6 @@
 module SpatialFeatures
+  GEOM_COLUMN = "geom_lowres"
+
   module ActMethod
     def has_spatial_features(options = {})
       unless acts_like?(:spatial_features)
@@ -59,12 +61,10 @@ module SpatialFeatures
       end
     end
 
-    def covering(other)
-      scope = joins_features_for(other).select("#{table_name}.*").group("#{table_name}.#{primary_key}")
-      scope = scope.where('ST_Covers(features.geom, features_for_other.geom)')
-
-      return scope
-    end
+    # def covering(other)
+    #   spatial_join(self, features.covering(other.features).group('spatial_model_id, spatial_model_type').select("features.#{GEOM_COLUMN}, other_features.#{GEOM_COLUMN}"))
+    #     .where("ST_Covers(features.#{GEOM_COLUMN}, other_features.#{GEOM_COLUMN})")
+    # end
 
     def polygons
       features.polygons
@@ -84,18 +84,6 @@ module SpatialFeatures
       else
         Feature.where(:spatial_model_type => self, :spatial_model_id => all.unscope(:select))
       end
-    end
-
-    # Returns a scope that includes the features for this record as the table_alias and the features for other as #{table_alias}_other
-    # Can be used to perform spatial calculations on the relationship between the two sets of features
-    def joins_features_for(other, table_alias = 'features_for')
-      joins(:features).joins(%Q(INNER JOIN (#{other_features_union(other).to_sql}) AS "#{table_alias}_other" ON true))
-    end
-
-    def other_features_union(other)
-      scope = Feature.select('ST_Union(geom) AS geom').where(:spatial_model_type => class_for(other))
-      scope = scope.where(:spatial_model_id => other) unless class_for(other) == other
-      return scope
     end
 
     # Returns true if the model stores a hash of the features so we don't need to process the features if they haven't changed
@@ -126,20 +114,20 @@ module SpatialFeatures
     end
 
     def uncached_within_buffer_scope(other, buffer_in_meters, options)
-      scope = joins_features_for(other).select("#{table_name}.*")
-      scope = scope.where('ST_Intersects(features.geom, features_for_other.geom)') if buffer_in_meters == 0 # Optimize the 0 buffer case, ST_DWithin was slower in testing
-      scope = scope.where('ST_DWithin(features.geom, features_for_other.geom, ?)', buffer_in_meters) if buffer_in_meters.to_f > 0
+      scope = select("#{table_name}.*, features.*")
 
-      # Ensure records with multiple features don't appear multiple times
-      if options[:distance] || options[:intersection_area]
-        scope = scope.group("#{table_name}.#{primary_key}") # Aggregate functions require grouping
-      else
-        scope = scope.distinct
-      end
+      feature_options = options.slice(:intersection_area, :distance).merge(:group => true)
+      features_scope = features.within_buffer(other.features, buffer_in_meters, feature_options)
+      scope = scope.select(:distance_in_meters) if options[:distance]
+      scope = scope.select(:intersection_area_in_square_meters) if options[:intersection_area]
 
-      scope = scope.select("MIN(ST_Distance(features.geom, features_for_other.geom)) AS distance_in_meters") if options[:distance]
-      scope = scope.select("ST_Area(ST_UNION(ST_Intersection(features.geom, features_for_other.geom))) AS intersection_area_in_square_meters") if options[:intersection_area]
-      return scope
+      return spatial_join(scope, features_scope)
+    end
+
+    # Joins a features spatial join onto the current scope to find all records associated with the joined features
+    def spatial_join(current_scope, features, join_type = 'INNER')
+      scope = features.select('features.spatial_model_id, features.spatial_model_type')
+      current_scope.joins("#{join_type} JOIN (#{scope.to_sql}) AS features ON #{table_name}.id = features.spatial_model_id AND features.spatial_model_type = '#{name}'")
     end
 
     def cached_spatial_join(other)
@@ -200,9 +188,9 @@ module SpatialFeatures
       features.present?
     end
 
-    def covers?(other)
-      self.class.covering(other).exists?(self)
-    end
+    # def covers?(other)
+    #   self.class.covering(other).exists?(self)
+    # end
 
     def intersects?(other)
       self.class.intersecting(other).exists?(self)
@@ -247,7 +235,7 @@ module SpatialFeatures
   module FeaturesAssociationExtensions
     def area(options = {})
       if options[:cache] == false || !proxy_association.owner.class.has_features_area?
-        pluck('ST_Area(ST_UNION(geom))').first.to_f
+        pluck("ST_Area(ST_UNION(#{GEOM_COLUMN}))").first.to_f
       else
         proxy_association.owner.features_area.to_f
       end
