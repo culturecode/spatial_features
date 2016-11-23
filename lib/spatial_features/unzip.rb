@@ -1,17 +1,19 @@
 module SpatialFeatures
   module Unzip
-    def self.paths(file_path, &block)
-      Dir.mktmpdir do |dir|
-        files = []
+    def self.paths(file_path, find: nil, &block)
+      dir = Dir.mktmpdir
+      paths = []
 
-        entries(file_path) do |entry|
-          path = "#{dir}/#{entry.name}"
-          entry.extract(path)
-          files << path
-        end
-
-        files.each(&block)
+      entries(file_path) do |entry|
+        path = "#{dir}/#{entry.name}"
+        entry.extract(path)
+        paths << path
       end
+
+      paths = paths.each(&block) if block_given?
+      paths = paths.find {|path| path.include?(find) } if find
+
+      return paths
     end
 
     def self.names(file_path, &block)
@@ -19,14 +21,7 @@ module SpatialFeatures
     end
 
     def self.entries(file_path, &block)
-      path = File.path(file_path)
-      name = File.basename(file_path)
-
-      if name.end_with?('.zip')
-        Zip::File.open(path).each(&block)
-      else
-        [Zip::Entry.new(path, name)].each(&block)
-      end
+      Zip::File.open(File.path(file_path)).each(&block)
     end
   end
 end

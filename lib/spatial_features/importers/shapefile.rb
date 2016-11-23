@@ -8,19 +8,21 @@ module SpatialFeatures
       private
 
       def each_record(&block)
-        Unzip.paths(@data) do |path|
-          next unless path.end_with? '.shp'
-
-          RGeo::Shapefile::Reader.open(path) do |records|
-            records.each do |record|
-              yield OpenStruct.new(:metadata => record.attributes, :geog => geom_from_text(record.geometry.as_text))
-            end
+        RGeo::Shapefile::Reader.open(unzip(@data)) do |records|
+          records.each do |record|
+            yield OpenStruct.new(:metadata => record.attributes, :geog => geom_from_text(record.geometry.as_text))
           end
         end
       end
 
       def geom_from_text(wkt)
         ActiveRecord::Base.connection.select_value("SELECT ST_GeomFromText('#{wkt}')")
+      end
+
+      def unzip(file)
+        path = ::File.path(file)
+        path = Unzip.paths(file, :find => '.shp') || raise(UpdateError, "File missing SHP") if path.end_with?('.zip')
+        return path
       end
     end
   end

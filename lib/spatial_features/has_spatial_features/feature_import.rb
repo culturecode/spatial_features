@@ -23,7 +23,6 @@ module SpatialFeatures
 
     def replace_features(import, skip_invalid)
       features.destroy_all
-      binding.pry
       self.features = import.features
 
       errors = import.errors.dup

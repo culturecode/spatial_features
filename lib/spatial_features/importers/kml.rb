@@ -3,7 +3,7 @@ require 'ostruct'
 
 module SpatialFeatures
   module Importers
-    class Kml < Base
+    class KML < Base
       private
 
       def each_record(&block)

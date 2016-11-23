@@ -1,6 +1,7 @@
 # Gems
-
 require 'rgeo/shapefile'
+require 'nokogiri'
+require 'zip'
 
 # LIB
 require 'spatial_features/caching'
