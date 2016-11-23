@@ -1,9 +1,11 @@
+require 'digest/md5'
+
 module SpatialFeatures
   module FeatureImport
     def update_features!(skip_invalid: false, **import_options)
       ActiveRecord::Base.transaction do
         imports = spatial_feature_imports(import_options)
-        cache_key = imports.collect(&:cache_key).join(',').hash
+        cache_key = Digest::MD5.hexdigest(imports.collect(&:cache_key).join)
 
         if has_spatial_features_hash? && cache_key != features_hash
           import_features(imports)
