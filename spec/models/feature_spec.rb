@@ -1,8 +1,8 @@
 require 'spec_helper'
 
 describe Feature do
-  new_dummy_class('House')
-  new_dummy_class('Disaster')
+  new_dummy_class(:name => 'House')
+  new_dummy_class(:name => 'Disaster')
 
   let(:house) { House.create }
   let(:disaster) { Disaster.create }

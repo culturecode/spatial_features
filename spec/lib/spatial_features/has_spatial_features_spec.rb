@@ -8,8 +8,8 @@ describe SpatialFeatures do
 
   describe '#total_intersection_area_in_square_meters' do
     TOLERANCE = 0.000001 # Because calculations are performed using projected geometry, there will be a slight inaccuracy
-    new_dummy_class('House')
-    new_dummy_class('Disaster')
+    new_dummy_class(:name => 'House')
+    new_dummy_class(:name => 'Disaster')
 
     subject { create_record_with_polygon(House, Rectangle.new(1, 1)) }
 
@@ -23,9 +23,9 @@ describe SpatialFeatures do
 
   describe "::within_buffer" do
     TOLERANCE = 0.000001 # Because calculations are performed using projected geometry, there will be a slight inaccuracy
-    new_dummy_class('BufferedRecord')
-    new_dummy_class('Shape')
-    new_dummy_class('Outlier')
+    new_dummy_class(:name => 'BufferedRecord')
+    new_dummy_class(:name => 'Shape')
+    new_dummy_class(:name => 'Outlier')
 
     let(:options) { Hash.new }
 

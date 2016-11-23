@@ -13,15 +13,15 @@ class CreateDummyTable < ActiveRecord::Migration
   end
 end
 
-def new_dummy_class(class_name = "Dummy#{$DUMMY_CLASS_COUNTER}", *column_names, &block)
+def new_dummy_class(*column_names, name: "Dummy#{$DUMMY_CLASS_COUNTER}", parent: ActiveRecord::Base, &block)
   $DUMMY_CLASS_COUNTER += 1
 
   # Create the class
-  klass = Class.new(ActiveRecord::Base)
+  klass = Class.new(parent)
 
   # Name the class
-  Object.send(:remove_const, class_name) if Object.const_defined?(class_name)
-  Object.const_set(class_name, klass)
+  Object.send(:remove_const, name) if Object.const_defined?(name)
+  Object.const_set(name, klass)
 
   # Create the table
   klass.table_name = "dummies_#{$DUMMY_CLASS_COUNTER}"
@@ -29,7 +29,7 @@ def new_dummy_class(class_name = "Dummy#{$DUMMY_CLASS_COUNTER}", *column_names, 
 
   # Init the class
   klass.has_spatial_features
-  klass.instance_eval(&block) if block_given?
+  klass.class_eval(&block) if block_given?
 
   return klass
 end
