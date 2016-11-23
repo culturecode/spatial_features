@@ -8,7 +8,7 @@ describe SpatialFeatures::Importers::KML do
 
     describe '#features' do
       it 'returns all records' do
-        expect(subject.features.count).to eq(17)
+        expect(subject.features.count).to eq(2)
       end
 
       it 'sets the feature name' do
