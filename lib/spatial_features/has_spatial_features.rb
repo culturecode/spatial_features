@@ -4,6 +4,7 @@ module SpatialFeatures
       unless acts_like?(:spatial_features)
         extend ClassMethods
         include InstanceMethods
+        include DelayedFeatureImport
 
         class_attribute :spatial_features_options
         self.spatial_features_options = {}
