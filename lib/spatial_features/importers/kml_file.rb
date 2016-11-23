@@ -10,7 +10,7 @@ module SpatialFeatures
       private
 
       def fetch(path_or_url)
-        open(path_or_url)
+        normalize_file(open(path_or_url))
       rescue SocketError, Errno::ECONNREFUSED
         url = URI(path_or_url)
         raise UpdateError, "ArcGIS Server is not responding. Ensure ArcGIS Server is running and accessible at #{[url.scheme, "//#{url.host}", url.port].select(&:present?).join(':')}."
@@ -20,8 +20,21 @@ module SpatialFeatures
 
       def unzip(file)
         path = ::File.path(file)
-        path = Unzip.paths(file, :find => '.kml') || raise(UpdateError, "File missing KML") if path.end_with?('.kmz')
+        path = Unzip.paths(file, :find => '.kml') || raise(UpdateError, "File missing KML") if Unzip.is_zip?(file)
         return ::File.read(path)
+      end
+
+      def normalize_file(file)
+        case file
+        when StringIO
+          Tempfile.new.tap do |f|
+            f.binmode
+            f.write(file.read)
+            f.rewind
+          end
+        else
+          file
+        end
       end
     end
 
