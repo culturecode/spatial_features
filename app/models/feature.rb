@@ -1,10 +1,14 @@
 class Feature < ActiveRecord::Base
   belongs_to :spatial_model, :polymorphic => :true
 
+  attr_writer :make_valid
+
   before_validation :sanitize_feature_type
   validates_presence_of :geog
   validate :geometry_is_valid
   validates_inclusion_of :feature_type, :in => ['polygon', 'point', 'line']
+  before_save :sanitize
+  before_save :make_valid, if: :make_valid?
   after_save :cache_derivatives
 
   def self.with_metadata(k, v)
@@ -98,7 +102,20 @@ class Feature < ActiveRecord::Base
     return geometry
   end
 
+  def make_valid?
+    @make_valid
+  end
+
   private
+
+  def make_valid
+    self.geog = ActiveRecord::Base.connection.select_value("SELECT ST_CollectionExtract('#{sanitize}',3)")
+  end
+
+  # Use ST_Force_2D to discard z-coordinates that cause failures later in the process
+  def sanitize
+    self.geog = ActiveRecord::Base.connection.select_value("SELECT ST_Force2D('#{geog}')")
+  end
 
   def self.detect_srid(column_name)
     connection.select_value("SELECT Find_SRID('public', '#{table_name}', '#{column_name}')")
