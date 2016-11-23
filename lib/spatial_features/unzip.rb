@@ -23,5 +23,11 @@ module SpatialFeatures
     def self.entries(file_path, &block)
       Zip::File.open(File.path(file_path)).each(&block)
     end
+
+    def self.is_zip?(file)
+      zip = file.readline.start_with?('PK')
+      file.rewind
+      return zip
+    end
   end
 end
