@@ -2,7 +2,7 @@ module SpatialFeatures
   module DelayedFeatureImport
     include FeatureImport
 
-    def queue_feature_update!(job, options = {})
+    def queue_feature_update!(options = {})
       job = UpdateFeaturesJob.new(options.merge :spatial_model_type => self.class, :spatial_model_id => self.id)
       Delayed::Job.enqueue(job, :queue => delayed_jobs_queue_name)
     end
