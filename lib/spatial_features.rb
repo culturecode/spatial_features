@@ -33,3 +33,6 @@ end
 
 # Load the act method
 ActiveRecord::Base.send :extend, SpatialFeatures::ActMethod
+
+# Suppress date warnings when unzipping KMZ saved by Google Earth, see https://github.com/rubyzip/rubyzip/issues/112
+Zip.warn_invalid_date = false
