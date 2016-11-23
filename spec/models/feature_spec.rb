@@ -21,16 +21,19 @@ describe Feature do
     end
 
     it 'includes the distance when :distance => true' do
+      pending 'Test accidentally merged. Requires code from feature-spatial-calculation-optimization branch'
       expect(House.features.intersecting(disaster.features, :distance => true))
         .to all( have_attribute :distance_in_meters )
     end
 
     it 'returns the same records when :intersection_area => true' do
+      pending 'Test accidentally merged. Requires code from feature-spatial-calculation-optimization branch'
       expect(House.features.intersecting(disaster.features, :intersection_area => true))
         .to match_array(House.features.intersecting(disaster.features))
     end
 
     it 'includes the intersection_area when :intersection_area => true' do
+      pending 'Test accidentally merged. Requires code from feature-spatial-calculation-optimization branch'
       expect(House.features.intersecting(disaster.features, :intersection_area => true))
         .to all( have_attribute :intersection_area_in_square_meters )
     end
@@ -46,11 +49,13 @@ describe Feature do
 
     shared_examples_for 'within_buffer' do |buffer, options|
       it 'includes the intersection_area when :intersection_area => true' do
+        pending 'Test accidentally merged. Requires code from feature-spatial-calculation-optimization branch'
         expect(House.features.within_buffer(disaster.features, buffer, options.merge(:intersection_area => true)))
           .to all( have_attribute :intersection_area_in_square_meters )
       end
 
       it 'includes the distance when :distance => true' do
+        pending 'Test accidentally merged. Requires code from feature-spatial-calculation-optimization branch'
         expect(House.features.within_buffer(disaster.features, buffer, options.merge(:distance => true)))
           .to all( have_attribute :distance_in_meters )
       end
