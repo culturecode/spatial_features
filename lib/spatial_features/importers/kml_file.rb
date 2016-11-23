@@ -2,7 +2,7 @@ require 'open-uri'
 
 module SpatialFeatures
   module Importers
-    class KmlFile < Kml
+    class KMLFile < KML
       def initialize(path_or_url, *args)
         super unzip(fetch(path_or_url)), *args
       end
@@ -19,11 +19,9 @@ module SpatialFeatures
       end
 
       def unzip(file)
-        Unzip.paths(file) do |path|
-          return ::File.read(path) if path.end_with? '.kml'
-        end
-
-        raise UpdateError, "No kml found in file"
+        path = ::File.path(file)
+        path = Unzip.paths(file, :find => '.kml') || raise(UpdateError, "File missing KML") if path.end_with?('.kmz')
+        return ::File.read(path)
       end
     end
 
