@@ -16,8 +16,8 @@ module SpatialFeatures
     private
 
     def each_spatial_feature_import(options)
-      spatial_features_options.fetch(:import, {}).each do |importer_name, data_method|
-        yield "SpatialFeatures::Importers::#{importer_name.to_s.camelize}".constantize.new(send(data_method), options)
+      spatial_features_options.fetch(:import, {}).each do |data_method, importer_name|
+        yield "SpatialFeatures::Importers::#{importer_name}".constantize.new(send(data_method), options)
       end
     end
 
