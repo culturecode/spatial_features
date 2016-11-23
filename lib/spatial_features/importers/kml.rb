@@ -9,7 +9,7 @@ module SpatialFeatures
       def each_record(&block)
         Nokogiri::XML(@data).css('Placemark').each do |placemark|
           name = placemark.css('name').text
-          metadata = Hash[Nokogiri::XML(placemark.css('description').text).css('td').collect(&:text).each_slice(2).to_a]
+          metadata = {:description => Nokogiri::XML(placemark.css('description').text)}
 
           {'Polygon' => 'POLYGON', 'LineString' => 'LINE', 'Point' => 'POINT'}.each do |kml_type, sql_type|
             placemark.css(kml_type).each do |placemark|
