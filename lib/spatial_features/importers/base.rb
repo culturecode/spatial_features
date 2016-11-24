@@ -36,7 +36,7 @@ module SpatialFeatures
       end
 
       def each_record(&block)
-        @data.each(&block)
+        raise NotImplementedError, 'Subclasses should implement this method and yield objects that can be passed to #build_feature'
       end
 
       def build_feature(record)
