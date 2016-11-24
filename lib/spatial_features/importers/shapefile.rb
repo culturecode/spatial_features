@@ -21,7 +21,7 @@ module SpatialFeatures
 
       def unzip(file)
         path = ::File.path(file)
-        path = Unzip.paths(file, :find => '.shp') || raise(UpdateError, "File missing SHP") if path.end_with?('.zip')
+        path = Unzip.paths(file, :find => '.shp') || raise(ImportError, "File missing SHP") if path.end_with?('.zip')
         return path
       end
     end
