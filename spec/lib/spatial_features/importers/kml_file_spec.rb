@@ -1,7 +1,6 @@
 require 'spec_helper'
 
 describe SpatialFeatures::Importers::KML do
-
   shared_examples_for 'kml importer' do |data|
     subject { SpatialFeatures::Importers::KMLFile.new(data) }
 
@@ -25,14 +24,14 @@ describe SpatialFeatures::Importers::KML do
   end
 
   context 'when given a path to a KML file' do
-    it_behaves_like 'kml importer', "#{__dir__}/../../../../spec/fixtures/test.kml"
+    it_behaves_like 'kml importer', kml_file.path
   end
 
   context 'when given KML file' do
-    it_behaves_like 'kml importer', File.open("#{__dir__}/../../../../spec/fixtures/test.kml")
+    it_behaves_like 'kml importer', kml_file
   end
 
   context 'when given KMZ file' do
-    it_behaves_like 'kml importer', File.open("#{__dir__}/../../../../spec/fixtures/test.kmz")
+    it_behaves_like 'kml importer', kmz_file
   end
 end

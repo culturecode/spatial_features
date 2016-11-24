@@ -4,7 +4,7 @@ describe SpatialFeatures::Importers::KML do
   subject { SpatialFeatures::Importers::KML.new(data) }
 
   context 'when given a string of KML' do
-    let(:data) { File.read("#{__dir__}/../../../../spec/fixtures/test.kml") }
+    let(:data) { kml_file.read }
 
     describe '#features' do
       it 'returns all records' do
