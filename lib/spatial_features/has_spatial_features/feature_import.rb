@@ -43,7 +43,7 @@ module SpatialFeatures
       end
 
       if errors.present?
-        raise UpdateError, "Error updating #{self.class} #{self.id}. #{errors.to_sentence}"
+        raise ImportError, "Error updating #{self.class} #{self.id}. #{errors.to_sentence}"
       end
     end
 
@@ -56,7 +56,7 @@ module SpatialFeatures
       self.features_hash = cache_key
       update_column(:features_hash, cache_key) unless new_record?
     end
-
-    class UpdateError < StandardError; end
   end
+
+  class ImportError < StandardError; end
 end
