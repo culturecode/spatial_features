@@ -10,7 +10,7 @@ module SpatialFeatures
         return if features_cache_key_matches?(cache_key)
 
         import_features(imports)
-        validate_features!(skip_invalid)
+        validate_features!(imports, skip_invalid)
         set_features_cache_key(cache_key)
 
         return true
@@ -31,13 +31,15 @@ module SpatialFeatures
       features << imports.flat_map(&:features)
     end
 
-    def validate_features!(skip_invalid = false)
+    def validate_features!(imports, skip_invalid = false)
       invalid = features.select {|feature| feature.errors.present? }
       features.destroy(invalid)
 
       return if skip_invalid
-      errors = invalid.collect do |feature|
-        "Feature #{feature.name}: #{feature.errors.full_messages.to_sentence}"
+
+      errors = imports.flat_map(&:errors)
+      invalid.each do |feature|
+        errors << "Feature #{feature.name}: #{feature.errors.full_messages.to_sentence}"
       end
 
       if errors.present?
