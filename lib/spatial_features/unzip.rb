@@ -10,7 +10,10 @@ module SpatialFeatures
         paths << path
       end
 
-      paths = paths.find {|path| path.include?(find) } if find
+      if find = Array.wrap(find).presence
+        paths = paths.detect {|path| find.any? {|pattern| path.include?(pattern) } }
+        raise(ImportError, "No file matched #{find}") unless paths.present?
+      end
 
       return paths
     end
