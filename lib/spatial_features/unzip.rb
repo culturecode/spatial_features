@@ -27,6 +27,8 @@ module SpatialFeatures
       zip = file.readline.start_with?('PK')
       file.rewind
       return zip
+    rescue EOFError
+      return false
     end
   end
 end
