@@ -7,11 +7,11 @@ module SpatialFeatures
         imports = spatial_feature_imports(import_options)
         cache_key = Digest::MD5.hexdigest(imports.collect(&:cache_key).join)
 
-        return if has_spatial_features_hash? && cache_key == features_hash
+        return if features_cache_key_matches?(cache_key)
 
         import_features(imports)
         validate_features!(skip_invalid)
-        update_attributes(:features_hash => cache_key) if has_spatial_features_hash?
+        set_features_cache_key(cache_key)
 
         return true
       end
@@ -43,6 +43,16 @@ module SpatialFeatures
       if errors.present?
         raise UpdateError, "Error updating #{self.class} #{self.id}. #{errors.to_sentence}"
       end
+    end
+
+    def features_cache_key_matches?(cache_key)
+      has_spatial_features_hash? && cache_key == features_hash
+    end
+
+    def set_features_cache_key(cache_key)
+      return unless has_spatial_features_hash?
+      self.features_hash = cache_key
+      update_column(:features_hash, cache_key) unless new_record?
     end
 
     class UpdateError < StandardError; end
