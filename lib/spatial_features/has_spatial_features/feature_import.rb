@@ -6,7 +6,6 @@ module SpatialFeatures
       ActiveRecord::Base.transaction do
         imports = spatial_feature_imports(import_options)
         cache_key = Digest::MD5.hexdigest(imports.collect(&:cache_key).join)
-
         if has_spatial_features_hash? && cache_key != features_hash
           import_features(imports)
           validate_features!(skip_invalid)
@@ -22,8 +21,9 @@ module SpatialFeatures
 
     def spatial_feature_imports(options = {})
       spatial_features_options.fetch(:import, {}).collect do |data_method, importer_name|
-        "SpatialFeatures::Importers::#{importer_name}".constantize.new(send(data_method), options)
-      end
+        data = send(data_method)
+        "SpatialFeatures::Importers::#{importer_name}".constantize.new(data, options) if data.present?
+      end.compact
     end
 
     def import_features(imports)
