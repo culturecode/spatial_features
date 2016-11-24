@@ -109,7 +109,7 @@ class Feature < ActiveRecord::Base
   private
 
   def make_valid
-    self.geog = ActiveRecord::Base.connection.select_value("SELECT ST_CollectionExtract('#{sanitize}',3)")
+    self.geog = ActiveRecord::Base.connection.select_value("SELECT ST_CollectionExtract(ST_MakeValid('#{sanitize}'),3)")
   end
 
   # Use ST_Force_2D to discard z-coordinates that cause failures later in the process
