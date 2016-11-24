@@ -7,7 +7,6 @@ module SpatialFeatures
 
       def initialize(data, skip_invalid: false, make_valid: false)
         @make_valid = make_valid
-        @feature_error_messages = []
         @data = data
         @errors = []
       end
