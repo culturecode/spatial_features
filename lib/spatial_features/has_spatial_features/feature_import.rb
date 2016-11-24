@@ -6,14 +6,14 @@ module SpatialFeatures
       ActiveRecord::Base.transaction do
         imports = spatial_feature_imports(import_options)
         cache_key = Digest::MD5.hexdigest(imports.collect(&:cache_key).join)
-        if has_spatial_features_hash? && cache_key != features_hash
-          import_features(imports)
-          validate_features!(skip_invalid)
-          update_attributes(:features_hash => cache_key)
-        elsif !has_spatial_features_hash?
-          import_features(imports)
-          validate_features!(skip_invalid)
-        end
+
+        return if has_spatial_features_hash? && cache_key == features_hash
+
+        import_features(imports)
+        validate_features!(skip_invalid)
+        update_attributes(:features_hash => cache_key) if has_spatial_features_hash?
+
+        return true
       end
     end
 
