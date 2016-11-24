@@ -36,7 +36,7 @@ describe SpatialFeatures::FeatureImport do
 
     it 'aggregates features if multiple importers are specified' do
       single = new_dummy_class(:parent => FeatureImportMock) do
-        has_spatial_features :import => { :test_kml => :KMLFile}
+        has_spatial_features :import => { :test_kml => :KMLFile }
       end.new
 
       double = new_dummy_class(:parent => FeatureImportMock) do
@@ -47,5 +47,20 @@ describe SpatialFeatures::FeatureImport do
       double.update_features!
       expect(double.features.count).to eq(single.features.count * 2)
     end
+
+    it 'ignores empty source values' do
+      subject = new_dummy_class do
+        has_spatial_features :import => { :empty_string => :KMLFile }
+
+        def empty_string
+          ""
+        end
+      end.new
+
+      expect(SpatialFeatures::Importers::KMLFile).not_to receive(:new)
+      subject.update_features!
+    end
+
+    it 'combines the cache key from each importer'
   end
 end
