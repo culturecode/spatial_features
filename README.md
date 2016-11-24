@@ -67,7 +67,7 @@ You can specify multiple import sources for geometry. Each key is a method that 
 each value is the Importer to use to parse the data. See each Importer for more details.
 ```ruby
 class Location < ActiveRecord::Base
-  has_spatial_features :import => { :remote_kml_url => :KMLFile, :file => :File }
+  has_spatial_features :import => { :remote_kml_url => 'KMLFile', :file => 'File' }
 
   def remote_kml_url
     "www.test.com/kml/#{id}.kml"
