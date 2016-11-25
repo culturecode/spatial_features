@@ -2,21 +2,12 @@ module SpatialFeatures
   module Importers
     class KMLFile < KML
       def initialize(path_or_url, *args)
-        super fetch(path_or_url), *args
-      end
+        super Download.read(path_or_url, unzip: '.kml'), *args
 
-      private
-
-      def fetch(path_or_url)
-        Download.read(path_or_url, unzip: '.kml')
-      rescue SocketError, Errno::ECONNREFUSED
+      rescue SocketError, Errno::ECONNREFUSED, OpenURI::HTTPError
         url = URI(path_or_url)
-        raise ImportError, "ArcGIS Server is not responding. Ensure ArcGIS Server is running and accessible at #{[url.scheme, "//#{url.host}", url.port].select(&:present?).join(':')}."
-      rescue OpenURI::HTTPError
-        raise ImportError, "ArcGIS Map Service not found. Ensure ArcGIS Server is running and accessible at #{path_or_url}."
+        raise ImportError, "KML server is not responding. Ensure server is running and accessible at #{[url.scheme, "//#{url.host}", url.port].select(&:present?).join(':')}."
       end
     end
-
-    class ImportError < StandardError; end
   end
 end

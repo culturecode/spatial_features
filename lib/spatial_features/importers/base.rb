@@ -44,4 +44,8 @@ module SpatialFeatures
       end
     end
   end
+
+  # EXCEPTIONS
+
+  class ImportError < StandardError; end
 end
