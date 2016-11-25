@@ -4,6 +4,11 @@ require 'ostruct'
 module SpatialFeatures
   module Importers
     class Shapefile < Base
+
+      def cache_key
+        @cache_key ||= Digest::MD5.hexdigest(features.to_json)
+      end
+
       private
 
       def each_record(&block)
