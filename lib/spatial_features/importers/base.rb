@@ -5,7 +5,7 @@ module SpatialFeatures
     class Base
       attr_reader :errors
 
-      def initialize(data, skip_invalid: false, make_valid: false)
+      def initialize(data, make_valid: false)
         @make_valid = make_valid
         @data = data
         @errors = []
