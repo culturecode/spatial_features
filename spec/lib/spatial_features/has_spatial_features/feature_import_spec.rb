@@ -62,5 +62,22 @@ describe SpatialFeatures::FeatureImport do
     end
 
     it 'combines the cache key from each importer'
+
+    it 'returns true if features are updated' do
+      subject = new_dummy_class(:parent => FeatureImportMock) do
+        has_spatial_features :import => { :test_kml => :KMLFile }
+      end.new
+
+      expect(subject.update_features!).to be_truthy
+    end
+
+    it 'returns nil if features are unchanged' do
+      subject = new_dummy_class(:parent => FeatureImportMock) do
+        has_spatial_features :import => { :test_kml => :KMLFile }
+      end.new
+
+      subject.update_features!
+      expect(subject.update_features!).to be_nil
+    end
   end
 end
