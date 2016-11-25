@@ -8,7 +8,7 @@ module SpatialFeatures
 
       def each_record(&block)
         file = Download.open(@data, unzip: '.shp')
-        RGeo::Shapefile::Reader.open(file) do |records|
+        RGeo::Shapefile::Reader.open(file.path) do |records|
           records.each do |record|
             yield OpenStruct.new(:metadata => record.attributes, :geog => geom_from_text(record.geometry.as_text))
           end
