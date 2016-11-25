@@ -1,5 +1,5 @@
-require 'rgeo/shapefile'
 require 'ostruct'
+require 'digest/md5'
 
 module SpatialFeatures
   module Importers
