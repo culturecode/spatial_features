@@ -3,10 +3,12 @@ class Feature < ActiveRecord::Base
 
   attr_writer :make_valid
 
+  FEATURE_TYPES = %w(polygon point line)
+
   before_validation :sanitize_feature_type
   validates_presence_of :geog
   validate :geometry_is_valid
-  validates_inclusion_of :feature_type, :in => ['polygon', 'point', 'line']
+  validates_inclusion_of :feature_type, :in => FEATURE_TYPES
   before_save :sanitize
   before_save :make_valid, if: :make_valid?
   after_save :cache_derivatives
@@ -133,7 +135,7 @@ class Feature < ActiveRecord::Base
   end
 
   def sanitize_feature_type
-    self.feature_type = self.feature_type.to_s.strip.downcase
+    self.feature_type = FEATURE_TYPES.find {|type| self.feature_type.to_s.strip.downcase.include?(type) }
   end
 
   def sanitize_input_for_sql(input)

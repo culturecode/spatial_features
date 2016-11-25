@@ -15,13 +15,18 @@ module SpatialFeatures
         file = Download.open(@data, unzip: '.shp')
         RGeo::Shapefile::Reader.open(file.path) do |records|
           records.each do |record|
-            yield OpenStruct.new(:metadata => record.attributes, :geog => geom_from_text(record.geometry.as_text))
+            yield OpenStruct.new data_from_wkt(record.geometry.as_text).merge(:metadata => record.attributes)
           end
         end
       end
 
       def geom_from_text(wkt)
         ActiveRecord::Base.connection.select_value("SELECT ST_GeomFromText('#{wkt}')")
+
+      def data_from_wkt(wkt)
+        ActiveRecord::Base.connection.select_one <<-SQL
+          SELECT ST_GeomFromText('#{wkt}') AS geog, GeometryType(ST_GeomFromText('#{wkt}')) AS feature_type
+        SQL
       end
     end
   end
