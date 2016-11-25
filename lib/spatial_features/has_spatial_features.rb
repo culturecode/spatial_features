@@ -4,6 +4,7 @@ module SpatialFeatures
       unless acts_like?(:spatial_features)
         extend ClassMethods
         include InstanceMethods
+        include DelayedFeatureImport
 
         class_attribute :spatial_features_options
         self.spatial_features_options = {}
@@ -26,7 +27,7 @@ module SpatialFeatures
         delegate :has_spatial_features_hash?, :has_features_area?, :to => self
       end
 
-      self.spatial_features_options.merge!(options)
+      self.spatial_features_options = self.spatial_features_options.merge(options)
     end
   end
 

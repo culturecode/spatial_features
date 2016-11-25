@@ -48,3 +48,33 @@ execute("
   );
 ")
 ```
+
+## Usage
+
+In your model
+
+```ruby
+class Location < ActiveRecord::Base
+  has_spatial_features
+end
+
+Person.new(:features => [Feature.new(:geog => 'some binary PostGIS Geography string')])
+```
+
+### Import
+
+You can specify multiple import sources for geometry. Each key is a method that returns the data for the Importer, and
+each value is the Importer to use to parse the data. See each Importer for more details.
+```ruby
+class Location < ActiveRecord::Base
+  has_spatial_features :import => { :remote_kml_url => 'KMLFile', :file => 'File' }
+
+  def remote_kml_url
+    "www.test.com/kml/#{id}.kml"
+  end
+
+  def file
+    File.open('local/files/my_kml')
+  end
+end
+```
