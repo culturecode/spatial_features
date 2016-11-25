@@ -1,14 +1,19 @@
 require 'spec_helper'
 
 describe SpatialFeatures::Importers::KML do
-  subject { SpatialFeatures::Importers::KML.new(data) }
+  subject { SpatialFeatures::Importers::Shapefile.new(data) }
 
   context 'when given a shapefile' do
-    # let(:data) { File.read("#{__dir__}/../../../../spec/fixtures/test.kml") }
+    let(:data) { shapefile }
 
     describe '#features' do
-      it 'returns all records'
-      it 'sets the feature metadata'
+      it 'returns all records' do
+        expect(subject.features.count).to eq(17)
+      end
+
+      it 'sets the feature metadata' do
+        expect(subject.features).to all(have_attributes :metadata => be_present)
+      end
     end
   end
 end
