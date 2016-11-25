@@ -14,6 +14,17 @@ describe SpatialFeatures::Importers::KML do
       it 'sets the feature metadata' do
         expect(subject.features).to all(have_attributes :metadata => be_present)
       end
+
+      it 'sets the feature_type' do
+        expect(subject.features).to all(have_attributes :feature_type => be_present)
+      end
+    end
+
+    describe '#cache_key' do
+      it 'returns a string' do
+        expect(subject.cache_key).to be_a(String)
+      end
+      end
     end
   end
 end
