@@ -27,8 +27,8 @@ module SpatialFeatures
     end
 
     def import_features(imports)
-      features.destroy_all
-      features << imports.flat_map(&:features)
+      self.features.destroy_all
+      self.features = imports.flat_map(&:features)
     end
 
     def validate_features!(imports, skip_invalid = false)
