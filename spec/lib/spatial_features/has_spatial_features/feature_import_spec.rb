@@ -20,7 +20,7 @@ describe SpatialFeatures::FeatureImport do
         has_spatial_features :import => { :test_kml => :KMLFile }
       end.new
 
-      expect(SpatialFeatures::Importers::KMLFile).to receive(:new).with(subject.test_kml, {}).and_call_original
+      expect(SpatialFeatures::Importers::KMLFile).to receive(:new).with(subject.test_kml, be_a(Hash)).and_call_original
       subject.update_features!
     end
 
@@ -29,8 +29,8 @@ describe SpatialFeatures::FeatureImport do
         has_spatial_features :import => { :test_kml => :KMLFile, :test_kmz => :KMLFile }
       end.new
 
-      expect(SpatialFeatures::Importers::KMLFile).to receive(:new).with(subject.test_kml, {}).and_call_original
-      expect(SpatialFeatures::Importers::KMLFile).to receive(:new).with(subject.test_kmz, {}).and_call_original
+      expect(SpatialFeatures::Importers::KMLFile).to receive(:new).with(subject.test_kml, be_a(Hash)).and_call_original
+      expect(SpatialFeatures::Importers::KMLFile).to receive(:new).with(subject.test_kmz, be_a(Hash)).and_call_original
       subject.update_features!
     end
 

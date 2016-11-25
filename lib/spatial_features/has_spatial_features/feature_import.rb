@@ -2,9 +2,11 @@ require 'digest/md5'
 
 module SpatialFeatures
   module FeatureImport
-    def update_features!(skip_invalid: false, **import_options)
+    def update_features!(skip_invalid: false, options: {})
+      options = options.reverse_merge(spatial_features_options).reverse_merge(:import => {})
+
       ActiveRecord::Base.transaction do
-        imports = spatial_feature_imports(import_options)
+        imports = spatial_feature_imports(options[:import], options[:make_valid])
         cache_key = Digest::MD5.hexdigest(imports.collect(&:cache_key).join)
 
         return if features_cache_key_matches?(cache_key)
@@ -19,10 +21,10 @@ module SpatialFeatures
 
     private
 
-    def spatial_feature_imports(options = {})
-      spatial_features_options.fetch(:import, {}).collect do |data_method, importer_name|
+    def spatial_feature_imports(import_options, make_valid)
+      import_options.collect do |data_method, importer_name|
         data = send(data_method)
-        "SpatialFeatures::Importers::#{importer_name}".constantize.new(data, options) if data.present?
+        "SpatialFeatures::Importers::#{importer_name}".constantize.new(data, :make_valid => make_valid) if data.present?
       end.compact
     end
 
