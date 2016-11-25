@@ -24,6 +24,9 @@ describe SpatialFeatures::Importers::KML do
       it 'returns a string' do
         expect(subject.cache_key).to be_a(String)
       end
+
+      it 'changes if the records are different' do
+
       end
     end
   end
