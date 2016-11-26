@@ -114,7 +114,7 @@ class Feature < ActiveRecord::Base
     self.geog = ActiveRecord::Base.connection.select_value("SELECT ST_CollectionExtract(ST_MakeValid('#{sanitize}'),3)")
   end
 
-  # Use ST_Force_2D to discard z-coordinates that cause failures later in the process
+  # Use ST_Force2D to discard z-coordinates that cause failures later in the process
   def sanitize
     self.geog = ActiveRecord::Base.connection.select_value("SELECT ST_Force2D('#{geog}')")
   end
