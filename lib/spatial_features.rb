@@ -2,6 +2,10 @@
 require 'rgeo/shapefile'
 require 'nokogiri'
 require 'zip'
+require 'rest-client'
+require 'googleauth'
+require 'google/apis/fusiontables_v2'
+require 'google/apis/drive_v3'
 
 # LIB
 require 'spatial_features/caching'
@@ -13,6 +17,11 @@ require 'spatial_features/unzip'
 require 'spatial_features/has_spatial_features'
 require 'spatial_features/has_spatial_features/feature_import'
 require 'spatial_features/has_spatial_features/delayed_feature_import'
+
+require 'spatial_features/has_fusion_table_features'
+require 'spatial_features/has_fusion_table_features/api'
+require 'spatial_features/has_fusion_table_features/configuration'
+require 'spatial_features/has_fusion_table_features/service'
 
 require 'spatial_features/importers/base'
 require 'spatial_features/importers/file'
@@ -34,6 +43,7 @@ end
 
 # Load the act method
 ActiveRecord::Base.send :extend, SpatialFeatures::ActMethod
+ActiveRecord::Base.send :extend, SpatialFeatures::FusionTables::ActMethod
 
 # Suppress date warnings when unzipping KMZ saved by Google Earth, see https://github.com/rubyzip/rubyzip/issues/112
 Zip.warn_invalid_date = false
