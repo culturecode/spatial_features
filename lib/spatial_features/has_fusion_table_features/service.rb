@@ -88,19 +88,10 @@ module SpatialFeatures
         fusion_tables_service.import_rows(table_id, upload_source: csv, :options => { :open_timeout_sec => 1.hour })
       end
 
-      def share_table(table_id, invitee_email_address)
+      def share_table(table_id)
         message = "This is a new fusion table, to use it in Google Maps, sharing must be set to 'Anyone with link'."
-        permission = {type: 'user', role: 'writer', email_address: invitee_email_address}
-
-        callback = lambda do |res, err|
-          if err
-            puts err.body
-          else
-            puts "Permission ID: #{res.id}"
-          end
-        end
-
-        drive_service.create_permission(table_id, permission, email_message: message, fields: 'id', &callback)
+        permission = {type: 'anyone', role: 'reader', withLink: true}
+        drive_service.create_permission(table_id, permission, fields: 'id')
       end
 
       def fusion_tables_service

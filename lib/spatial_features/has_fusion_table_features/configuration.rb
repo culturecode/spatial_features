@@ -9,7 +9,7 @@ module SpatialFeatures
     end
 
     module Configuration
-      mattr_accessor :service_account_credentials, :management_email
+      mattr_accessor :service_account_credentials
     end
   end
 end
