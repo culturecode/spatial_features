@@ -2,6 +2,13 @@ require 'digest/md5'
 
 module SpatialFeatures
   module FeatureImport
+    extend ActiveSupport::Concern
+
+    included do
+      extend ActiveModel::Callbacks
+      define_model_callbacks :update_features
+    end
+
     def update_features!(skip_invalid: false, options: {})
       options = options.reverse_merge(spatial_features_options).reverse_merge(:import => {})
 
@@ -11,9 +18,11 @@ module SpatialFeatures
 
         return if features_cache_key_matches?(cache_key)
 
-        import_features(imports)
-        validate_features!(imports, skip_invalid)
-        set_features_cache_key(cache_key)
+        run_callbacks :update_features do
+          import_features(imports)
+          validate_features!(imports, skip_invalid)
+          set_features_cache_key(cache_key)
+        end
 
         return true
       end
