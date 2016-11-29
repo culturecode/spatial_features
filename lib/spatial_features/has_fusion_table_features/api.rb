@@ -15,7 +15,7 @@ module SpatialFeatures
 
       def create_table(name)
         table_id = service.create_table(name, FEATURE_COLUMNS.collect {|name, type| {:name => name, :type => type} })
-        service.share_table(table_id, Configuration.management_email)
+        service.share_table(table_id)
         service.insert_style(table_id, TABLE_STYLE)
         return table_id
       end
