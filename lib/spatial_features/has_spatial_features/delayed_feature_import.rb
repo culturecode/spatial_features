@@ -1,5 +1,6 @@
 module SpatialFeatures
   module DelayedFeatureImport
+    extend ActiveSupport::Concern
     include FeatureImport
 
     def queue_feature_update!(options = {})
