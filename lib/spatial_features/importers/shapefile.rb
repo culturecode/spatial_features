@@ -15,7 +15,7 @@ module SpatialFeatures
         proj4 = proj4_from_file(file)
         RGeo::Shapefile::Reader.open(file.path) do |records|
           records.each do |record|
-            yield OpenStruct.new data_from_wkt(record.geometry.as_text, proj4).merge(:metadata => record.attributes)
+            yield OpenStruct.new data_from_wkt(record.geometry.as_text, proj4).merge(:metadata => record.attributes) if record.geometry.present?
           end
         end
       end
