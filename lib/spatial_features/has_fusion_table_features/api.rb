@@ -56,7 +56,7 @@ module SpatialFeatures
         when Symbol
           features.each do |feature|
             feature.define_singleton_method(:colour) do
-              send(colour)
+              spatial_model.send(colour)
             end
           end
         when Proc
