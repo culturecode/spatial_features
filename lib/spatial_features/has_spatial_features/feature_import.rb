@@ -38,7 +38,7 @@ module SpatialFeatures
     end
 
     def import_features(imports)
-      self.features.destroy_all
+      self.features.delete_all
       self.features = imports.flat_map(&:features)
     end
 
