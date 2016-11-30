@@ -13,7 +13,7 @@ module SpatialFeatures
       end
 
       def tables
-        fusion_tables_service.list_tables.items
+        fusion_tables_service.list_tables(max_results: 10000).items || []
       end
 
       def create_table(name, columns = [], table_options = {})
