@@ -54,6 +54,7 @@ module SpatialFeatures
       def colour_features(features, colour)
         case colour
         when Symbol
+          ActiveRecord::Associations::Preloader.new.preload(features, :spatial_model)
           features.each do |feature|
             feature.define_singleton_method(:colour) do
               spatial_model.send(colour)
