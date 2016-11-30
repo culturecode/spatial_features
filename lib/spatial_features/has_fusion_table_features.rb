@@ -41,9 +41,10 @@ module SpatialFeatures
       private
 
       def fusion_table_groups(only: [], except: [])
-        all.group_by(&:fusion_table_id).each do |fusion_table_id, records|
-          next if only.present? && !Array.wrap(only).include?(fusion_table_id)
-          next if except.present? && Array.wrap(except).include?(fusion_table_id)
+        groups = all.group_by(&:fusion_table_id)
+        groups.select! {|fusion_table_id| Array.wrap(only).include?(fusion_table_id) } if only.present?
+        groups.select! {|fusion_table_id| !Array.wrap(except).include?(fusion_table_id) } if except.present?
+        groups.each do |fusion_table_id, records|
           yield fusion_table_id, records, features.where(:spatial_model_id => records)
         end
       end
