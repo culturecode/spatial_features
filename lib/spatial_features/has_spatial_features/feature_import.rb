@@ -19,8 +19,7 @@ module SpatialFeatures
         return if features_cache_key_matches?(cache_key)
 
         run_callbacks :update_features do
-          import_features(imports)
-          validate_features!(imports, skip_invalid)
+          import_features(imports, skip_invalid)
           set_features_cache_key(cache_key)
         end
 
@@ -37,25 +36,23 @@ module SpatialFeatures
       end.compact
     end
 
-    def import_features(imports)
+    def import_features(imports, skip_invalid)
       self.features.delete_all
-      self.features = imports.flat_map(&:features)
-    end
-
-    def validate_features!(imports, skip_invalid = false)
-      invalid = features.select {|feature| feature.errors.present? }
-      features.destroy(invalid)
-
-      return if skip_invalid
-
-      errors = imports.flat_map(&:errors)
-      invalid.each do |feature|
-        errors << "Feature #{feature.name}: #{feature.errors.full_messages.to_sentence}"
+      valid, invalid = imports.flat_map(&:features).partition do |feature|
+        feature.spatial_model = self
+        feature.save
       end
 
-      if errors.present?
+      if !skip_invalid && invalid.present?
+        errors = imports.flat_map(&:errors)
+        invalid.each do |feature|
+          errors << "Feature #{feature.name}: #{feature.errors.full_messages.to_sentence}"
+        end
+
         raise ImportError, "Error updating #{self.class} #{self.id}. #{errors.to_sentence}"
       end
+
+      self.features = valid
     end
 
     def features_cache_key_matches?(cache_key)
