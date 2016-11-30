@@ -34,7 +34,7 @@ module SpatialFeatures
 
       def fusion_table_id_cache
         @fusion_table_id_cache ||= Hash.new {|hash, table_name| hash[table_name] = API.find_or_create_table(table_name) }
-          .replace(API.tables.collect {|table| [table.name, table.table_id] }.to_h) # Warm the cache
+          .merge(API.tables.collect {|table| [table.name, table.table_id] }.to_h) # Warm the cache
       end
 
       private
