@@ -18,7 +18,7 @@ module SpatialFeatures
 
       def create_table(name, columns = [], table_options = {})
         table_object = {:name => name, :columns => columns, :is_exportable => true}.merge(table_options)
-        fusion_tables_service.insert_table(table_object, :fields => 'table_id')
+        fusion_tables_service.insert_table(table_object, :fields => 'table_id').table_id
       end
 
       def delete_table(table_id)
