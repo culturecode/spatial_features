@@ -46,7 +46,7 @@ module SpatialFeatures
           end
         end
 
-        file = Tempfile.open
+        file = Tempfile.new('features')
         file.write(csv)
         return file
       end
