@@ -7,10 +7,9 @@ class Feature < ActiveRecord::Base
 
   before_validation :sanitize_feature_type
   validates_presence_of :geog
-  validate :geometry_is_valid
+  validate :validate_geometry
   validates_inclusion_of :feature_type, :in => FEATURE_TYPES
   before_save :sanitize
-  before_save :make_valid, if: :make_valid?
   after_save :cache_derivatives
 
   def self.with_metadata(k, v)
@@ -111,7 +110,7 @@ class Feature < ActiveRecord::Base
   private
 
   def make_valid
-    self.geog = ActiveRecord::Base.connection.select_value("SELECT ST_CollectionExtract(ST_MakeValid('#{sanitize}'),3)")
+    self.geog = ActiveRecord::Base.connection.select_value("SELECT ST_Buffer('#{sanitize}', 0)")
   end
 
   # Use ST_Force2D to discard z-coordinates that cause failures later in the process
@@ -127,11 +126,22 @@ class Feature < ActiveRecord::Base
     joins('INNER JOIN features AS other_features ON true').where(:other_features => {:id => other})
   end
 
-  def geometry_is_valid
-    if geog?
-      instance = self.class.unscoped.invalid.from("(SELECT '#{sanitize_input_for_sql(self.geog)}'::geometry AS geog) #{self.class.table_name}").to_a.first
-      errors.add :geog, instance.invalid_geometry_message if instance
+  def validate_geometry
+    return unless geog?
+
+    error = geometry_validation_message
+    if error && make_valid?
+      make_valid
+      self.make_valid = false
+      validate_geometry
+    elsif error
+      errors.add :geog, error
     end
+  end
+
+  def geometry_validation_message
+    error = self.class.connection.select_one(self.class.unscoped.invalid.from("(SELECT '#{sanitize_input_for_sql(self.geog)}'::geometry AS geog) #{self.class.table_name}"))
+    return error.fetch('invalid_geometry_message') if error
   end
 
   def sanitize_feature_type
