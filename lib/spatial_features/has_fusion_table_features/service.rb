@@ -67,7 +67,7 @@ module SpatialFeatures
       end
 
       def request(method, url, header: {}, body: {}, params: {})
-        headers = @authorization.apply({'Content-Type': 'application/json'})
+        headers = @authorization.apply('Content-Type' => 'application/json')
         headers.merge!(header)
         headers.merge!(:params => params)
         return RestClient::Request.execute(:method => method, :url => url, :headers => headers, :payload => body)
