@@ -28,6 +28,10 @@ module SpatialFeatures
         service.delete_table(table_id)
       end
 
+      def tables
+        service.tables
+      end
+
       def set_features(table_id, features, colour: nil)
         colour_features(features, colour)
         service.replace_rows(table_id, features_to_csv(features))

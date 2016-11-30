@@ -25,7 +25,7 @@ module SpatialFeatures
         fusion_table_groups(group_options) do |fusion_table_id, records, group_features|
           API.delete_table(fusion_table_id)
         end
-        fusion_table_id_cache.clear
+        @fusion_table_id_cache = nil
       end
 
       def acts_like_fusion_table_features?
@@ -33,9 +33,8 @@ module SpatialFeatures
       end
 
       def fusion_table_id_cache
-        @fusion_table_id_cache ||= Hash.new do |hash, table_name|
-          hash[table_name] = API.find_or_create_table(table_name)
-        end
+        @fusion_table_id_cache ||= Hash.new {|hash, table_name| hash[table_name] = API.find_or_create_table(table_name) }
+          .replace(API.tables.collect {|table| [table.name, table.table_id] }.to_h) # Warm the cache
       end
 
       private
