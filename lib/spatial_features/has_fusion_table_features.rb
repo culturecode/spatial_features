@@ -42,7 +42,7 @@ module SpatialFeatures
 
       def fusion_table_groups(only: [], except: [])
         all.group_by(&:fusion_table_id).each do |fusion_table_id, records|
-          next unless only.present? && Array.wrap(only).include?(fusion_table_id)
+          next if only.present? && !Array.wrap(only).include?(fusion_table_id)
           next if except.present? && Array.wrap(except).include?(fusion_table_id)
           yield fusion_table_id, records, features.where(:spatial_model_id => records)
         end
