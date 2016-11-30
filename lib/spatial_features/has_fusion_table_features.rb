@@ -19,7 +19,6 @@ module SpatialFeatures
 
       def update_fusion_tables
         fusion_table_groups do |fusion_table_id, records, group_features|
-          puts "Processing table #{fusion_table_id} - #{records.inspect}"
           API.set_features(fusion_table_id, group_features, :colour => fusion_table_features_options[:colour])
         end
       end

@@ -19,13 +19,13 @@ module SpatialFeatures
       end
 
       def create_table(name, columns = [], table_options = {})
-        body = { name: name, columns: columns }.merge(:description => "Features", isExportable: true).merge(table_options).to_json
-        response = request(:post, 'https://www.googleapis.com/fusiontables/v2/tables', body: body)
+        body = {:name => name, :columns => columns}.merge(:description => "Features", :isExportable => true).merge(table_options).to_json
+        response = request(:post, 'https://www.googleapis.com/fusiontables/v2/tables', :body => body)
         return parse_reponse(response)['tableId']
       end
 
       def select(query)
-        parse_reponse request(:get, "https://www.googleapis.com/fusiontables/v2/query", params: { sql: query })
+        parse_reponse request(:get, "https://www.googleapis.com/fusiontables/v2/query", :params => {:sql => query})
       end
 
       def delete_table(table_id)
@@ -69,8 +69,8 @@ module SpatialFeatures
       def request(method, url, header: {}, body: {}, params: {})
         headers = @authorization.apply({'Content-Type': 'application/json'})
         headers.merge!(header)
-        headers.merge!(params: params)
-        return RestClient::Request.execute(method: method, url: url, headers: headers, payload: body)
+        headers.merge!(:params => params)
+        return RestClient::Request.execute(:method => method, :url => url, :headers => headers, :payload => body)
       rescue RestClient::ExceptionWithResponse => e
         puts e.response
         raise e
@@ -81,17 +81,16 @@ module SpatialFeatures
       end
 
       def replace_rows(table_id, csv)
-        fusion_tables_service.replace_table_rows(table_id, upload_source: csv, :options => { :open_timeout_sec => 1.hour })
+        fusion_tables_service.replace_table_rows(table_id, :upload_source => csv, :options => {:open_timeout_sec => 1.hour})
       end
 
       def upload_rows(table_id, csv)
-        fusion_tables_service.import_rows(table_id, upload_source: csv, :options => { :open_timeout_sec => 1.hour })
+        fusion_tables_service.import_rows(table_id, :upload_source => csv, :options => {:open_timeout_sec => 1.hour})
       end
 
       def share_table(table_id)
-        message = "This is a new fusion table, to use it in Google Maps, sharing must be set to 'Anyone with link'."
-        permission = {type: 'anyone', role: 'reader', withLink: true}
-        drive_service.create_permission(table_id, permission, fields: 'id')
+        permission = {:type => 'anyone', :role => 'reader', :withLink => true}
+        drive_service.create_permission(table_id, permission, :fields => 'id')
       end
 
       def fusion_tables_service
