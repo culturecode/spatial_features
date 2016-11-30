@@ -22,7 +22,6 @@ Gem::Specification.new do |s|
   s.add_dependency "rgeo-shapefile", '~> 0.4'
   s.add_dependency "rubyzip", '~> 1.1'
   s.add_dependency "nokogiri", '~> 1.6'
-  s.add_dependency "rest-client", '~> 2.0'
   s.add_dependency "googleauth", '~> 0.5.1'
   s.add_dependency "google-api-client", '~> 0.9'
 
