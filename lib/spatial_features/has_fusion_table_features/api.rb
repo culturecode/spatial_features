@@ -21,7 +21,7 @@ module SpatialFeatures
       end
 
       def find_table(name)
-        service.tables.find {|table| table['name'] == name }.try(:fetch, 'tableId')
+        service.tables.find {|table| table.name == name }.try(:table_id)
       end
 
       def delete_table(table_id)

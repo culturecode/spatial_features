@@ -1,5 +1,3 @@
-require 'json'
-
 module SpatialFeatures
   module FusionTables
     class Service
@@ -11,29 +9,24 @@ module SpatialFeatures
       end
 
       def table_ids
-        tables.collect {|t| t['tableId'] }
+        tables.collect(&:table_id)
       end
 
       def tables
-        parse_reponse(request(:get, 'https://www.googleapis.com/fusiontables/v2/tables')).fetch('items', [])
+        fusion_tables_service.list_tables.items
       end
 
       def create_table(name, columns = [], table_options = {})
-        body = {:name => name, :columns => columns}.merge(:description => "Features", :isExportable => true).merge(table_options).to_json
-        response = request(:post, 'https://www.googleapis.com/fusiontables/v2/tables', :body => body)
-        return parse_reponse(response)['tableId']
-      end
-
-      def select(query)
-        parse_reponse request(:get, "https://www.googleapis.com/fusiontables/v2/query", :params => {:sql => query})
+        table_object = {:name => name, :columns => columns, :is_exportable => true}.merge(table_options)
+        fusion_tables_service.insert_table(table_object, :fields => 'table_id')
       end
 
       def delete_table(table_id)
-        request(:delete, "https://www.googleapis.com/fusiontables/v2/tables/#{table_id}")
+        fusion_tables_service.delete_table(table_id)
       end
 
       def style_ids(table_id)
-        styles(table_id).collect {|t| t['styleId'] }
+        tables.collect(&:style_id)
       end
 
       def styles(table_id)
@@ -64,20 +57,6 @@ module SpatialFeatures
         fusion_tables_service.batch do
           block.call(self)
         end
-      end
-
-      def request(method, url, header: {}, body: {}, params: {})
-        headers = @authorization.apply('Content-Type' => 'application/json')
-        headers.merge!(header)
-        headers.merge!(:params => params)
-        return RestClient::Request.execute(:method => method, :url => url, :headers => headers, :payload => body)
-      rescue RestClient::ExceptionWithResponse => e
-        puts e.response
-        raise e
-      end
-
-      def parse_reponse(response)
-        JSON.parse(response.body)
       end
 
       def replace_rows(table_id, csv)

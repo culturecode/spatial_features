@@ -2,7 +2,6 @@
 require 'rgeo/shapefile'
 require 'nokogiri'
 require 'zip'
-require 'rest-client'
 require 'googleauth'
 require 'google/apis/fusiontables_v2'
 require 'google/apis/drive_v3'
