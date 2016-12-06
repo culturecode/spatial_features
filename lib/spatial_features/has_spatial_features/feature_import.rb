@@ -7,10 +7,11 @@ module SpatialFeatures
     included do
       extend ActiveModel::Callbacks
       define_model_callbacks :update_features
+      spatial_features_options.reverse_merge!(:import => {})
     end
 
     def update_features!(skip_invalid: false, options: {})
-      options = options.reverse_merge(spatial_features_options).reverse_merge(:import => {})
+      options = options.reverse_merge(spatial_features_options)
 
       ActiveRecord::Base.transaction do
         imports = spatial_feature_imports(options[:import], options[:make_valid])
@@ -32,8 +33,12 @@ module SpatialFeatures
     def spatial_feature_imports(import_options, make_valid)
       import_options.collect do |data_method, importer_name|
         data = send(data_method)
-        "SpatialFeatures::Importers::#{importer_name}".constantize.new(data, :make_valid => make_valid) if data.present?
+        spatial_importer_from_name(importer_name).new(data, :make_valid => make_valid) if data.present?
       end.compact
+    end
+
+    def spatial_importer_from_name(importer_name)
+      "SpatialFeatures::Importers::#{importer_name}".constantize
     end
 
     def import_features(imports, skip_invalid)

@@ -2,12 +2,12 @@ module SpatialFeatures
   module ActMethod
     def has_spatial_features(options = {})
       unless acts_like?(:spatial_features)
+        class_attribute :spatial_features_options
+        self.spatial_features_options = {:make_valid => true}
+
         extend ClassMethods
         include InstanceMethods
         include DelayedFeatureImport
-
-        class_attribute :spatial_features_options
-        self.spatial_features_options = {:make_valid => true}
 
         has_many :features, lambda { extending FeaturesAssociationExtensions }, :as => :spatial_model, :dependent => :delete_all
 
