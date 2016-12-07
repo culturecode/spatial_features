@@ -80,18 +80,6 @@ module SpatialFeatures
       end
     end
 
-    # Returns a scope that includes the features for this record as the table_alias and the features for other as #{table_alias}_other
-    # Can be used to perform spatial calculations on the relationship between the two sets of features
-    def joins_features_for(other, table_alias = 'features_for')
-      joins(:features).joins(%Q(INNER JOIN (#{other_features_union(other).to_sql}) AS "#{table_alias}_other" ON true))
-    end
-
-    def other_features_union(other)
-      scope = Feature.select('ST_Union(geom) AS geom').where(:spatial_model_type => class_for(other))
-      scope = scope.where(:spatial_model_id => other) unless class_for(other) == other
-      return scope
-    end
-
     # Returns true if the model stores a hash of the features so we don't need to process the features if they haven't changed
     def has_spatial_features_hash?
       column_names.include? 'features_hash'
@@ -119,23 +107,6 @@ module SpatialFeatures
       return scope
     end
 
-    def uncached_within_buffer_scope(other, buffer_in_meters, options)
-      scope = joins_features_for(other).select("#{table_name}.*")
-      scope = scope.where('ST_Intersects(features.geom, features_for_other.geom)') if buffer_in_meters == 0 # Optimize the 0 buffer case, ST_DWithin was slower in testing
-      scope = scope.where('ST_DWithin(features.geom, features_for_other.geom, ?)', buffer_in_meters) if buffer_in_meters.to_f > 0
-
-      # Ensure records with multiple features don't appear multiple times
-      if options[:distance] || options[:intersection_area]
-        scope = scope.group("#{table_name}.#{primary_key}") # Aggregate functions require grouping
-      else
-        scope = scope.distinct
-      end
-
-      scope = scope.select("MIN(ST_Distance(features.geom, features_for_other.geom)) AS distance_in_meters") if options[:distance]
-      scope = scope.select("ST_Area(ST_UNION(ST_Intersection(features.geom, features_for_other.geom))) AS intersection_area_in_square_meters") if options[:intersection_area]
-      return scope
-    end
-
     def cached_spatial_join(other)
       other_class = class_for(other)
 
@@ -145,6 +116,41 @@ module SpatialFeatures
       self_column = other_column == :model_a ? :model_b : :model_a
 
       joins("INNER JOIN spatial_proximities ON spatial_proximities.#{self_column}_type = '#{self}' AND spatial_proximities.#{self_column}_id = #{table_name}.id AND spatial_proximities.#{other_column}_type = '#{other_class}' AND spatial_proximities.#{other_column}_id IN (#{ids_sql_for(other)})")
+    end
+
+    def uncached_within_buffer_scope(other, buffer_in_meters, options)
+      scope = spatial_join(other, buffer_in_meters)
+      scope = scope.select("#{table_name}.*")
+
+      # Ensure records with multiple features don't appear multiple times
+      if options[:distance] || options[:intersection_area]
+        scope = scope.group("#{table_name}.#{primary_key}") # Aggregate functions require grouping
+      else
+        scope = scope.distinct
+      end
+
+      scope = scope.select("MIN(ST_Distance(features.geom, other_features.geom)) AS distance_in_meters") if options[:distance]
+      scope = scope.select("ST_Area(ST_UNION(ST_Intersection(features.geom, other_features.geom))) AS intersection_area_in_square_meters") if options[:intersection_area]
+      return scope
+    end
+
+    # Returns a scope that includes the features for this record as the table_alias and the features for other as other_alias
+    # Performs a spatial intersection between the two sets of features, within the buffer distance given in meters
+    def spatial_join(other, buffer = 0, table_alias = 'features', other_alias = 'other_features', geom = 'geom_lowres')
+      scope = features_scope(self).select("#{geom} AS geom").select(:spatial_model_id)
+
+      other_scope = features_scope(other)
+      other_scope = other_scope.select("ST_Union(#{geom}) AS geom").select("ST_Buffer(ST_Union(#{geom}), #{buffer.to_i}) AS buffered_geom")
+
+      return joins(%Q(INNER JOIN (#{scope.to_sql}) AS #{table_alias} ON #{table_alias}.spatial_model_id = #{table_name}.id))
+            .joins(%Q(INNER JOIN (#{other_scope.to_sql}) AS #{other_alias} ON ST_Intersects(#{table_alias}.geom, #{other_alias}.buffered_geom)))
+    end
+
+    def features_scope(other)
+      scope = Feature
+      scope = scope.where(:spatial_model_type => class_for(other))
+      scope = scope.where(:spatial_model_id => other) unless class_for(other) == other
+      return scope
     end
 
     # Returns the class for the given, class, scope, or record
