@@ -60,13 +60,6 @@ module SpatialFeatures
       end
     end
 
-    def covering(other)
-      scope = joins_features_for(other).select("#{table_name}.*").group("#{table_name}.#{primary_key}")
-      scope = scope.where('ST_Covers(features.geom, features_for_other.geom)')
-
-      return scope
-    end
-
     def polygons
       features.polygons
     end
@@ -199,10 +192,6 @@ module SpatialFeatures
 
     def features?
       features.present?
-    end
-
-    def covers?(other)
-      self.class.covering(other).exists?(self)
     end
 
     def intersects?(other)
