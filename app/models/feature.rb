@@ -48,8 +48,8 @@ class Feature < ActiveRecord::Base
     join_other_features(other).where('ST_Intersects(features.geom_lowres, other_features.geom_lowres)').uniq
   end
 
-  def self.invalid
-    select('features.*, ST_IsValidReason(geog::geometry) AS invalid_geometry_message').where.not('ST_IsValid(geog::geometry)')
+  def self.invalid(column = 'geog::geometry')
+    select("features.*, ST_IsValidReason(#{column}) AS invalid_geometry_message").where.not("ST_IsValid(#{column})")
   end
 
   def self.valid
@@ -76,6 +76,10 @@ class Feature < ActiveRecord::Base
       west         = ST_XMin(geog::geometry),
       area         = ST_Area(geog),
       centroid     = ST_PointOnSurface(geog::geometry)
+    SQL
+
+    invalid('geom').update_all <<-SQL
+      geom = ST_Buffer(geom, 0)
     SQL
 
     update_all <<-SQL.squish
