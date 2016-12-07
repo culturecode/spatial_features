@@ -122,8 +122,9 @@ class Feature < ActiveRecord::Base
     self.geog = ActiveRecord::Base.connection.select_value("SELECT ST_Force2D('#{geog}')")
   end
 
+  SRID_CACHE = {}
   def self.detect_srid(column_name)
-    connection.select_value("SELECT Find_SRID('public', '#{table_name}', '#{column_name}')")
+    SRID_CACHE[column_name] ||= connection.select_value("SELECT Find_SRID('public', '#{table_name}', '#{column_name}')")
   end
 
   def self.join_other_features(other)
