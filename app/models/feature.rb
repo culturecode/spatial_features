@@ -32,9 +32,9 @@ class Feature < ActiveRecord::Base
     where(:feature_type => 'point')
   end
 
-  def self.area_in_square_meters
+  def self.area_in_square_meters(geom = 'geom_lowres')
     current_scope = all
-    unscoped { connection.select_value(select('ST_Area(ST_Union(geom))').from(current_scope, :features)).to_f }
+    unscoped { connection.select_value(select("ST_Area(ST_Union(#{geom}))").from(current_scope, :features)).to_f }
   end
 
   def self.total_intersection_area_in_square_meters(other_features, geom = 'geom_lowres')
