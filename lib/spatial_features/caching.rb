@@ -10,7 +10,7 @@ module SpatialFeatures
     end
 
     klasses.each do |klass|
-      update_stale_spatial_cache(klass)
+      update_spatial_cache(klass)
     end
   end
 
