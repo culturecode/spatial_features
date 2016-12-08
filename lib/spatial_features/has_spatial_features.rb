@@ -243,7 +243,7 @@ module SpatialFeatures
   module FeaturesAssociationExtensions
     def area(options = {})
       if options[:cache] == false || !proxy_association.owner.class.has_features_area?
-        pluck('ST_Area(ST_UNION(geom))').first.to_f
+        area_in_square_meters
       else
         proxy_association.owner.features_area.to_f
       end

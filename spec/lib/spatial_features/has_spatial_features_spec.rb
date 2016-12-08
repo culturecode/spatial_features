@@ -204,6 +204,13 @@ describe SpatialFeatures do
         record = create_record_with_polygon(Shape, Rectangle.new(1, 1), Rectangle.new(1, 1, :x => 0.5))
         expect(record.features.area(options)).to be_within(TOLERANCE).of(1.5)
       end
+
+      # This test is supposed to ensure that a we're using the same geometry column in all code paths, but current the
+      # test shapes are probably too simple to show any difference between simplified and non-simplified geomtry
+      it 'returns the same value as the area_in_square_meters method on the Feature class' do
+        record = create_record_with_polygon(Shape, Rectangle.new(1, 1), Rectangle.new(1, 1, :x => 0.5))
+        expect(record.features.area(options)).to be_within(TOLERANCE).of(Feature.where(:id => record.features).area_in_square_meters)
+      end
     end
 
     shared_examples_for 'counting records' do
