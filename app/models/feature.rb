@@ -37,11 +37,12 @@ class Feature < ActiveRecord::Base
     unscoped { connection.select_value(select('ST_Area(ST_Union(geom))').from(current_scope, :features)).to_f }
   end
 
-  def self.total_intersection_area_in_square_meters(other_features)
-    unscoped
-      .from("(#{select("ST_Union(geom) AS geom").to_sql}) features, (#{other_features.to_sql}) other_features")
-      .pluck('ST_Area(ST_UNION(ST_Intersection(features.geom, other_features.geom)))')
-      .first.to_f
+  def self.total_intersection_area_in_square_meters(other_features, geom = 'geom_lowres')
+    scope = unscope(:select).select("ST_Union(#{geom}) AS geom")
+    other_scope = other_features.unscope(:select).select("ST_Union(#{geom}) AS geom")
+    query = unscoped.select('ST_Area(ST_Intersection(features.geom, other_features.geom))').from("(#{scope.to_sql}) features, (#{other_scope.to_sql}) other_features")
+
+    return connection.select_value(query).to_f
   end
 
   def self.intersecting(other)
