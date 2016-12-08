@@ -78,12 +78,16 @@ class Feature < ActiveRecord::Base
       centroid     = ST_PointOnSurface(geog::geometry)
     SQL
 
-    invalid('geom').update_all <<-SQL
-      geom = ST_Buffer(geom, 0)
+    invalid('geom').update_all <<-SQL.squish
+      geom         = ST_Buffer(geom, 0)
     SQL
 
     update_all <<-SQL.squish
       geom_lowres  = ST_SimplifyPreserveTopology(geom, #{options[:lowres_simplification]})
+    SQL
+
+    invalid('geom_lowres').update_all <<-SQL.squish
+      geom_lowres  = ST_Buffer(geom_lowres, 0)
     SQL
 
     update_all <<-SQL.squish
