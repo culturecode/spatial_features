@@ -97,10 +97,13 @@ module SpatialFeatures
     private
 
     def cached_within_buffer_scope(other, buffer_in_meters, options)
+      options = options.reverse_merge(:columns => "#{table_name}.*")
+
       # Don't use the cache if it doesn't exist
       return all.extending(UncachedRelation) unless other.spatial_cache_for?(class_for(self), buffer_in_meters)
 
-      scope = cached_spatial_join(other).select("#{table_name}.*")
+      scope = cached_spatial_join(other)
+      scope = scope.select(options[:columns])
       scope = scope.where("spatial_proximities.distance_in_meters <= ?", buffer_in_meters) if buffer_in_meters
       scope = scope.select("spatial_proximities.distance_in_meters") if options[:distance]
       scope = scope.select("spatial_proximities.intersection_area_in_square_meters") if options[:intersection_area]
@@ -119,8 +122,10 @@ module SpatialFeatures
     end
 
     def uncached_within_buffer_scope(other, buffer_in_meters, options)
+      options = options.reverse_merge(:columns => "#{table_name}.*")
+
       scope = spatial_join(other, buffer_in_meters)
-      scope = scope.select("#{table_name}.*")
+      scope = scope.select(options[:columns])
 
       # Ensure records with multiple features don't appear multiple times
       if options[:distance] || options[:intersection_area]
