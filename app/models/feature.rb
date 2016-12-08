@@ -33,15 +33,17 @@ class Feature < ActiveRecord::Base
   end
 
   def self.area_in_square_meters(geom = 'geom_lowres')
-    current_scope = all
+    current_scope = all.polygons
     unscoped { connection.select_value(select("ST_Area(ST_Union(#{geom}))").from(current_scope, :features)).to_f }
   end
 
   def self.total_intersection_area_in_square_meters(other_features, geom = 'geom_lowres')
-    scope = unscope(:select).select("ST_Union(#{geom}) AS geom")
-    other_scope = other_features.unscope(:select).select("ST_Union(#{geom}) AS geom")
-    query = unscoped.select('ST_Area(ST_Intersection(features.geom, other_features.geom))').from("(#{scope.to_sql}) features, (#{other_scope.to_sql}) other_features")
+    scope = unscope(:select).select("ST_Union(#{geom}) AS geom").polygons
+    other_scope = other_features.polygons
 
+    query = unscoped.select('ST_Area(ST_Intersection(ST_Union(features.geom), ST_Union(other_features.geom)))')
+                    .from(scope, "features")
+                    .joins("INNER JOIN (#{other_scope.to_sql}) AS other_features ON ST_Intersects(features.geom, other_features.geom)")
     return connection.select_value(query).to_f
   end
 
