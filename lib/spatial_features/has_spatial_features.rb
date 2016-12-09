@@ -201,11 +201,12 @@ module SpatialFeatures
 
     def total_intersection_area_in_square_meters(other)
       other = other.intersecting(self) unless other.is_a?(ActiveRecord::Base)
+      return features.area if spatial_cache_for?(other, 0) && SpatialProximity.between(self, other).where('intersection_area_in_square_meters >= ?', features.area).exists?
       return features.total_intersection_area_in_square_meters(other.features)
     end
 
-    def spatial_cache_for?(klass, buffer_in_meters)
-      if cache = spatial_cache_for(klass)
+    def spatial_cache_for?(other, buffer_in_meters)
+      if cache = spatial_cache.between(self, SpatialFeatures::Utils.class_of(other)).first
         return cache.intersection_cache_distance.nil? if buffer_in_meters.nil? # cache must be total if no buffer_in_meters
         return false if cache.stale? # cache must be for current features
         return true if cache.intersection_cache_distance.nil? # always good if cache is total
@@ -214,10 +215,6 @@ module SpatialFeatures
       else
         return false
       end
-    end
-
-    def spatial_cache_for(klass)
-      spatial_cache.where(:intersection_model_type => klass).first
     end
 
     def update_features_area
