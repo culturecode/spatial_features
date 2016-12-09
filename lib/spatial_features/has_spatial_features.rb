@@ -100,7 +100,7 @@ module SpatialFeatures
       options = options.reverse_merge(:columns => "#{table_name}.*")
 
       # Don't use the cache if it doesn't exist
-      return all.extending(UncachedRelation) unless other.spatial_cache_for?(class_for(self), buffer_in_meters)
+      return all.extending(UncachedRelation) unless other.spatial_cache_for?(Utils.class_of(self), buffer_in_meters)
 
       scope = cached_spatial_join(other)
       scope = scope.select(options[:columns])
@@ -111,14 +111,14 @@ module SpatialFeatures
     end
 
     def cached_spatial_join(other)
-      other_class = class_for(other)
+      other_class = Utils.class_of(other)
 
       raise "Cannot use cached spatial join for the same class" if self == other_class
 
       other_column = other_class.name < self.name ? :model_a : :model_b
       self_column = other_column == :model_a ? :model_b : :model_a
 
-      joins("INNER JOIN spatial_proximities ON spatial_proximities.#{self_column}_type = '#{self}' AND spatial_proximities.#{self_column}_id = #{table_name}.id AND spatial_proximities.#{other_column}_type = '#{other_class}' AND spatial_proximities.#{other_column}_id IN (#{ids_sql_for(other)})")
+      joins("INNER JOIN spatial_proximities ON spatial_proximities.#{self_column}_type = '#{self}' AND spatial_proximities.#{self_column}_id = #{table_name}.id AND spatial_proximities.#{other_column}_type = '#{other_class}' AND spatial_proximities.#{other_column}_id IN (#{Utils.id_sql(other)})")
     end
 
     def uncached_within_buffer_scope(other, buffer_in_meters, options)
@@ -153,29 +153,9 @@ module SpatialFeatures
 
     def features_scope(other)
       scope = Feature
-      scope = scope.where(:spatial_model_type => class_for(other))
-      scope = scope.where(:spatial_model_id => other) unless class_for(other) == other
+      scope = scope.where(:spatial_model_type => Utils.class_of(other))
+      scope = scope.where(:spatial_model_id => other) unless Utils.class_of(other) == other
       return scope
-    end
-
-    # Returns the class for the given, class, scope, or record
-    def class_for(other)
-      case other
-      when ActiveRecord::Base
-        other.class
-      when ActiveRecord::Relation
-        other.klass
-      else
-        other
-      end
-    end
-
-    def ids_sql_for(other)
-      if other.is_a?(ActiveRecord::Base)
-        other.id || '0'
-      else
-        other.unscope(:select).select(:id).to_sql
-      end
     end
   end
 

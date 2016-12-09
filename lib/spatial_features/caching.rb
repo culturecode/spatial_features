@@ -53,17 +53,14 @@ module SpatialFeatures
       SpatialCache.delete_all
       SpatialProximity.delete_all
     else
-      SpatialCache.where(:spatial_model_type => klass, :intersection_model_type => clazz).delete_all
-      SpatialCache.where(:spatial_model_type => clazz, :intersection_model_type => klass).delete_all
-      SpatialProximity.where(:model_a_type => klass, :model_b_type => clazz).delete_all
-      SpatialProximity.where(:model_a_type => clazz, :model_b_type => klass).delete_all
+      SpatialCache.between(klass, clazz).delete_all
+      SpatialProximity.between(klass, clazz).delete_all
     end
   end
 
   def self.clear_record_cache(record, klass)
     record.spatial_cache.where(:intersection_model_type => klass).delete_all
-    SpatialProximity.where(:model_a_type => record.class, :model_a_id => record.id, :model_b_type => klass).delete_all
-    SpatialProximity.where(:model_b_type => record.class, :model_b_id => record.id, :model_a_type => klass).delete_all
+    SpatialProximity.between(record, klass).delete_all
   end
 
   def self.create_spatial_proximities(record, klass)
