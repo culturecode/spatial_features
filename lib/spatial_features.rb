@@ -12,6 +12,7 @@ require 'spatial_features/venn_polygons'
 require 'spatial_features/controller_helpers/spatial_extensions'
 require 'spatial_features/download'
 require 'spatial_features/unzip'
+require 'spatial_features/utils'
 
 require 'spatial_features/has_spatial_features'
 require 'spatial_features/has_spatial_features/feature_import'
