@@ -79,5 +79,14 @@ describe SpatialFeatures::FeatureImport do
       subject.update_features!
       expect(subject.update_features!).to be_nil
     end
+
+    it 'updates the spatial cache of the record when the :spatial_cache option is set' do
+      other_class = new_dummy_class
+      subject = new_dummy_class(:parent => FeatureImportMock) do
+        has_spatial_features :import => { :test_kml => :KMLFile }, :spatial_cache => other_class
+      end.new
+
+      expect { subject.update_features! }.to change { subject.spatial_cache.between(subject, other_class).count }.by(1)
+    end
   end
 end
