@@ -212,9 +212,9 @@ describe SpatialFeatures do
         expect(record.features.area(options)).to be_within(TOLERANCE).of(Feature.where(:id => record.features).area_in_square_meters)
       end
 
-      it 'sets the area after save' do
-        record = House.new(:features => [create_polygon(Rectangle.new(1, 1))])
-        expect { record.save }.to change { record.features.area(options) }.to be_within(TOLERANCE).of(1)
+      it 'returns the uncached value if no cached value is set' do
+        record = House.create(:features => [create_polygon(Rectangle.new(1, 1))], :features_area => nil)
+        expect(record.features.area(options)).to be_within(TOLERANCE).of(1)
       end
 
       it 'does not recalculate the cached area after save if it has been set explicitly during save' do

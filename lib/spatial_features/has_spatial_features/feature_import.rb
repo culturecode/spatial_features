@@ -8,7 +8,6 @@ module SpatialFeatures
       extend ActiveModel::Callbacks
       define_model_callbacks :update_features
       spatial_features_options.reverse_merge!(:import => {}, spatial_cache: [])
-      after_save :update_features_area, :if => :features_changed?, :unless => :features_area_changed?
     end
 
     module ClassMethods
@@ -39,12 +38,22 @@ module SpatialFeatures
       end
     end
 
-    def features_will_change!(*)
-      @features_changed = true
+    def update_features_cache_key(cache_key)
+      return unless has_spatial_features_hash?
+      self.features_hash = cache_key
+      update_column(:features_hash, features_hash) unless new_record?
     end
 
-    def features_changed?
-      !!@features_changed
+    def update_features_area
+      return unless has_spatial_features_hash?
+      self.features_area = features.area(:cache => false)
+      update_column :features_area, features_area unless new_record?
+    end
+
+    def update_spatial_cache
+      Array.wrap(spatial_features_options[:spatial_cache]).each do |klass|
+        SpatialFeatures.cache_record_proximity(self, klass.to_s.constantize)
+      end
     end
 
     private
@@ -83,24 +92,6 @@ module SpatialFeatures
 
     def features_cache_key_matches?(cache_key)
       has_spatial_features_hash? && cache_key == features_hash
-    end
-
-    def update_features_cache_key(cache_key)
-      return unless has_spatial_features_hash?
-      self.features_hash = cache_key
-      update_column(:features_hash, features_hash) unless new_record?
-    end
-
-    def update_features_area
-      return unless has_spatial_features_hash?
-      self.features_area = features.area(:cache => false)
-      update_column :features_area, features_area unless new_record?
-    end
-
-    def update_spatial_cache
-      Array.wrap(spatial_features_options[:spatial_cache]).each do |klass|
-        SpatialFeatures.cache_record_proximity(self, klass.to_s.constantize)
-      end
     end
   end
 
