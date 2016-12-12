@@ -211,6 +211,16 @@ describe SpatialFeatures do
         record = create_record_with_polygon(Shape, Rectangle.new(1, 1), Rectangle.new(1, 1, :x => 0.5))
         expect(record.features.area(options)).to be_within(TOLERANCE).of(Feature.where(:id => record.features).area_in_square_meters)
       end
+
+      it 'sets the area after save' do
+        record = House.new(:features => [create_polygon(Rectangle.new(1, 1))])
+        expect { record.save }.to change { record.features.area(options) }.to be_within(TOLERANCE).of(1)
+      end
+
+      it 'does not recalculate the cached area after save if it has been set explicitly during save' do
+        record = House.new(:features_area => 123)
+        expect { record.save }.not_to change { record.features_area }
+      end
     end
 
     shared_examples_for 'counting records' do

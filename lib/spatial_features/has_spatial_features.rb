@@ -9,7 +9,7 @@ module SpatialFeatures
         include InstanceMethods
         include DelayedFeatureImport
 
-        has_many :features, lambda { extending FeaturesAssociationExtensions }, :as => :spatial_model, :dependent => :delete_all
+        has_many :features, lambda { extending FeaturesAssociationExtensions }, :as => :spatial_model, :after_add => :features_will_change!, :dependent => :delete_all
 
         scope :with_features, lambda { joins(:features).uniq }
         scope :without_features, lambda { joins("LEFT OUTER JOIN features ON features.spatial_model_type = '#{name}' AND features.spatial_model_id = #{table_name}.id").where("features.id IS NULL") }
@@ -21,8 +21,6 @@ module SpatialFeatures
         has_many :spatial_cache, :as => :spatial_model, :dependent => :delete_all
         has_many :model_a_spatial_proximities, :as => :model_a, :class_name => 'SpatialProximity', :dependent => :delete_all
         has_many :model_b_spatial_proximities, :as => :model_b, :class_name => 'SpatialProximity', :dependent => :delete_all
-
-        after_save :update_features_area, :if => :features_hash_changed? if has_features_area? && has_spatial_features_hash?
 
         delegate :has_spatial_features_hash?, :has_features_area?, :to => self
       end
@@ -215,10 +213,6 @@ module SpatialFeatures
       else
         return false
       end
-    end
-
-    def update_features_area
-      update_column :features_area, features.area(:cache => false)
     end
   end
 
