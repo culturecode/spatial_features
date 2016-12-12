@@ -64,6 +64,8 @@ RSpec.configure do |config|
       raise ActiveRecord::Rollback
     end
   end
+
+  config.color = true
 end
 
 # Make it easy to say expect(object).to not_have_any( be_sunday )
