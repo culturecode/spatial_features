@@ -26,7 +26,9 @@ class Rectangle
 end
 
 def create_polygon(*args)
-  build_polygon(*args).save!
+  polygon = build_polygon(*args)
+  polygon.save!
+  return polygon
 end
 
 def build_polygon(coordinates, attributes = {})
