@@ -7,7 +7,15 @@ module SpatialFeatures
     included do
       extend ActiveModel::Callbacks
       define_model_callbacks :update_features
-      spatial_features_options.reverse_merge!(:import => {})
+      spatial_features_options.reverse_merge!(:import => {}, spatial_cache: [])
+    end
+
+    module ClassMethods
+      def update_features!(skip_invalid: false)
+        find_each do |record|
+          record.update_features!(skip_invalid: skip_invalid)
+        end
+      end
     end
 
     def update_features!(skip_invalid: false, **options)
@@ -21,7 +29,8 @@ module SpatialFeatures
 
         run_callbacks :update_features do
           import_features(imports, skip_invalid)
-          set_features_cache_key(cache_key)
+          update_features_cache_key(cache_key)
+          update_spatial_cache
         end
 
         return true
@@ -48,12 +57,14 @@ module SpatialFeatures
         feature.save
       end
 
-      if !skip_invalid && invalid.present?
-        errors = imports.flat_map(&:errors)
-        invalid.each do |feature|
-          errors << "Feature #{feature.name}: #{feature.errors.full_messages.to_sentence}"
-        end
+      errors = imports.flat_map(&:errors)
+      invalid.each do |feature|
+        errors << "Feature #{feature.name}: #{feature.errors.full_messages.to_sentence}"
+      end
 
+      if skip_invalid && errors.present?
+        Rails.logger.warn "Error updating #{self.class} #{self.id}. #{errors.to_sentence}"
+      elsif errors.present?
         raise ImportError, "Error updating #{self.class} #{self.id}. #{errors.to_sentence}"
       end
 
@@ -64,10 +75,16 @@ module SpatialFeatures
       has_spatial_features_hash? && cache_key == features_hash
     end
 
-    def set_features_cache_key(cache_key)
+    def update_features_cache_key(cache_key)
       return unless has_spatial_features_hash?
       self.features_hash = cache_key
-      update_column(:features_hash, cache_key) unless new_record?
+      update_column(:features_hash, features_hash) unless new_record?
+    end
+
+    def update_spatial_cache
+      Array.wrap(spatial_features_options[:spatial_cache]).each do |klass|
+        SpatialFeatures.cache_record_proximity(self, klass)
+      end
     end
   end
 
