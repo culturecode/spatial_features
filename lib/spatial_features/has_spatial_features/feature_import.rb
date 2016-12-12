@@ -10,7 +10,7 @@ module SpatialFeatures
       spatial_features_options.reverse_merge!(:import => {})
     end
 
-    def update_features!(skip_invalid: false, options: {})
+    def update_features!(skip_invalid: false, **options)
       options = options.reverse_merge(spatial_features_options)
 
       ActiveRecord::Base.transaction do
