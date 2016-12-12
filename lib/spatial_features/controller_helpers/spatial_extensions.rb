@@ -1,10 +1,10 @@
 module SpatialExtensions
   private
 
-  def abstract_refresh_geometry_action(models, cache_classes)
+  def abstract_refresh_geometry_action(models)
     Array.wrap(models).each do |model|
       model.failed_feature_update_jobs.destroy_all
-      model.queue_feature_update!(:cache_classes => cache_classes)
+      model.delay_update_features!
     end
 
     redirect_to :back
