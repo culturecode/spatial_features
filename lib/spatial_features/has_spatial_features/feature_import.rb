@@ -99,7 +99,7 @@ module SpatialFeatures
 
     def update_spatial_cache
       Array.wrap(spatial_features_options[:spatial_cache]).each do |klass|
-        SpatialFeatures.cache_record_proximity(self, klass)
+        SpatialFeatures.cache_record_proximity(self, klass.to_s.constantize)
       end
     end
   end
