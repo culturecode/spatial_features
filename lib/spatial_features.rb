@@ -1,4 +1,5 @@
 # Gems
+require 'delayed_job_active_record'
 require 'rgeo/shapefile'
 require 'nokogiri'
 require 'zip'
@@ -15,8 +16,8 @@ require 'spatial_features/unzip'
 require 'spatial_features/utils'
 
 require 'spatial_features/has_spatial_features'
+require 'spatial_features/has_spatial_features/queued_spatial_processing'
 require 'spatial_features/has_spatial_features/feature_import'
-require 'spatial_features/has_spatial_features/delayed_feature_import'
 
 require 'spatial_features/has_fusion_table_features'
 require 'spatial_features/has_fusion_table_features/api'
@@ -30,8 +31,6 @@ require 'spatial_features/importers/kml_file'
 require 'spatial_features/importers/kml_file_arcgis'
 require 'spatial_features/importers/geomark'
 require 'spatial_features/importers/shapefile'
-
-require 'spatial_features/workers/update_features_job'
 
 require 'spatial_features/engine'
 

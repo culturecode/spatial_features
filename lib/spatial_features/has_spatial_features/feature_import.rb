@@ -3,6 +3,7 @@ require 'digest/md5'
 module SpatialFeatures
   module FeatureImport
     extend ActiveSupport::Concern
+    include QueuedSpatialProcessing
 
     included do
       extend ActiveModel::Callbacks
@@ -31,7 +32,12 @@ module SpatialFeatures
           import_features(imports, skip_invalid)
           update_features_cache_key(cache_key)
           update_features_area
-          update_spatial_cache
+
+          if options[:spatial_cache].present? && options[:queue_spatial_cache]
+            queue_update_spatial_cache(options.slice(:spatial_cache))
+          else
+            update_spatial_cache(options.slice(:spatial_cache))
+          end
         end
 
         return true
@@ -50,8 +56,10 @@ module SpatialFeatures
       update_column :features_area, features_area unless new_record?
     end
 
-    def update_spatial_cache
-      Array.wrap(spatial_features_options[:spatial_cache]).each do |klass|
+    def update_spatial_cache(options = {})
+      options = options.reverse_merge(spatial_features_options)
+
+      Array.wrap(options[:spatial_cache]).select(&:present?).each do |klass|
         SpatialFeatures.cache_record_proximity(self, klass.to_s.constantize)
       end
     end

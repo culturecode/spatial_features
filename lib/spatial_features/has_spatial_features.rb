@@ -7,7 +7,7 @@ module SpatialFeatures
 
         extend ClassMethods
         include InstanceMethods
-        include DelayedFeatureImport
+        include FeatureImport
 
         has_many :features, lambda { extending FeaturesAssociationExtensions }, :as => :spatial_model, :dependent => :delete_all
 
