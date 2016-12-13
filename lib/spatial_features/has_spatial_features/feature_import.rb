@@ -51,7 +51,7 @@ module SpatialFeatures
     end
 
     def update_features_area
-      return unless has_spatial_features_hash?
+      return unless has_attribute?(:features_area)
       self.features_area = features.area(:cache => false)
       update_column :features_area, features_area unless new_record?
     end
