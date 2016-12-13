@@ -80,13 +80,21 @@ describe SpatialFeatures::FeatureImport do
       expect(subject.update_features!).to be_nil
     end
 
+    it 'does not save the spatial model if it is a new record' do
+      subject = new_dummy_class(:parent => FeatureImportMock) do
+        has_spatial_features :import => { :test_kml => :KMLFile }
+      end.new
+
+      expect { subject.update_features! }.not_to change { subject.class.count }
+    end
+
     describe 'spatial caching' do
       let(:other_class) { new_dummy_class }
       subject do
         other_class_name = other_class.name
         new_dummy_class(:parent => FeatureImportMock) do
           has_spatial_features :import => { :test_kml => :KMLFile }, :spatial_cache => other_class_name
-        end.new
+        end.create
       end
 
       it 'updates the spatial cache of the record when the :spatial_cache option is set' do

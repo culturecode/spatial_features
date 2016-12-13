@@ -1,5 +1,5 @@
 class Feature < ActiveRecord::Base
-  belongs_to :spatial_model, :polymorphic => :true
+  belongs_to :spatial_model, :polymorphic => :true, :autosave => false
 
   attr_writer :make_valid
 
