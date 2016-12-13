@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    spatial_features (2.2.4)
+    spatial_features (2.3.1)
       delayed_job_active_record (~> 4.0)
       google-api-client (~> 0.9)
       googleauth (~> 0.5.1)
@@ -84,7 +84,7 @@ GEM
       multi_json (~> 1.11)
       os (~> 0.9)
       signet (~> 0.7)
-    httpclient (2.8.2.4)
+    httpclient (2.8.3)
     hurley (0.2)
     i18n (0.7.0)
     json (1.8.3)
