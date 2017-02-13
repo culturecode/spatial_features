@@ -42,6 +42,11 @@ Adds spatial methods to a model.
         centroid geography,
         kml_centroid text
     );
+    
+    CREATE SEQUENCE features_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
+    ALTER SEQUENCE features_id_seq OWNED BY features.id;
+    ALTER TABLE ONLY features ALTER COLUMN id SET DEFAULT nextval('features_id_seq'::regclass);
+    ALTER TABLE ONLY features ADD CONSTRAINT features_pkey PRIMARY KEY (id);
 
     CREATE TABLE spatial_caches (
         id integer NOT NULL,
@@ -53,6 +58,11 @@ Adds spatial methods to a model.
         intersection_cache_distance double precision,
         features_hash character varying(255)
     );
+    
+    CREATE SEQUENCE spatial_caches_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
+    ALTER SEQUENCE spatial_caches_id_seq OWNED BY spatial_caches.id;
+    ALTER TABLE ONLY spatial_caches ALTER COLUMN id SET DEFAULT nextval('spatial_caches_id_seq'::regclass);
+    ALTER TABLE ONLY spatial_caches ADD CONSTRAINT spatial_caches_pkey PRIMARY KEY (id);
 
     CREATE TABLE spatial_proximities (
         id integer NOT NULL,
@@ -63,6 +73,11 @@ Adds spatial methods to a model.
         distance_in_meters double precision,
         intersection_area_in_square_meters double precision
     );
+    
+    CREATE SEQUENCE spatial_proximities_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
+    ALTER SEQUENCE spatial_proximities_id_seq OWNED BY spatial_proximities.id;
+    ALTER TABLE ONLY spatial_proximities ALTER COLUMN id SET DEFAULT nextval('spatial_proximities_id_seq'::regclass);
+    ALTER TABLE ONLY spatial_proximities ADD CONSTRAINT spatial_proximities_pkey PRIMARY KEY (id);
   ")
   ```
 
