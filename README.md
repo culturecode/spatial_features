@@ -19,6 +19,9 @@ Adds spatial methods to a model.
 
   ```ruby
   execute("
+    CREATE EXTENSION hstore;
+    CREATE EXTENSION postgis;
+    
     CREATE TABLE features (
         id integer NOT NULL,
         spatial_model_type character varying(255),
