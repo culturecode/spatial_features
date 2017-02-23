@@ -12,9 +12,9 @@ module SpatialFeatures
     end
 
     module ClassMethods
-      def update_features!(skip_invalid: false)
+      def update_features!(skip_invalid: false, **options)
         find_each do |record|
-          record.update_features!(skip_invalid: skip_invalid)
+          record.update_features!(skip_invalid: skip_invalid, **options)
         end
       end
     end
