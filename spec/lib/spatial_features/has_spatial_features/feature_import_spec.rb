@@ -98,11 +98,11 @@ describe SpatialFeatures::FeatureImport do
       end
 
       it 'updates the spatial cache of the record when the :spatial_cache option is set' do
-        expect { subject.update_features! }.to change { subject.spatial_cache.between(subject, other_class).count }.by(1)
+        expect { subject.update_features! }.to change { subject.spatial_caches.between(subject, other_class).count }.by(1)
       end
 
       it 'allows spatial caching to be cancelled at run time' do
-        expect { subject.update_features!(:spatial_cache => false) }.not_to change { subject.spatial_cache.between(subject, other_class).count }
+        expect { subject.update_features!(:spatial_cache => false) }.not_to change { subject.spatial_caches.between(subject, other_class).count }
       end
 
       it 'allows spatial caching to be run asynchronously at run time' do

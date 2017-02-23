@@ -14,11 +14,11 @@ module SpatialFeatures
         scope :with_features, lambda { joins(:features).uniq }
         scope :without_features, lambda { joins("LEFT OUTER JOIN features ON features.spatial_model_type = '#{name}' AND features.spatial_model_id = #{table_name}.id").where("features.id IS NULL") }
 
-        scope :with_spatial_cache, lambda {|klass| joins(:spatial_cache).where(:spatial_caches => { :intersection_model_type =>  klass }).uniq }
+        scope :with_spatial_cache, lambda {|klass| joins(:spatial_caches).where(:spatial_caches => { :intersection_model_type =>  klass }).uniq }
         scope :without_spatial_cache, lambda {|klass| joins("LEFT OUTER JOIN #{SpatialCache.table_name} ON spatial_model_id = #{table_name}.id AND spatial_model_type = '#{name}' and intersection_model_type = '#{klass}'").where('spatial_model_id IS NULL') }
-        scope :with_stale_spatial_cache, lambda { joins(:spatial_cache).where("#{table_name}.features_hash != spatial_caches.features_hash").uniq } if has_spatial_features_hash?
+        scope :with_stale_spatial_cache, lambda { joins(:spatial_caches).where("#{table_name}.features_hash != spatial_caches.features_hash").uniq } if has_spatial_features_hash?
 
-        has_many :spatial_cache, :as => :spatial_model, :dependent => :delete_all
+        has_many :spatial_caches, :as => :spatial_model, :dependent => :delete_all, :class_name => 'SpatialCache'
         has_many :model_a_spatial_proximities, :as => :model_a, :class_name => 'SpatialProximity', :dependent => :delete_all
         has_many :model_b_spatial_proximities, :as => :model_b, :class_name => 'SpatialProximity', :dependent => :delete_all
 
@@ -98,7 +98,7 @@ module SpatialFeatures
       options = options.reverse_merge(:columns => "#{table_name}.*")
 
       # Don't use the cache if it doesn't exist
-      return all.extending(UncachedRelation) unless other.spatial_cache_for?(Utils.class_of(self), buffer_in_meters)
+      return none.extending(UncachedResult) unless other.spatial_cache_for?(Utils.class_of(self), buffer_in_meters)
 
       scope = cached_spatial_join(other)
       scope = scope.select(options[:columns])
@@ -204,7 +204,7 @@ module SpatialFeatures
     end
 
     def spatial_cache_for?(other, buffer_in_meters)
-      if cache = spatial_cache.between(self, SpatialFeatures::Utils.class_of(other)).first
+      if cache = spatial_caches.between(self, SpatialFeatures::Utils.class_of(other)).first
         return cache.intersection_cache_distance.nil? if buffer_in_meters.nil? # cache must be total if no buffer_in_meters
         return false if cache.stale? # cache must be for current features
         return true if cache.intersection_cache_distance.nil? # always good if cache is total
