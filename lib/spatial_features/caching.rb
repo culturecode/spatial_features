@@ -15,8 +15,8 @@ module SpatialFeatures
   end
 
   def self.update_spatial_cache(scope)
-    scope.with_stale_spatial_cache.includes(:spatial_cache).find_each do |record|
-      record.spatial_cache.each do |spatial_cache|
+    scope.with_stale_spatial_cache.includes(:spatial_caches).find_each do |record|
+      record.spatial_caches.each do |spatial_cache|
         cache_record_proximity(record, spatial_cache.intersection_model_type) if spatial_cache.stale?
       end
     end
@@ -59,7 +59,7 @@ module SpatialFeatures
   end
 
   def self.clear_record_cache(record, klass)
-    record.spatial_cache.where(:intersection_model_type => klass).delete_all
+    record.spatial_caches.where(:intersection_model_type => klass).delete_all
     SpatialProximity.between(record, klass).delete_all
   end
 
