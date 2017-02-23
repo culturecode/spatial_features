@@ -16,14 +16,19 @@ module SpatialFeatures
         object.class
       when ActiveRecord::Relation
         object.klass
+      when String
+        object.constantize
       else
         object
       end
     end
 
     def id_sql(object)
-      if object.is_a?(ActiveRecord::Base)
+      case object
+      when ActiveRecord::Base
         object.id || '0'
+      when String
+        id_sql(object.constantize)
       else
         object.unscope(:select).select(:id).to_sql
       end
