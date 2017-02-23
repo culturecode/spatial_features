@@ -241,6 +241,30 @@ describe SpatialFeatures do
       it_behaves_like 'buffering a scope with overlapping features'
       it_behaves_like 'calculating the area of a record'
       it_behaves_like 'counting records'
+
+      describe '::within_buffer' do
+        it 'returns an SpatialFeatures::UncachedResult if the cache is stale' do
+          house = House.create(:features => [create_polygon(Rectangle.new(1, 1))])
+          allow_any_instance_of(SpatialCache).to receive(:stale?).and_return(true)
+
+          expect(House.within_buffer(house, options)).to be_a(SpatialFeatures::UncachedResult)
+        end
+
+        it 'returns an SpatialFeatures::UncachedResult if the cache is not present' do
+          house = House.create(:features => [create_polygon(Rectangle.new(1, 1))])
+          house.spatial_caches.destroy_all
+
+          expect(House.within_buffer(house, options)).to be_a(SpatialFeatures::UncachedResult)
+        end
+
+        it 'returns no results when uncached and used as a nested query' do
+          House.create(:features => [create_polygon(Rectangle.new(1, 1))])
+          house = House.create(:features => [create_polygon(Rectangle.new(1, 1))])
+          house.spatial_caches.destroy_all
+
+          expect(House.where(:id => House.within_buffer(house, options))).to be_empty
+        end
+      end
     end
   end
 end
