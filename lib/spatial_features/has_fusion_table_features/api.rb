@@ -3,10 +3,21 @@ module SpatialFeatures
     module API
       extend self
 
-      FEATURE_COLUMNS = {:name => 'STRING', :spatial_model_type => 'STRING', :spatial_model_id => 'NUMBER', :kml_lowres => 'LOCATION', :colour => 'STRING'}
+      FEATURE_COLUMNS = {
+        :name => 'STRING',
+        :spatial_model_type => 'STRING',
+        :spatial_model_id => 'NUMBER',
+        :kml_lowres => 'LOCATION',
+        :colour => 'STRING',
+        :metadata => 'STRING'
+      }
       TABLE_STYLE = {
         :polygon_options => { :fill_color_styler => { :kind => 'fusiontables#fromColumn', :column_name => 'colour' }, :stroke_color => '#000000', :stroke_opacity => 0.2 },
         :polyline_options => { :stroke_color_styler => { :kind => 'fusiontables#fromColumn', :column_name => 'colour'} }
+      }
+
+      TABLE_TEMPLATE = {
+        :body => "<h3>{name}</h3>{metadata}"
       }
 
       def find_or_create_table(name)
@@ -17,6 +28,7 @@ module SpatialFeatures
         table_id = service.create_table(name, FEATURE_COLUMNS.collect {|name, type| {:name => name, :type => type} })
         service.share_table(table_id)
         service.insert_style(table_id, TABLE_STYLE)
+        service.insert_template(table_id, TABLE_TEMPLATE)
         return table_id
       end
 
@@ -46,13 +58,26 @@ module SpatialFeatures
       def features_to_csv(features)
         csv = CSV.generate do |csv|
           features.each do |feature|
-            csv << FEATURE_COLUMNS.keys.collect {|attribute| feature.send(attribute) }
+            csv << FEATURE_COLUMNS.keys.collect do |attribute|
+              render_feature_attribute feature.send(attribute)
+            end
           end
         end
 
         file = Tempfile.new('features')
         file.write(csv)
         return file
+      end
+
+      def render_feature_attribute(value)
+        case value
+        when Hash
+          value.collect do |name, val|
+            "<b>#{name}:</b> #{val}"
+          end.join('<br/>')
+        else
+          value
+        end
       end
 
       def colour_features(features, colour)
