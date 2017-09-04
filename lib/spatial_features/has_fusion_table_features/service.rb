@@ -42,6 +42,15 @@ module SpatialFeatures
         fusion_tables_service.insert_style(table_id, style, :fields => 'styleId')
       end
 
+      def delete_template(table_id, template_id)
+        fusion_tables_service.delete_template(table_id, template_id, :fields => nil)
+      end
+
+      def insert_template(table_id, template)
+        template.reverse_merge! 'name' => 'default_table_template'
+        fusion_tables_service.insert_template(table_id, template, :fields => 'templateId')
+      end
+
       def delete_row(table_id, row_id)
         fusion_tables_service.sql_query("DELETE FROM #{table_id} WHERE ROWID = #{row_id}")
       end
