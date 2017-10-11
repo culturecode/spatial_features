@@ -26,7 +26,7 @@ module SpatialFeatures
       end
 
       def style_ids(table_id)
-        tables.collect(&:style_id)
+        styles(table_id).collect(&:style_id)
       end
 
       def styles(table_id)
