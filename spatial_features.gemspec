@@ -24,6 +24,7 @@ Gem::Specification.new do |s|
   s.add_dependency "nokogiri", '~> 1.6'
   s.add_dependency "googleauth", '~> 0.5.1'
   s.add_dependency "google-api-client", '~> 0.9'
+  s.add_dependency "chroma", "~>0.1.0"
 
   s.add_development_dependency "pg", '~> 0'
   s.add_development_dependency "rspec", '~> 3.5'
