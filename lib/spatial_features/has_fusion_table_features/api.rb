@@ -13,9 +13,10 @@ module SpatialFeatures
       }
       TABLE_STYLE = {
         :polygon_options => { :fill_color_styler => { :kind => 'fusiontables#fromColumn', :column_name => 'colour' },
-                              :stroke_color => { :kind => 'fusiontables#fromColumn', :column_name => 'colour' },
-                              :stroke_opacity => 0.5 },
-        :polyline_options => { :stroke_color_styler => { :kind => 'fusiontables#fromColumn', :column_name => 'stroke_colour'} }
+                              :stroke_color_styler => { :kind => 'fusiontables#fromColumn', :column_name => 'colour' },
+                              :stroke_weight => 1
+                            },
+        :polyline_options => { :stroke_color_styler => { :kind => 'fusiontables#fromColumn', :column_name => 'colour'} }
       }
 
       TABLE_TEMPLATE = {
@@ -48,6 +49,13 @@ module SpatialFeatures
 
       def set_features(table_id, features, colour: nil)
         service.replace_rows(table_id, features_to_csv(features, colour))
+      end
+
+      def set_style(table_id, style)
+        service.style_ids(table_id).each do |style_id|
+          service.delete_style(table_id, style_id)
+        end
+        service.insert_style(table_id, style)
       end
 
       def service
