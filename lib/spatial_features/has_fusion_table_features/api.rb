@@ -12,8 +12,10 @@ module SpatialFeatures
         :metadata => 'STRING'
       }
       TABLE_STYLE = {
-        :polygon_options => { :fill_color_styler => { :kind => 'fusiontables#fromColumn', :column_name => 'colour' }, :stroke_color => '#000000', :stroke_opacity => 0.2 },
-        :polyline_options => { :stroke_color_styler => { :kind => 'fusiontables#fromColumn', :column_name => 'colour'} }
+        :polygon_options => { :fill_color_styler => { :kind => 'fusiontables#fromColumn', :column_name => 'colour' },
+                              :stroke_color => { :kind => 'fusiontables#fromColumn', :column_name => 'colour' },
+                              :stroke_opacity => 0.5 },
+        :polyline_options => { :stroke_color_styler => { :kind => 'fusiontables#fromColumn', :column_name => 'stroke_colour'} }
       }
 
       TABLE_TEMPLATE = {
@@ -45,8 +47,7 @@ module SpatialFeatures
       end
 
       def set_features(table_id, features, colour: nil)
-        colour_features(features, colour)
-        service.replace_rows(table_id, features_to_csv(features))
+        service.replace_rows(table_id, features_to_csv(features, colour))
       end
 
       def service
@@ -55,11 +56,20 @@ module SpatialFeatures
 
       private
 
-      def features_to_csv(features)
+      def features_to_csv(features, colour)
+        ActiveRecord::Associations::Preloader.new.preload(features, :spatial_model) if colour.is_a?(Symbol)
+
         csv = CSV.generate do |csv|
           features.each do |feature|
             csv << FEATURE_COLUMNS.keys.collect do |attribute|
-              render_feature_attribute feature.send(attribute)
+              case attribute
+              when :colour
+                render_feature_colour(feature, colour)
+              when :metadata
+                render_feature_metadata(feature)
+              else
+                feature.send(attribute)
+              end
             end
           end
         end
@@ -69,39 +79,24 @@ module SpatialFeatures
         return file
       end
 
-      def render_feature_attribute(value)
-        case value
-        when Hash
-          value.collect do |name, val|
-            "<b>#{name}:</b> #{val}"
-          end.join('<br/>')
-        else
-          value
-        end
+      def render_feature_metadata(feature)
+        feature.metadata.collect do |name, val|
+          "<b>#{name}:</b> #{val}"
+        end.join('<br/>')
       end
 
-      def colour_features(features, colour)
+      def render_feature_colour(feature, colour)
         case colour
         when Symbol
-          ActiveRecord::Associations::Preloader.new.preload(features, :spatial_model)
-          features.each do |feature|
-            feature.define_singleton_method(:colour) do
-              spatial_model.send(colour)
-            end
-          end
+          feature.spatial_model.send(colour)
         when Proc
-          features.each do |feature|
-            feature.define_singleton_method(:colour) do
-              colour.call(feature)
-            end
-          end
+          colour.call(feature)
         else
-          features.each do |feature|
-            feature.define_singleton_method(:colour) do
-              colour
-            end
-          end
-        end
+          colour
+        end.paint.to_ft_hex
+
+      rescue Chroma::Errors::UnrecognizedColor
+        nil
       end
     end
   end

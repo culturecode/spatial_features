@@ -5,6 +5,8 @@ module SpatialFeatures
         class_attribute :fusion_table_features_options
         self.fusion_table_features_options = options
 
+        after_update_features :expire_fusion_table
+
         include InstanceMethods
         extend ClassMethods
       end
@@ -52,6 +54,14 @@ module SpatialFeatures
     module InstanceMethods
       def acts_like_fusion_table_features?
         true
+      end
+
+      def stale_fusion_table?
+        @stale_fusion_table
+      end
+
+      def expire_fusion_table
+        @stale_fusion_table = true
       end
 
       def update_fusion_table
