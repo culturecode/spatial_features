@@ -1,3 +1,4 @@
+# TODO: Test the `::features` on a subclass to ensure we scope correctly
 module SpatialFeatures
   module ActMethod
     def has_spatial_features(options = {})
@@ -71,10 +72,11 @@ module SpatialFeatures
     end
 
     def features
+      type = base_class # Rails stores polymorphic foreign keys as the base class
       if all == unscoped
-        Feature.where(:spatial_model_type => self)
+        Feature.where(:spatial_model_type => type)
       else
-        Feature.where(:spatial_model_type => self, :spatial_model_id => all.unscope(:select))
+        Feature.where(:spatial_model_type => type, :spatial_model_id => all.unscope(:select))
       end
     end
 
