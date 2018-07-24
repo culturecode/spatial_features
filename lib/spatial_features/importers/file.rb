@@ -6,12 +6,11 @@ module SpatialFeatures
       def initialize(data, *args)
         file = Download.open(data, unzip: %w(.kml .shp))
 
-        if file.path.end_with? '.kml'
+        case ::File.extname(file.path.downcase)
+        when '.kml'
           __setobj__(KMLFile.new(file, *args))
-
-        elsif file.path.end_with? '.shp'
+        when '.shp'
           __setobj__(Shapefile.new(file, *args))
-
         else
           raise ImportError, "Could not import file. Supported formats are KMZ, KML, and zipped ArcGIS shapefiles"
         end
