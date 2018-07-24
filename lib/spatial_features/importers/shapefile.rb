@@ -21,8 +21,10 @@ module SpatialFeatures
       end
 
       def proj4_from_file(file)
-        # Sanitize "'+proj=utm +zone=11 +datum=NAD83 +units=m +no_defs '\n"
-        `gdalsrsinfo "#{file.path}" -o proj4`[/'(.+)'/,1].presence || raise('Could not determine shapefile projection. Check that `gdalsrsinfo` is installed.')
+        # Sanitize: "'+proj=utm +zone=11 +datum=NAD83 +units=m +no_defs '\n" and lately
+        #           "+proj=utm +zone=11 +datum=NAD83 +units=m +no_defs \n" to
+        #           "+proj=utm +zone=11 +datum=NAD83 +units=m +no_defs"
+        `gdalsrsinfo "#{file.path}" -o proj4`.strip.remove(/^'|'$/).presence || raise('Could not determine shapefile projection. Check that `gdalsrsinfo` is installed.')
       end
 
       def data_from_wkt(wkt, proj4)
