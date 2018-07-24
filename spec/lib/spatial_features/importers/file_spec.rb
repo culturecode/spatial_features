@@ -4,34 +4,56 @@ describe SpatialFeatures::Importers::File do
   describe '::new' do
     subject { SpatialFeatures::Importers::File }
 
-    it 'detects kml file urls' do
-      expect(SpatialFeatures::Importers::KMLFile).to receive(:new).once
-      subject.new(kml_file.path)
+    shared_examples_for 'format detection' do
+      it 'detects kml file urls' do
+        expect(SpatialFeatures::Importers::KMLFile).to receive(:new).once
+        subject.new(kml_file.path)
+      end
+
+      it 'detects kmz file urls' do
+        expect(SpatialFeatures::Importers::KMLFile).to receive(:new).once
+        subject.new(kmz_file.path)
+      end
+
+      it 'detects zipped shapefile file urls' do
+        expect(SpatialFeatures::Importers::Shapefile).to receive(:new).once
+        subject.new(shapefile.path)
+      end
+
+      it 'detects kml files' do
+        expect(SpatialFeatures::Importers::KMLFile).to receive(:new).once
+        subject.new(kmz_file)
+      end
+
+      it 'detects kmz files' do
+        expect(SpatialFeatures::Importers::KMLFile).to receive(:new).once
+        subject.new(kmz_file)
+      end
+
+      it 'detects zipped shape files' do
+        expect(SpatialFeatures::Importers::Shapefile).to receive(:new).once
+        subject.new(shapefile)
+      end
     end
 
-    it 'detects kmz file urls' do
-      expect(SpatialFeatures::Importers::KMLFile).to receive(:new).once
-      subject.new(kmz_file.path)
+    context 'when extensions are lower case' do
+      before do
+        [kml_file, kmz_file, shapefile].each do |file|
+          allow(file).to receive(:path).and_return(file.path.downcase)
+        end
+      end
+
+      it_behaves_like 'format detection'
     end
 
-    it 'detects zipped shapefile file urls' do
-      expect(SpatialFeatures::Importers::Shapefile).to receive(:new).once
-      subject.new(shapefile.path)
-    end
+    context 'when extensions are upper case' do
+      before do
+        [kml_file, kmz_file, shapefile].each do |file|
+          allow(file).to receive(:path).and_return(file.path.upcase)
+        end
+      end
 
-    it 'detects kml files' do
-      expect(SpatialFeatures::Importers::KMLFile).to receive(:new).once
-      subject.new(kmz_file)
-    end
-
-    it 'detects kmz files' do
-      expect(SpatialFeatures::Importers::KMLFile).to receive(:new).once
-      subject.new(kmz_file)
-    end
-
-    it 'detects zipped shape files' do
-      expect(SpatialFeatures::Importers::Shapefile).to receive(:new).once
-      subject.new(shapefile)
+      it_behaves_like 'format detection'
     end
   end
 end
