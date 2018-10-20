@@ -1,14 +1,9 @@
+require 'fileutils'
+
 module SpatialFeatures
   module Unzip
     def self.paths(file_path, find: nil)
-      dir = Dir.mktmpdir
-      paths = []
-
-      entries(file_path).each do |entry|
-        path = "#{dir}/#{entry.name}"
-        entry.extract(path)
-        paths << path
-      end
+      paths = extract(file_path)
 
       if find = Array.wrap(find).presence
         paths = paths.detect {|path| find.any? {|pattern| path.include?(pattern) } }
@@ -16,6 +11,20 @@ module SpatialFeatures
       end
 
       return paths
+    end
+
+    def self.extract(file_path, output_dir = Dir.mktmpdir)
+      [].tap do |paths|
+        entries(file_path).each do |entry|
+          path = "#{output_dir}/#{entry.name}"
+          FileUtils.mkdir_p(File.dirname(path))
+          entry.extract(path)
+          paths << path
+        end
+      end
+    rescue => e
+      FileUtils.remove_entry(output_dir)
+      raise(e)
     end
 
     def self.names(file_path)
