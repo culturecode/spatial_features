@@ -12,6 +12,10 @@ class Feature < ActiveRecord::Base
   before_save :sanitize
   after_save :cache_derivatives
 
+  def self.cache_key
+    "maximum(:id)}-#{count}"
+  end
+
   def self.with_metadata(k, v)
     if k.present? && v.present?
       where('metadata->? = ?', k, v)
