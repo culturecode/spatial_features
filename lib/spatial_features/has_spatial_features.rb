@@ -40,7 +40,7 @@ module SpatialFeatures
     # tell if they have changed by finding the maximum id and count instead of needing timestamps
     def features_cache_key
       # Do two separate queries because it is much faster for some reason
-      "#{name}/#{features.maximum(:id)}-#{features.count}"
+      "#{name}/#{features.cache_key}"
     end
 
     def intersecting(other, options = {})
@@ -165,8 +165,7 @@ module SpatialFeatures
     end
 
     def features_cache_key
-      max_id, count = features.pluck("MAX(id), COUNT(*)").first
-      "#{self.class.name}/#{self.id}-#{max_id}-#{count}"
+      "#{self.class.name}/#{self.id}-#{features.cache_key}"
     end
 
     def polygons?
