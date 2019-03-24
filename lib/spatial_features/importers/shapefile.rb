@@ -4,6 +4,11 @@ require 'digest/md5'
 module SpatialFeatures
   module Importers
     class Shapefile < Base
+      def initialize(data, *args, proj4: nil)
+        super(data, *args)
+        @proj4 = proj4
+      end
+
       def cache_key
         @cache_key ||= Digest::MD5.hexdigest(features.to_json)
       end
@@ -12,10 +17,14 @@ module SpatialFeatures
 
       def each_record(&block)
         file = Download.open(@data, unzip: '.shp')
-        proj4 = proj4_from_file(file)
+
+        if !@proj4
+          @proj4 = proj4_from_file(file)
+        end
+
         RGeo::Shapefile::Reader.open(file.path) do |records|
           records.each do |record|
-            yield OpenStruct.new data_from_wkt(record.geometry.as_text, proj4).merge(:metadata => record.attributes) if record.geometry.present?
+            yield OpenStruct.new data_from_wkt(record.geometry.as_text, @proj4).merge(:metadata => record.attributes) if record.geometry.present?
           end
         end
       end
