@@ -13,7 +13,7 @@ class Feature < ActiveRecord::Base
   after_save :cache_derivatives
 
   def self.cache_key
-    "maximum(:id)}-#{count}"
+    "#{maximum(:id)}-#{count}"
   end
 
   def self.with_metadata(k, v)
