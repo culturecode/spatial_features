@@ -4,8 +4,8 @@ require 'digest/md5'
 module SpatialFeatures
   module Importers
     class Shapefile < Base
-      def initialize(data, *args, proj4: nil)
-        super(data, *args)
+      def initialize(data, *args, proj4: nil, **options)
+        super(data, *args, **options)
         @proj4 = proj4
       end
 
