@@ -1,7 +1,7 @@
 # DUMMY
 # A class used to create searchable subclasses
 $DUMMY_CLASS_COUNTER = 0
-class CreateDummyTable < ActiveRecord::Migration
+class CreateDummyTable < ActiveRecord::Migration[4.2]
   def self.make_table(table_name = 'dummies', column_names = [])
     create_table table_name, :force => true do |t|
       column_names.each do |name|
