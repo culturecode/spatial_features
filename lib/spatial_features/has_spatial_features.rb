@@ -113,8 +113,6 @@ module SpatialFeatures
     def cached_spatial_join(other)
       other_class = Utils.class_of(other)
 
-      raise "Cannot use cached spatial join for the same class" if self == other_class
-
       other_column = other_class.name < self.name ? :model_a : :model_b
       self_column = other_column == :model_a ? :model_b : :model_a
 
