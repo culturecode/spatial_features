@@ -72,7 +72,7 @@ module SpatialFeatures
     end
 
     def features
-      type = base_class # Rails stores polymorphic foreign keys as the base class
+      type = base_class.to_s # Rails stores polymorphic foreign keys as the base class
       if all == unscoped
         Feature.where(:spatial_model_type => type)
       else
