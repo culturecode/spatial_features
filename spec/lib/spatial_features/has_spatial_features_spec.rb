@@ -69,6 +69,11 @@ describe SpatialFeatures do
         it 'does not return records outside of the buffer distance of the given record' do
           expect(Outlier.within_buffer(shape, 0.9, options)).not_to include(outlier)
         end
+
+        it 'returns records within the buffer distance of the given record when intersecting the same class' do
+          other_outlier = create_record_with_polygon(Outlier, Rectangle.new(1, 1, :x => 2))
+          expect(Outlier.within_buffer(other_outlier, 1, options)).to include(outlier)
+        end
       end
 
       with_options(:distance => true) do
