@@ -100,7 +100,9 @@ module SpatialFeatures
       options = options.reverse_merge(:columns => "#{table_name}.*")
 
       # Don't use the cache if it doesn't exist
-      return none.extending(UncachedResult) unless other.spatial_cache_for?(Utils.class_of(self), buffer_in_meters)
+      unless other.class.unscoped { other.spatial_cache_for?(Utils.class_of(self), buffer_in_meters) } # Unscope so if we're checking for same class intersections the scope doesn't affect this lookup
+        return none.extending(UncachedResult)
+      end
 
       scope = cached_spatial_join(other)
       scope = scope.select(options[:columns])
