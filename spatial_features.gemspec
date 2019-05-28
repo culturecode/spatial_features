@@ -17,7 +17,7 @@ Gem::Specification.new do |s|
   s.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md"]
   s.test_files = Dir["test/**/*"]
 
-  s.add_dependency "rails", '>= 4.2', '< 6.0'
+  s.add_dependency "rails", '>= 4.2', '<= 5.1'
   s.add_dependency "delayed_job_active_record", '~> 4.1'
   s.add_dependency "rgeo-shapefile", '~> 2.0'
   s.add_dependency "rubyzip", '~> 1.1'

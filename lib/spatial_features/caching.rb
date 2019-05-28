@@ -59,7 +59,7 @@ module SpatialFeatures
   end
 
   def self.clear_record_cache(record, klass)
-    record.spatial_caches.where(:intersection_model_type => klass).delete_all
+    record.spatial_caches.where(:intersection_model_type => klass.to_s).delete_all
     SpatialProximity.between(record, klass).delete_all
   end
 
