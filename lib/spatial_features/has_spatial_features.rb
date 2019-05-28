@@ -72,7 +72,7 @@ module SpatialFeatures
     end
 
     def features
-      type = base_class # Rails stores polymorphic foreign keys as the base class
+      type = base_class.to_s # Rails stores polymorphic foreign keys as the base class
       if all == unscoped
         Feature.where(:spatial_model_type => type)
       else
@@ -100,7 +100,9 @@ module SpatialFeatures
       options = options.reverse_merge(:columns => "#{table_name}.*")
 
       # Don't use the cache if it doesn't exist
-      return none.extending(UncachedResult) unless other.spatial_cache_for?(Utils.class_of(self), buffer_in_meters)
+      unless other.class.unscoped { other.spatial_cache_for?(Utils.class_of(self), buffer_in_meters) } # Unscope so if we're checking for same class intersections the scope doesn't affect this lookup
+        return none.extending(UncachedResult)
+      end
 
       scope = cached_spatial_join(other)
       scope = scope.select(options[:columns])
@@ -112,8 +114,6 @@ module SpatialFeatures
 
     def cached_spatial_join(other)
       other_class = Utils.class_of(other)
-
-      raise "Cannot use cached spatial join for the same class" if self == other_class
 
       other_column = other_class.name < self.name ? :model_a : :model_b
       self_column = other_column == :model_a ? :model_b : :model_a
