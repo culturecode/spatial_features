@@ -17,10 +17,16 @@ module SpatialFeatures
 
           {'Polygon' => 'POLYGON', 'LineString' => 'LINE', 'Point' => 'POINT'}.each do |kml_type, sql_type|
             placemark.css(kml_type).each do |placemark|
+              next if blank_placemark?(placemark)
+
               yield OpenStruct.new(:feature_type => sql_type, :geog => geom_from_kml(placemark), :name => name, :metadata => metadata)
             end
           end
         end
+      end
+
+      def blank_placemark?(placemark)
+        placemark.css('coordinates').text.blank?
       end
 
       def geom_from_kml(kml)
