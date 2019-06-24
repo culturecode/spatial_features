@@ -30,7 +30,7 @@ module SpatialFeatures
       end
 
       def geom_from_kml(kml)
-        ActiveRecord::Base.connection.select_value("SELECT ST_GeomFromKML(#{ActiveRecord::Base.connection.quote(kml)})")
+        ActiveRecord::Base.connection.select_value("SELECT ST_GeomFromKML(#{ActiveRecord::Base.connection.quote(kml.to_s)})")
       end
     end
   end
