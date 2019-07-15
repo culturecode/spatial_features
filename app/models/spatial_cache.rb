@@ -3,7 +3,7 @@ class SpatialCache < ActiveRecord::Base
 
   def self.between(spatial_model, klass)
     where(SpatialFeatures::Utils.polymorphic_condition(spatial_model, 'spatial_model'))
-    .where(:intersection_model_type => klass.to_s)
+    .where(:intersection_model_type => SpatialFeatures::Utils.class_name_with_ancestors(klass))
   end
 
   def stale?
