@@ -6,7 +6,26 @@ module SpatialFeatures
       sql = "#{column_name}_type = ?"
       sql << " AND #{column_name}_id IN (#{id_sql(scope)})" unless scope.is_a?(Class)
 
-      return class_of(scope).send :sanitize_sql, [sql, class_of(scope)]
+      return class_of(scope).send :sanitize_sql, [sql, base_class_of(scope)]
+    end
+
+    def class_name_with_ancestors(object)
+      class_of(object).ancestors.select {|k| k < ActiveRecord::Base }.map(&:to_s)
+    end
+
+    def base_class_of(object)
+      base_class(class_of(object))
+    end
+
+    def base_class(klass)
+      case klass
+      when String
+        klass.constantize.base_class.to_s
+      when ActiveRecord::Base
+        klass.class.base_class
+      when Class
+        klass.base_class
+      end
     end
 
     # Returns the class for the given, class, scope, or record

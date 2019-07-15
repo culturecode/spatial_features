@@ -3,7 +3,7 @@ module SpatialFeatures
   self.default_cache_buffer_in_meters = 100
 
   def self.update_proximity(*klasses)
-    klasses.permutation(2).each do |klass, clazz|
+    class_permutations(klasses).each do |klass, clazz|
       klass.without_spatial_cache(clazz).find_each do |record|
         cache_record_proximity(record, clazz)
       end
@@ -26,7 +26,7 @@ module SpatialFeatures
   # NOTE: Arguments are order independent, so their names do not reflect the _a _b
   # naming scheme used in other cache methods
   def self.cache_proximity(*klasses)
-    klasses.combination(2).each do |klass, clazz|
+    class_combinations(klasses).each do |klass, clazz|
       clear_cache(klass, clazz)
 
       klass.find_each do |record|
@@ -38,6 +38,16 @@ module SpatialFeatures
         create_spatial_cache(record, klass)
       end
     end
+  end
+
+  # Returns a list of class pairs with each combination e.g. [a,b], [a,c] [b,c] and also [a,a], [b,b], [c,c]
+  def self.class_combinations(klasses)
+    klasses.zip(klasses) + klasses.combination(2).to_a
+  end
+
+  # Returns a list of class pairs with each permutation e.g. [a,b], [b,a] and also [a,a], [b,b]
+  def self.class_permutations(klasses)
+    klasses.zip(klasses) + klasses.permutation(2).to_a
   end
 
   # Create or update the spatial cache of a single record in relation to another spatial class
@@ -59,14 +69,14 @@ module SpatialFeatures
   end
 
   def self.clear_record_cache(record, klass)
-    record.spatial_caches.where(:intersection_model_type => klass.to_s).delete_all
+    record.spatial_caches.where(:intersection_model_type => SpatialFeatures::Utils.class_name_with_ancestors(klass)).delete_all
     SpatialProximity.between(record, klass).delete_all
   end
 
   def self.create_spatial_proximities(record, klass)
     klass = klass.to_s.constantize
     klass_record = klass.new
-    model_a, model_b = record.class.to_s < klass.to_s ? [record, klass_record] : [klass_record, record]
+    model_a, model_b = Utils.base_class(record).to_s < Utils.base_class(klass).to_s ? [record, klass_record] : [klass_record, record]
 
     scope = klass.within_buffer(record, default_cache_buffer_in_meters, :columns => :id, :intersection_area => true, :distance => true, :cache => false)
     results = klass.connection.select_rows(scope.to_sql)
@@ -76,9 +86,9 @@ module SpatialFeatures
       SpatialProximity.create! do |proximity|
         # Set id and type instead of model to avoid autosaving the klass_record
         proximity.model_a_id = model_a.id
-        proximity.model_a_type = model_a.class
+        proximity.model_a_type = Utils.base_class(model_a)
         proximity.model_b_id = model_b.id
-        proximity.model_b_type = model_b.class
+        proximity.model_b_type = Utils.base_class(model_b)
         proximity.distance_in_meters = distance
         proximity.intersection_area_in_square_meters = area
       end
