@@ -23,9 +23,11 @@ def new_dummy_class(*column_names, name: "Dummy#{$DUMMY_CLASS_COUNTER}", parent:
   Object.send(:remove_const, name) if Object.const_defined?(name)
   Object.const_set(name, klass)
 
-  # Create the table
-  klass.table_name = "dummies_#{$DUMMY_CLASS_COUNTER}"
-  CreateDummyTable.make_table(klass.table_name, column_names.flatten)
+  if parent == ActiveRecord::Base
+    # Create the table
+    klass.table_name = "dummies_#{$DUMMY_CLASS_COUNTER}"
+    CreateDummyTable.make_table(klass.table_name, column_names.flatten)
+  end
 
   # Init the class
   klass.has_spatial_features

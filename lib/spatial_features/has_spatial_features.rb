@@ -13,10 +13,10 @@ module SpatialFeatures
         has_many :features, lambda { extending FeaturesAssociationExtensions }, :as => :spatial_model, :dependent => :delete_all
 
         scope :with_features, lambda { joins(:features).uniq }
-        scope :without_features, lambda { joins("LEFT OUTER JOIN features ON features.spatial_model_type = '#{name}' AND features.spatial_model_id = #{table_name}.id").where("features.id IS NULL") }
+        scope :without_features, lambda { joins("LEFT OUTER JOIN features ON features.spatial_model_type = '#{Utils.base_class(name)}' AND features.spatial_model_id = #{table_name}.id").where("features.id IS NULL") }
 
-        scope :with_spatial_cache, lambda {|klass| joins(:spatial_caches).where(:spatial_caches => { :intersection_model_type =>  klass }).uniq }
-        scope :without_spatial_cache, lambda {|klass| joins("LEFT OUTER JOIN #{SpatialCache.table_name} ON #{SpatialCache.table_name}.spatial_model_id = #{table_name}.id AND #{SpatialCache.table_name}.spatial_model_type = '#{name}' and intersection_model_type = '#{klass}'").where("#{SpatialCache.table_name}.spatial_model_id IS NULL") }
+        scope :with_spatial_cache, lambda {|klass| joins(:spatial_caches).where(:spatial_caches => { :intersection_model_type =>  Utils.class_name_with_ancestors(klass) }).uniq }
+        scope :without_spatial_cache, lambda {|klass| joins("LEFT OUTER JOIN #{SpatialCache.table_name} ON #{SpatialCache.table_name}.spatial_model_id = #{table_name}.id AND #{SpatialCache.table_name}.spatial_model_type = '#{Utils.base_class(name)}' and intersection_model_type IN ('#{Utils.class_name_with_ancestors(klass).join("','") }')").where("#{SpatialCache.table_name}.spatial_model_id IS NULL") }
         scope :with_stale_spatial_cache, lambda { joins(:spatial_caches).where("#{table_name}.features_hash != spatial_caches.features_hash").uniq } if has_spatial_features_hash?
 
         has_many :spatial_caches, :as => :spatial_model, :dependent => :delete_all, :class_name => 'SpatialCache'
@@ -113,12 +113,13 @@ module SpatialFeatures
     end
 
     def cached_spatial_join(other)
-      other_class = Utils.class_of(other)
+      other_class = Utils.base_class_of(other)
+      self_class = Utils.base_class_of(self)
 
-      other_column = other_class.name < self.name ? :model_a : :model_b
+      other_column = other_class.name < self_class.name ? :model_a : :model_b
       self_column = other_column == :model_a ? :model_b : :model_a
 
-      joins("INNER JOIN spatial_proximities ON spatial_proximities.#{self_column}_type = '#{self}' AND spatial_proximities.#{self_column}_id = #{table_name}.id AND spatial_proximities.#{other_column}_type = '#{other_class}' AND spatial_proximities.#{other_column}_id IN (#{Utils.id_sql(other)})")
+      joins("INNER JOIN spatial_proximities ON spatial_proximities.#{self_column}_type = '#{self_class}' AND spatial_proximities.#{self_column}_id = #{table_name}.id AND spatial_proximities.#{other_column}_type = '#{other_class}' AND spatial_proximities.#{other_column}_id IN (#{Utils.id_sql(other)})")
     end
 
     def uncached_within_buffer_scope(other, buffer_in_meters, options)
@@ -153,7 +154,7 @@ module SpatialFeatures
 
     def features_scope(other)
       scope = Feature
-      scope = scope.where(:spatial_model_type => Utils.class_of(other))
+      scope = scope.where(:spatial_model_type => Utils.base_class_of(other))
       scope = scope.where(:spatial_model_id => other) unless Utils.class_of(other) == other
       return scope
     end
@@ -205,7 +206,7 @@ module SpatialFeatures
     end
 
     def spatial_cache_for?(other, buffer_in_meters)
-      if cache = spatial_caches.between(self, SpatialFeatures::Utils.class_of(other)).first
+      if cache = spatial_caches.between(self, Utils.class_of(other)).first
         return cache.intersection_cache_distance.nil? if buffer_in_meters.nil? # cache must be total if no buffer_in_meters
         return false if cache.stale? # cache must be for current features
         return true if cache.intersection_cache_distance.nil? # always good if cache is total
