@@ -3,7 +3,7 @@ module SpatialFeatures
   self.default_cache_buffer_in_meters = 100
 
   def self.update_proximity(*klasses)
-    klasses.permutation(2).each do |klass, clazz|
+    class_permutations(klasses).each do |klass, clazz|
       klass.without_spatial_cache(clazz).find_each do |record|
         cache_record_proximity(record, clazz)
       end
@@ -26,7 +26,7 @@ module SpatialFeatures
   # NOTE: Arguments are order independent, so their names do not reflect the _a _b
   # naming scheme used in other cache methods
   def self.cache_proximity(*klasses)
-    klasses.combination(2).each do |klass, clazz|
+    class_combinations(klasses).each do |klass, clazz|
       clear_cache(klass, clazz)
 
       klass.find_each do |record|
@@ -38,6 +38,16 @@ module SpatialFeatures
         create_spatial_cache(record, klass)
       end
     end
+  end
+
+  # Returns a list of class pairs with each combination e.g. [a,b], [a,c] [b,c] and also [a,a], [b,b], [c,c]
+  def self.class_combinations(klasses)
+    klasses.zip(klasses) + klasses.combination(2).to_a
+  end
+
+  # Returns a list of class pairs with each permutation e.g. [a,b], [b,a] and also [a,a], [b,b]
+  def self.class_permutations(klasses)
+    klasses.zip(klasses) + klasses.permutation(2).to_a
   end
 
   # Create or update the spatial cache of a single record in relation to another spatial class
