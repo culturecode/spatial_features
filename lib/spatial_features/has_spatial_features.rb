@@ -146,7 +146,9 @@ module SpatialFeatures
       scope = features_scope(self).select("#{geom} AS geom").select(:spatial_model_id)
 
       other_scope = features_scope(other)
-      other_scope = other_scope.select("ST_Union(#{geom}) AS geom").select("ST_Buffer(ST_Union(#{geom}), #{buffer.to_i}) AS buffered_geom")
+      other_scope_select_sql = "ST_Union(#{geom})"
+      other_scope_select_sql = "ST_Buffer(#{other_scope_select_sql}, #{buffer})" if buffer&.positive?
+      other_scope = other_scope.select("ST_Union(#{geom}) AS geom").select("#{other_scope_select_sql} AS buffered_geom")
 
       return joins(%Q(INNER JOIN (#{scope.to_sql}) AS #{table_alias} ON #{table_alias}.spatial_model_id = #{table_name}.id))
             .joins(%Q(INNER JOIN (#{other_scope.to_sql}) AS #{other_alias} ON ST_Intersects(#{table_alias}.geom, #{other_alias}.buffered_geom)))
@@ -154,7 +156,7 @@ module SpatialFeatures
 
     def features_scope(other)
       scope = Feature
-      scope = scope.where(:spatial_model_type => Utils.base_class_of(other))
+      scope = scope.where(:spatial_model_type => Utils.base_class_of(other).to_s)
       scope = scope.where(:spatial_model_id => other) unless Utils.class_of(other) == other
       return scope
     end
