@@ -41,7 +41,9 @@ describe SpatialFeatures do
     shared_examples_for 'buffering a record with a single feature' do
       let!(:buffered_record) { create_record_with_polygon(BufferedRecord, Rectangle.new(1, 0.5)) }
       let!(:shape) { create_record_with_polygon(Shape, Rectangle.new(1, 1)) }
+      let!(:point) { create_record_with_point(Shape, Point.new(0.5, 0.5)) }
       let!(:outlier) { create_record_with_polygon(Outlier, Rectangle.new(1, 1, :x => 2)) }
+      let!(:outlier_point) { create_record_with_point(Outlier, Point.new(2, 2)) }
 
       it 'returns a ActiveRecord::Relation' do
         expect(Shape.within_buffer(buffered_record, 0, options)).to be_a(ActiveRecord::Relation)
@@ -53,21 +55,21 @@ describe SpatialFeatures do
 
       context 'without a buffer' do
         it 'returns records that intersect spatially with the given record' do
-          expect(Shape.within_buffer(buffered_record, 0, options)).to contain_exactly(shape)
+          expect(Shape.within_buffer(buffered_record, 0, options)).to contain_exactly(shape, point)
         end
 
         it 'does not return records that do not intersect spatially with the given record' do
-          expect(Outlier.within_buffer(buffered_record, 0, options)).not_to include(outlier)
+          expect(Outlier.within_buffer(buffered_record, 0, options)).not_to include(outlier, outlier_point)
         end
       end
 
       context 'with a buffer' do
         it 'returns records within the buffer distance of the given record' do
-          expect(Outlier.within_buffer(shape, 1, options)).to include(outlier)
+          expect(Outlier.within_buffer(shape, 1.5, options)).to include(outlier, outlier_point)
         end
 
         it 'does not return records outside of the buffer distance of the given record' do
-          expect(Outlier.within_buffer(shape, 0.9, options)).not_to include(outlier)
+          expect(Outlier.within_buffer(shape, 0.9, options)).not_to include(outlier, outlier_point)
         end
 
         it 'returns records within the buffer distance of the given record when intersecting the same class' do

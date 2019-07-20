@@ -54,3 +54,54 @@ def build_polygon(coordinates, attributes = {})
 
   Feature.polygons.new(attributes.merge :geog => geog)
 end
+
+def create_record_with_point(klass, *coordinates)
+  record = klass.create!
+  coordinates.each do |coords|
+    record.features << build_point(coords)
+  end
+
+  record.update_attributes :features_hash => 'some new value'
+
+  SpatialFeatures.cache_proximity(*Feature.pluck(:spatial_model_type).uniq.collect(&:constantize)) # automatically update spatial cache
+
+  record
+end
+
+class Point
+  def initialize(y, x)
+    @coordinates = "#{y} #{x}"
+  end
+
+  def to_s
+    @coordinates
+  end
+end
+
+def create_point(*args)
+  point = build_point(*args)
+  point.save!
+  return point
+end
+
+def build_point(coordinates, attributes = {})
+  coordinates = coordinates.to_s
+
+  # Avoid crossing the equator for test values in order to avoid projection error
+  raise 'For test purposes, coordinates cannot be negative' if coordinates.include?('-')
+
+  # Offset to be within NAD83 boundary
+  geom_projection_offset_easting = 497042
+  geom_projection_offset_northing = 6155650
+
+  easting, northing = coordinates.split
+  easting = easting.to_f + geom_projection_offset_easting
+  northing = northing.to_f + geom_projection_offset_northing
+  coordinates = "#{easting} #{northing}"
+
+  geog = Feature.connection.select_value("
+    SELECT ST_Transform(ST_GeometryFromText( 'POINT(#{coordinates})', 26910 ), 4326)
+  ")
+
+  Feature.points.new(attributes.merge :geog => geog)
+end
