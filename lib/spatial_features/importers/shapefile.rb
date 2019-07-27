@@ -4,6 +4,8 @@ require 'digest/md5'
 module SpatialFeatures
   module Importers
     class Shapefile < Base
+      class_attribute :default_proj4_projection
+
       def initialize(data, *args, proj4: nil, **options)
         super(data, *args, **options)
         @proj4 = proj4
@@ -16,22 +18,22 @@ module SpatialFeatures
       private
 
       def each_record(&block)
-        if !@proj4
-          @proj4 = proj4_from_file(file)
-        end
-
         RGeo::Shapefile::Reader.open(file.path) do |records|
           records.each do |record|
-            yield OpenStruct.new data_from_wkt(record.geometry.as_text, @proj4).merge(:metadata => record.attributes) if record.geometry.present?
+            yield OpenStruct.new data_from_wkt(record.geometry.as_text, proj4_projection).merge(:metadata => record.attributes) if record.geometry.present?
           end
         end
       end
 
-      def proj4_from_file(file)
+      def proj4_projection
+        @proj4 ||= proj4_from_file || default_proj4_projection || raise(IndeterminateProjection, 'Could not determine shapefile projection. Check that `gdalsrsinfo` is installed.')
+      end
+
+      def proj4_from_file
         # Sanitize: "'+proj=utm +zone=11 +datum=NAD83 +units=m +no_defs '\n" and lately
         #           "+proj=utm +zone=11 +datum=NAD83 +units=m +no_defs \n" to
         #           "+proj=utm +zone=11 +datum=NAD83 +units=m +no_defs"
-        `gdalsrsinfo "#{file.path}" -o proj4`.strip.remove(/^'|'$/).presence || raise('Could not determine shapefile projection. Check that `gdalsrsinfo` is installed.')
+        `gdalsrsinfo "#{file.path}" -o proj4`.strip.remove(/^'|'$/).presence
       end
 
       def data_from_wkt(wkt, proj4)
@@ -43,6 +45,11 @@ module SpatialFeatures
       def file
         @file ||= Download.open(@data, unzip: /\.shp$/)
       end
+
+
+      # ERRORS
+
+      class IndeterminateProjection < StandardError; end
     end
   end
 end
