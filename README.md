@@ -21,7 +21,7 @@ Adds spatial methods to a model.
   execute("
     CREATE EXTENSION hstore;
     CREATE EXTENSION postgis;
-    
+
     CREATE TABLE features (
         id integer NOT NULL,
         spatial_model_type character varying(255),
@@ -42,12 +42,12 @@ Adds spatial methods to a model.
         centroid geography,
         kml_centroid text
     );
-    
+
     CREATE SEQUENCE features_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
     ALTER SEQUENCE features_id_seq OWNED BY features.id;
     ALTER TABLE ONLY features ALTER COLUMN id SET DEFAULT nextval('features_id_seq'::regclass);
     ALTER TABLE ONLY features ADD CONSTRAINT features_pkey PRIMARY KEY (id);
-    
+
     CREATE INDEX index_features_on_feature_type ON features USING btree (feature_type);
     CREATE INDEX index_features_on_spatial_model_id_and_spatial_model_type ON features USING btree (spatial_model_id, spatial_model_type);
     CREATE INDEX index_features_on_geom ON features USING gist (geom);
@@ -63,12 +63,12 @@ Adds spatial methods to a model.
         intersection_cache_distance double precision,
         features_hash character varying(255)
     );
-    
+
     CREATE SEQUENCE spatial_caches_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
     ALTER SEQUENCE spatial_caches_id_seq OWNED BY spatial_caches.id;
     ALTER TABLE ONLY spatial_caches ALTER COLUMN id SET DEFAULT nextval('spatial_caches_id_seq'::regclass);
     ALTER TABLE ONLY spatial_caches ADD CONSTRAINT spatial_caches_pkey PRIMARY KEY (id);
-    
+
     CREATE INDEX index_spatial_caches_on_spatial_model ON spatial_caches USING btree (spatial_model_id, spatial_model_type);
 
     CREATE TABLE spatial_proximities (
@@ -80,12 +80,12 @@ Adds spatial methods to a model.
         distance_in_meters double precision,
         intersection_area_in_square_meters double precision
     );
-    
+
     CREATE SEQUENCE spatial_proximities_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
     ALTER SEQUENCE spatial_proximities_id_seq OWNED BY spatial_proximities.id;
     ALTER TABLE ONLY spatial_proximities ALTER COLUMN id SET DEFAULT nextval('spatial_proximities_id_seq'::regclass);
     ALTER TABLE ONLY spatial_proximities ADD CONSTRAINT spatial_proximities_pkey PRIMARY KEY (id);
-    
+
     CREATE INDEX index_spatial_proximities_on_model_a ON spatial_proximities USING btree (model_a_id, model_a_type);
     CREATE INDEX index_spatial_proximities_on_model_b ON spatial_proximities USING btree (model_b_id, model_b_type);
   ")
@@ -120,3 +120,20 @@ class Location < ActiveRecord::Base
   end
 end
 ```
+
+### SpatialFeatures::Importers::Shapefile
+
+#### Default Options
+
+Default options can be specified on the Shapefile importer class itself.
+
+- ##### default_proj4_projection
+  A proj4 formatted projection string to use when no other projection has been specified either in the shapefile or the
+  importer instance.
+
+  Example:
+  ```ruby
+    SpatialFeatures::Importers::Shapefile.default_proj4_projection = "+proj=aea +lat_1=50 +lat_2=58.5 +lat_0=45 +lon_0=-126 +x_0=1000000 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m +no_defs"
+  ```
+
+  Default: `nil`

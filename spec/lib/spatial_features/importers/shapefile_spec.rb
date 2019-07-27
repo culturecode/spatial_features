@@ -18,6 +18,20 @@ describe SpatialFeatures::Importers::KML do
       it 'sets the feature_type' do
         expect(subject.features).to all(have_attributes :feature_type => be_present)
       end
+
+      context 'when the shapefile has no projection' do
+        let(:subject) { SpatialFeatures::Importers::Shapefile.new(shapefile_without_projection) }
+
+        it 'raises an exception if there is no default projection' do
+          allow(SpatialFeatures::Importers::Shapefile).to receive(:default_proj4_projection).and_return(nil)
+          expect { subject.features }.to raise_exception(SpatialFeatures::Importers::Shapefile::IndeterminateProjection)
+        end
+
+        it 'is uses the `default_proj4_projection` when no projection can be determined from the shapefile' do
+          allow(SpatialFeatures::Importers::Shapefile).to receive(:default_proj4_projection).and_return("+proj=aea +lat_1=50 +lat_2=58.5 +lat_0=45 +lon_0=-126 +x_0=1000000 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m +no_defs")
+          expect(subject.features).to be_present
+        end
+      end
     end
 
     describe '#cache_key' do
