@@ -6,7 +6,7 @@ module SpatialFeatures
       paths = extract(file_path)
 
       if find = Array.wrap(find).presence
-        paths = paths.detect {|path| find.any? {|pattern| path.include?(pattern) } }
+        paths = paths.detect {|path| find.any? {|pattern| path.index(pattern) } }
         raise(ImportError, "No file matched #{find}") unless paths.present?
       end
 

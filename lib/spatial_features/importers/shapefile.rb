@@ -16,8 +16,6 @@ module SpatialFeatures
       private
 
       def each_record(&block)
-        file = Download.open(@data, unzip: '.shp')
-
         if !@proj4
           @proj4 = proj4_from_file(file)
         end
@@ -40,6 +38,10 @@ module SpatialFeatures
         ActiveRecord::Base.connection.select_one <<-SQL
           SELECT ST_Transform(ST_GeomFromText('#{wkt}'), '#{proj4}', 4326) AS geog, GeometryType(ST_GeomFromText('#{wkt}')) AS feature_type
         SQL
+      end
+
+      def file
+        @file ||= Download.open(@data, unzip: /\.shp$/)
       end
     end
   end
