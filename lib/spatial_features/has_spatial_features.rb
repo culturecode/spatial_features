@@ -136,7 +136,17 @@ module SpatialFeatures
       end
 
       scope = scope.select("MIN(ST_Distance(features.geom, other_features.geom)) AS distance_in_meters") if options[:distance]
-      scope = scope.select("ST_Area(ST_UNION(ST_Intersection(ST_CollectionExtract(features.geom, 3), ST_CollectionExtract(other_features.geom, 3)))) AS intersection_area_in_square_meters") if options[:intersection_area]
+      scope = scope.select <<~SQL if options[:intersection_area]
+        ST_Area(
+          ST_Intersection(
+            /* Extract only polygons to calculations since we're calculating area */
+            /* Union to aggregate features from all records in the query before intersection to flatten geometry and avoid possible self intersection */
+            ST_Union(ST_CollectionExtract(features.geom, 3)),
+            ST_Union(ST_CollectionExtract(other_features.geom, 3))
+          )
+        ) AS intersection_area_in_square_meters
+      SQL
+
       return scope
     end
 
