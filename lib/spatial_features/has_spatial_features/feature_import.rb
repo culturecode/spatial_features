@@ -79,9 +79,11 @@ module SpatialFeatures
 
     def import_features(imports, skip_invalid)
       self.features.delete_all
-      valid, invalid = imports.flat_map(&:features).partition do |feature|
-        feature.spatial_model = self
-        feature.save
+      valid, invalid = Feature.defer_aggregate_refresh do
+        imports.flat_map(&:features).partition do |feature|
+          feature.spatial_model = self
+          feature.save
+        end
       end
 
       errors = imports.flat_map(&:errors)
