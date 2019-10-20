@@ -11,6 +11,7 @@ module SpatialFeatures
         include FeatureImport
 
         has_many :features, lambda { extending FeaturesAssociationExtensions }, :as => :spatial_model, :dependent => :delete_all
+        has_one :aggregate_feature, lambda { extending FeaturesAssociationExtensions }, :as => :spatial_model, :dependent => :delete
 
         scope :with_features, lambda { joins(:features).uniq }
         scope :without_features, lambda { joins("LEFT OUTER JOIN features ON features.spatial_model_type = '#{Utils.base_class(name)}' AND features.spatial_model_id = #{table_name}.id").where("features.id IS NULL") }
@@ -128,24 +129,8 @@ module SpatialFeatures
       scope = spatial_join(other, buffer_in_meters)
       scope = scope.select(options[:columns])
 
-      # Ensure records with multiple features don't appear multiple times
-      if options[:distance] || options[:intersection_area]
-        scope = scope.group("#{table_name}.#{primary_key}") # Aggregate functions require grouping
-      else
-        scope = scope.distinct
-      end
-
-      scope = scope.select("MIN(ST_Distance(features.geom, other_features.geom)) AS distance_in_meters") if options[:distance]
-      scope = scope.select <<~SQL if options[:intersection_area]
-        ST_Area(
-          ST_Intersection(
-            /* Extract only polygons to calculations since we're calculating area */
-            /* Union to aggregate features from all records in the query before intersection to flatten geometry and avoid possible self intersection */
-            ST_Union(ST_CollectionExtract(features.geom, 3)),
-            ST_Union(ST_CollectionExtract(other_features.geom, 3))
-          )
-        ) AS intersection_area_in_square_meters
-      SQL
+      scope = scope.select("ST_Distance(features.geom, other_features.geom) AS distance_in_meters") if options[:distance]
+      scope = scope.select("ST_Area(ST_Intersection(features.geom, other_features.geom)) AS intersection_area_in_square_meters") if options[:intersection_area]
 
       return scope
     end
@@ -165,7 +150,7 @@ module SpatialFeatures
     end
 
     def features_scope(other)
-      scope = Feature
+      scope = AggregateFeature
       scope = scope.where(:spatial_model_type => Utils.base_class_of(other).to_s)
       scope = scope.where(:spatial_model_id => other) unless Utils.class_of(other) == other
       return scope

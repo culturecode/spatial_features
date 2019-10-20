@@ -24,6 +24,7 @@ Adds spatial methods to a model.
 
     CREATE TABLE features (
         id integer NOT NULL,
+        type character varying(255),
         spatial_model_type character varying(255),
         spatial_model_id integer,
         name character varying(255),

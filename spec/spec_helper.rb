@@ -37,6 +37,7 @@ ActiveRecord::Schema.define(:version => 0) do
     t.decimal :east
     t.decimal :south
     t.decimal :west
+    t.string :type
   end
 
   create_table :spatial_caches, :force => true do |t|
