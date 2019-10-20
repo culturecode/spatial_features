@@ -22,6 +22,10 @@ describe SpatialFeatures do
   end
 
   describe "::within_buffer" do
+    # Because our numbers are small in these tests, we lower the simplification threshold so it is not drastically
+    # reshaping geometry in our tests.
+    before { allow(AbstractFeature).to receive(:lowres_simplification).and_return(0) }
+
     TOLERANCE = 0.000001 # Because calculations are performed using projected geometry, there will be a slight inaccuracy
     new_dummy_class(:name => 'BufferedRecord')
     new_dummy_class(:name => 'Shape')
@@ -220,12 +224,12 @@ describe SpatialFeatures do
         expect(record.features.area(options)).to be_within(TOLERANCE).of(1)
       end
 
-      it 'returns the correct value for a multiple non-overlapping features' do
+      it 'returns the correct value for multiple non-overlapping features' do
         record = create_record_with_polygon(Shape, Rectangle.new(1, 1), Rectangle.new(1, 1, :x => 2))
         expect(record.features.area(options)).to be_within(TOLERANCE).of(2)
       end
 
-      it 'returns the correct value for a multiple overlapping features' do
+      it 'returns the correct value for multiple overlapping features' do
         record = create_record_with_polygon(Shape, Rectangle.new(1, 1), Rectangle.new(1, 1, :x => 0.5))
         expect(record.features.area(options)).to be_within(TOLERANCE).of(1.5)
       end
