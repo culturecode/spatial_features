@@ -138,3 +138,15 @@ Default options can be specified on the Shapefile importer class itself.
   ```
 
   Default: `nil`
+
+## Upgrading From 2.7.x to 2.8.0
+Features now generate an `AggregateFeature` comprised of a union of all their spatial model's features. This improves query performance because
+unioning is precalculated in these shapes instead of at query time.
+
+```ruby
+# In your migration
+add_column :features, :type, :string
+Feature.reset_column_information
+AbstractFeature.update_all(:type => 'Feature')
+Feature.refresh_aggregates
+```
