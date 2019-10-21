@@ -34,7 +34,8 @@ class Feature < AbstractFeature
             .where.not(:spatial_model_type => nil, :spatial_model_id => nil)
             .group('spatial_model_type, spatial_model_id')
 
-    where(:id => ids).find_each(&:refresh_aggregate)
+    # Unscope so that newly built AggregateFeatures get their type column set correctly
+    AbstractFeature.unscoped { where(:id => ids).find_each(&:refresh_aggregate) }
   end
 
   def refresh_aggregate
