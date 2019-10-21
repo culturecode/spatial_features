@@ -1,3 +1,5 @@
+require_dependency SpatialFeatures::Engine.root.join('app/models/abstract_feature')
+
 class AggregateFeature < AbstractFeature
   has_many :features, lambda { |aggregate| where(:spatial_model_type => aggregate.spatial_model_type) }, :foreign_key => :spatial_model_id, :primary_key => :spatial_model_id
 
