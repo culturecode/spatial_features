@@ -100,6 +100,27 @@ class AbstractFeature < ActiveRecord::Base
     SQL
   end
 
+  def self.geojson(lowres: false, precision: 6, properties: {}, srid: 4326) # default srid is 4326 so output is Google Maps compatible
+    column = lowres ? "ST_Transform(geom_lowres, #{srid})" : 'geog'
+    properties_sql = <<~SQL if properties.present?
+      , 'properties', json_build_object(#{properties.map {|k,v| "'#{k}',#{v}" }.join(',') })
+    SQL
+
+    sql = <<~SQL
+      json_build_object(
+        'type', 'FeatureCollection',
+        'features', json_agg(
+          json_build_object(
+            'type', 'Feature',
+            'geometry', ST_AsGeoJSON(#{column}, #{precision})::json
+            #{properties_sql}
+          )
+        )
+      )
+    SQL
+    connection.select_value(all.select(sql))
+  end
+
   def feature_bounds
     {n: north, e: east, s: south, w: west}
   end
@@ -112,6 +133,10 @@ class AbstractFeature < ActiveRecord::Base
     geometry = options[:lowres] ? kml_lowres : super()
     geometry = "<MultiGeometry>#{geometry}#{kml_centroid}</MultiGeometry>" if options[:centroid]
     return geometry
+  end
+
+  def geojson(*args)
+    self.class.where(id: id).geojson(*args)
   end
 
   def make_valid?
