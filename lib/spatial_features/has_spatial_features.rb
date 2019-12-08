@@ -117,10 +117,11 @@ module SpatialFeatures
       other_class = Utils.base_class_of(other)
       self_class = Utils.base_class_of(self)
 
-      other_column = other_class.name < self_class.name ? :model_a : :model_b
-      self_column = other_column == :model_a ? :model_b : :model_a
-
-      joins("INNER JOIN spatial_proximities ON spatial_proximities.#{self_column}_type = '#{self_class}' AND spatial_proximities.#{self_column}_id = #{table_name}.id AND spatial_proximities.#{other_column}_type = '#{other_class}' AND spatial_proximities.#{other_column}_id IN (#{Utils.id_sql(other)})")
+      joins <<~SQL
+        INNER JOIN spatial_proximities
+        ON (spatial_proximities.model_a_type = '#{self_class}' AND spatial_proximities.model_a_id = #{table_name}.id AND spatial_proximities.model_b_type = '#{other_class}' AND spatial_proximities.model_b_id IN (#{Utils.id_sql(other)}))
+        OR (spatial_proximities.model_b_type = '#{self_class}' AND spatial_proximities.model_b_id = #{table_name}.id AND spatial_proximities.model_a_type = '#{other_class}' AND spatial_proximities.model_a_id IN (#{Utils.id_sql(other)}))
+      SQL
     end
 
     def uncached_within_buffer_scope(other, buffer_in_meters, options)

@@ -81,6 +81,12 @@ describe SpatialFeatures do
           expect(Outlier.within_buffer(other_outlier, 1, options)).to include(outlier)
         end
 
+        it 'returns records within the buffer distance of the given record when intersecting the same class in the other direction' do
+          other_outlier = create_record_with_polygon(Outlier, Rectangle.new(1, 1, :x => 2))
+          outlier
+          expect(Outlier.within_buffer(outlier, 1, options)).to include(other_outlier)
+        end
+
         it 'returns records within the buffer distance of the given record when intersecting a subclass' do
           base_class = new_dummy_class(:type)
           sub_class = new_dummy_class(parent: base_class)

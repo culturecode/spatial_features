@@ -76,7 +76,6 @@ module SpatialFeatures
   def self.create_spatial_proximities(record, klass)
     klass = klass.to_s.constantize
     klass_record = klass.new
-    model_a, model_b = Utils.base_class(record).to_s < Utils.base_class(klass).to_s ? [record, klass_record] : [klass_record, record]
 
     scope = klass.within_buffer(record, default_cache_buffer_in_meters, :columns => :id, :intersection_area => true, :distance => true, :cache => false)
     results = klass.connection.select_rows(scope.to_sql)
@@ -85,10 +84,10 @@ module SpatialFeatures
       klass_record.id = id
       SpatialProximity.create! do |proximity|
         # Set id and type instead of model to avoid autosaving the klass_record
-        proximity.model_a_id = model_a.id
-        proximity.model_a_type = Utils.base_class(model_a)
-        proximity.model_b_id = model_b.id
-        proximity.model_b_type = Utils.base_class(model_b)
+        proximity.model_a_id = record.id
+        proximity.model_a_type = Utils.base_class(record)
+        proximity.model_b_id = klass_record.id
+        proximity.model_b_type = Utils.base_class(klass_record)
         proximity.distance_in_meters = distance
         proximity.intersection_area_in_square_meters = area
       end
