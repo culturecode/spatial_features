@@ -78,6 +78,7 @@ module SpatialFeatures
     klass_record = klass.new
 
     scope = klass.within_buffer(record, default_cache_buffer_in_meters, :columns => :id, :intersection_area => true, :distance => true, :cache => false)
+    scope = scope.where.not(:id => record.id) if klass.table_name == record.class.table_name # Don't calculate self proximity
     results = klass.connection.select_rows(scope.to_sql)
 
     results.each do |id, distance, area|
