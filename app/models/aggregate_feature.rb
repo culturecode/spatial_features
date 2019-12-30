@@ -7,9 +7,9 @@ class AggregateFeature < AbstractFeature
   def refresh
     feature_array_sql = <<~SQL
       ARRAY[
-        (#{features.select('ST_UNION(ST_CollectionExtract(geog::geometry, 1))').to_sql}),
-        (#{features.select('ST_UNION(ST_CollectionExtract(geog::geometry, 2))').to_sql}),
-        (#{features.select('ST_UNION(ST_CollectionExtract(geog::geometry, 3))').to_sql})
+        (#{features.select('ST_Multi(ST_Union(ST_CollectionExtract(geog::geometry, 1)))').to_sql}),
+        (#{features.select('ST_Multi(ST_Union(ST_CollectionExtract(geog::geometry, 2)))').to_sql}),
+        (#{features.select('ST_Multi(ST_Union(ST_CollectionExtract(geog::geometry, 3)))').to_sql})
       ]
     SQL
 
@@ -18,9 +18,9 @@ class AggregateFeature < AbstractFeature
       array_remove(
         array_remove(
           array_remove(#{feature_array_sql},
-          ST_GeomFromText('Point EMPTY')),
-        ST_GeomFromText('Linestring EMPTY')),
-      ST_GeomFromText('Polygon EMPTY'))
+          ST_GeomFromText('MultiPoint EMPTY')),
+        ST_GeomFromText('MultiLinestring EMPTY')),
+      ST_GeomFromText('MultiPolygon EMPTY'))
     SQL
 
     self.geog = ActiveRecord::Base.connection.select_value <<~SQL
