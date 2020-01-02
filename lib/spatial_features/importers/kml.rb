@@ -8,12 +8,7 @@ module SpatialFeatures
       def each_record(&block)
         Nokogiri::XML(@data).css('Placemark').each do |placemark|
           name = placemark.css('name').text
-          metadata = { :description => placemark.css('description').text }
-          placemark.css('ExtendedData SimpleData').each do |node|
-            metadata[node['name']] = node.text
-          end
-          metadata.delete_if {|key, value| value.blank? }
-
+          metadata = extract_metadata(placemark)
 
           {'Polygon' => 'POLYGON', 'LineString' => 'LINE', 'Point' => 'POINT'}.each do |kml_type, sql_type|
             placemark.css(kml_type).each do |placemark|
@@ -31,6 +26,34 @@ module SpatialFeatures
 
       def geom_from_kml(kml)
         ActiveRecord::Base.connection.select_value("SELECT ST_GeomFromKML(#{ActiveRecord::Base.connection.quote(kml.to_s)})")
+      end
+
+      def extract_metadata(placemark)
+        metadata = {}
+        metadata.merge! extract_table(placemark)
+        metadata.merge! extract_extended_data(placemark)
+        metadata.merge! :description => placemark.css('description').text if metadata.empty?
+        metadata.delete_if {|key, value| value.blank? }
+
+        return metadata
+      end
+
+      def extract_extended_data(placemark)
+        metadata = {}
+        placemark.css('ExtendedData SimpleData').each do |node|
+          metadata[node['name']] = node.text
+        end
+        return metadata
+      end
+
+      def extract_table(placemark)
+        metadata = {}
+        placemark.css('description').each do |description|
+          Nokogiri::XML(description.text).css('html table table td').each_slice(2) do |key, value|
+            metadata[key.text] = value.text
+          end
+        end
+        return metadata
       end
     end
   end
