@@ -14,7 +14,7 @@ class AbstractFeature < ActiveRecord::Base
   validates_presence_of :geog
   validate :validate_geometry
   before_save :sanitize
-  after_save :cache_derivatives
+  after_save :cache_derivatives, :if => :saved_change_to_geog?
 
   def self.cache_key
     "#{maximum(:id)}-#{count}"
@@ -188,5 +188,13 @@ class AbstractFeature < ActiveRecord::Base
 
   def sanitize_input_for_sql(input)
     self.class.send(:sanitize_sql_for_conditions, input)
+  end
+
+  def saved_change_to_geog?
+    if Rails.version >= '5.1'
+      super
+    else
+      geog_changed?
+    end
   end
 end
