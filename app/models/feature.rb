@@ -47,7 +47,7 @@ class Feature < AbstractFeature
     # Check if there is a spatial model id because nothing prevents is from creating a Feature without one. Depending on
     # how you assign a feature to a record, you may end up saving it before assigning it to a record, thereby leaving
     # this field blank.
-    spatial_model_id? && automatically_refresh_aggregate
+    spatial_model_id? && automatically_refresh_aggregate && saved_change_to_geog?
   end
 
   # Features are used for display so we also cache their KML representation
