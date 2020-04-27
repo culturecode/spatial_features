@@ -50,7 +50,7 @@ module SpatialFeatures
         metadata = {}
         placemark.css('description').each do |description|
           Nokogiri::XML(description.text).css('html table table td').each_slice(2) do |key, value|
-            metadata[key.text] = value.text
+            metadata[key.text] = value ? value.text : ''
           end
         end
         return metadata
