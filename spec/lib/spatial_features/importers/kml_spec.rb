@@ -70,6 +70,40 @@ describe SpatialFeatures::Importers::KML do
 
         expect(subject.features).to all(have_attributes :metadata => include('test' => 'value'))
       end
+
+      it 'does not include feature metadata specifed in CDATA double-nested table in the description if there is no value' do
+        doc = Nokogiri::XML(data)
+        description = <<-HTML
+        <html>
+          <body>
+            <table>
+              <tr>
+                <td>A87325</td>
+              </tr>
+              <tr>
+                <td>
+                  <table>
+                    <tr>
+                      <td>test</td>
+                    </tr>
+                  </table>
+                </td>
+              <tr>
+            </table>
+          </body>
+        </html>
+        HTML
+
+        doc.css('Placemark').each do |placemark|
+          node = doc.create_element('description')
+          node.add_child(doc.create_cdata description)
+          placemark.add_child(node)
+        end
+
+        data.replace doc.to_s
+
+        expect(subject.features).not_to include(have_attributes :metadata => include('test'))
+      end
     end
   end
 end
