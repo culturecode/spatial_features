@@ -43,7 +43,7 @@ module SpatialFeatures
       end
 
       def file
-        @file ||= Download.open(@data, unzip: /\.shp$/)
+        @file ||= Download.open(@data, unzip: /\.shp$/, downcase: true)
       end
 
 

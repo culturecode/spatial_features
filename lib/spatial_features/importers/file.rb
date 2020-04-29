@@ -4,7 +4,7 @@ module SpatialFeatures
   module Importers
     class File < SimpleDelegator
       def initialize(data, *args)
-        file = Download.open(data, unzip: [/\.kml$/, /\.shp$/])
+        file = Download.open(data, unzip: [/\.kml$/, /\.shp$/], downcase: true)
 
         case ::File.extname(file.path.downcase)
         when '.kml'

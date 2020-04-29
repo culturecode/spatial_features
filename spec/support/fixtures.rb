@@ -13,3 +13,7 @@ end
 def shapefile_without_projection
   File.open("#{SpatialFeatures::Engine.root}/spec/fixtures/shapefile_without_projection.zip")
 end
+
+def shapefile_with_upcase_shp
+  File.open("#{SpatialFeatures::Engine.root}/spec/fixtures/shapefile_with_upcase_shp.zip")
+end
