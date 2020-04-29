@@ -3,16 +3,18 @@ require 'open-uri'
 module SpatialFeatures
   module Download
     # file can be a url, path, or file, any of which can return be a zipped archive
-    def self.read(file, unzip: nil)
-      file = open(file, unzip: unzip)
+    def self.read(file, unzip: nil, **unzip_options)
+      file = open(file, unzip: unzip, **unzip_options)
       path = ::File.path(file)
       return ::File.read(path)
     end
 
-    def self.open(file, unzip: nil)
+    def self.open(file, unzip: nil, **unzip_options)
       file = Kernel.open(file)
       file = normalize_file(file) if file.is_a?(StringIO)
-      file = find_in_zip(file, unzip) if Unzip.is_zip?(file)
+      if Unzip.is_zip?(file)
+        file = find_in_zip(file, find: unzip, **unzip_options)
+      end
       return file
     end
 
@@ -24,9 +26,8 @@ module SpatialFeatures
       end
     end
 
-    def self.find_in_zip(file, unzip)
-      raise "Must specify an :unzip option if opening a zip file. e.g. open(file, :find => '.shp')" unless unzip
-      return File.open(Unzip.paths(file, :find => unzip))
+    def self.find_in_zip(file, find:, **unzip_options)
+      return File.open(Unzip.paths(file, :find => find, **unzip_options))
     end
   end
 end

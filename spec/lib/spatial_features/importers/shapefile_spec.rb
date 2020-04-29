@@ -1,22 +1,36 @@
 require 'spec_helper'
 
-describe SpatialFeatures::Importers::KML do
+describe SpatialFeatures::Importers::Shapefile do
   subject { SpatialFeatures::Importers::Shapefile.new(data) }
 
   context 'when given a shapefile' do
     let(:data) { shapefile }
 
     describe '#features' do
-      it 'returns all records' do
-        expect(subject.features.count).to eq(17)
+      shared_examples_for "a well formed shapefile" do
+        it 'returns all records' do
+          expect(subject.features.count).to eq(17)
+        end
+
+        it 'sets the feature metadata' do
+          expect(subject.features).to all(have_attributes :metadata => be_present)
+        end
+
+        it 'sets the feature_type' do
+          expect(subject.features).to all(have_attributes :feature_type => be_present)
+        end
       end
 
-      it 'sets the feature metadata' do
-        expect(subject.features).to all(have_attributes :metadata => be_present)
+      context 'when the shapefile has all downcased filenames' do
+        let(:subject) { SpatialFeatures::Importers::Shapefile.new(shapefile) }
+
+        it_behaves_like "a well formed shapefile"
       end
 
-      it 'sets the feature_type' do
-        expect(subject.features).to all(have_attributes :feature_type => be_present)
+      context 'when the shapefile has an upcased .shp file' do
+        let(:subject) { SpatialFeatures::Importers::Shapefile.new(shapefile_with_upcase_shp) }
+
+        it_behaves_like "a well formed shapefile"
       end
 
       context 'when the shapefile has no projection' do

@@ -2,8 +2,8 @@ require 'fileutils'
 
 module SpatialFeatures
   module Unzip
-    def self.paths(file_path, find: nil)
-      paths = extract(file_path)
+    def self.paths(file_path, find: nil, **extract_options)
+      paths = extract(file_path, **extract_options)
 
       if find = Array.wrap(find).presence
         paths = paths.detect {|path| find.any? {|pattern| path.index(pattern) } }
@@ -13,10 +13,12 @@ module SpatialFeatures
       return paths
     end
 
-    def self.extract(file_path, output_dir = Dir.mktmpdir)
+    def self.extract(file_path, output_dir = Dir.mktmpdir, downcase: false)
       [].tap do |paths|
         entries(file_path).each do |entry|
-          path = "#{output_dir}/#{entry.name}"
+          output_filename = entry.name
+          output_filename = output_filename.downcase if downcase
+          path = "#{output_dir}/#{output_filename}"
           FileUtils.mkdir_p(File.dirname(path))
           entry.extract(path)
           paths << path
