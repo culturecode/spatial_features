@@ -23,10 +23,17 @@ module SpatialFeatures
             yield OpenStruct.new data_from_wkt(record.geometry.as_text, proj4_projection).merge(:metadata => record.attributes) if record.geometry.present?
           end
         end
+      rescue Errno::ENOENT => e
+        case e.message
+        when /No such file or directory @ rb_sysopen - (.+)/
+          raise IncompleteShapefileArchive, "Shapefile archive was missing a required file: #{::File.basename($1)}"
+        else
+          raise e
+        end
       end
 
       def proj4_projection
-        @proj4 ||= proj4_from_file || default_proj4_projection || raise(IndeterminateProjection, 'Could not determine shapefile projection. Check that `gdalsrsinfo` is installed.')
+        @proj4 ||= proj4_from_file || default_proj4_projection || raise(IndeterminateShapefileProjection, 'Could not determine shapefile projection. Check that `gdalsrsinfo` is installed.')
       end
 
       def proj4_from_file
@@ -45,11 +52,10 @@ module SpatialFeatures
       def file
         @file ||= Download.open(@data, unzip: /\.shp$/, downcase: true)
       end
-
-
-      # ERRORS
-
-      class IndeterminateProjection < StandardError; end
     end
+
+    # ERRORS
+    class IndeterminateShapefileProjection < SpatialFeatures::ImportError; end
+    class IncompleteShapefileArchive < SpatialFeatures::ImportError; end
   end
 end

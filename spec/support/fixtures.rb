@@ -17,3 +17,7 @@ end
 def shapefile_with_upcase_shp
   File.open("#{SpatialFeatures::Engine.root}/spec/fixtures/shapefile_with_upcase_shp.zip")
 end
+
+def shapefile_with_missing_required_file
+  File.open("#{SpatialFeatures::Engine.root}/spec/fixtures/shapefile_with_missing_required_file.zip")
+end
