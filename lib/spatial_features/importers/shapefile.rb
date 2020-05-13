@@ -26,7 +26,7 @@ module SpatialFeatures
       rescue Errno::ENOENT => e
         case e.message
         when /No such file or directory @ rb_sysopen - (.+)/
-          raise IncompleteShapefileArchive, "Shapefile archive was missing a required file: #{::File.basename($1)}"
+          raise IncompleteShapefileArchive, "Shapefile archive is missing a required file: #{::File.basename($1)}"
         else
           raise e
         end
