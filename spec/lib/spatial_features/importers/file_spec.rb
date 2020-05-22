@@ -55,5 +55,11 @@ describe SpatialFeatures::Importers::File do
 
       it_behaves_like 'format detection'
     end
+
+    context 'when archive does not include the expected file' do
+      it 'raises an exception' do
+        expect { subject.new(archive_without_any_known_file) }.to raise_exception(SpatialFeatures::ImportError)
+      end
+    end
   end
 end

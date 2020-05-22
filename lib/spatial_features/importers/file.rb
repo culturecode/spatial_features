@@ -4,7 +4,11 @@ module SpatialFeatures
   module Importers
     class File < SimpleDelegator
       def initialize(data, *args)
-        file = Download.open(data, unzip: [/\.kml$/, /\.shp$/], downcase: true)
+        begin
+          file = Download.open(data, unzip: [/\.kml$/, /\.shp$/], downcase: true)
+        rescue Unzip::PathNotFound
+          raise ImportError, "Archive did not contain a .kml or .shp file. Supported formats are KMZ, KML, and zipped ArcGIS shapefiles."
+        end
 
         case ::File.extname(file.path.downcase)
         when '.kml'

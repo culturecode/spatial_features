@@ -21,3 +21,7 @@ end
 def shapefile_with_missing_required_file
   File.open("#{SpatialFeatures::Engine.root}/spec/fixtures/shapefile_with_missing_required_file.zip")
 end
+
+def archive_without_any_known_file
+  File.open("#{SpatialFeatures::Engine.root}/spec/fixtures/archive_without_any_known_file.zip")
+end
