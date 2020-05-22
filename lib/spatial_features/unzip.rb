@@ -7,7 +7,7 @@ module SpatialFeatures
 
       if find = Array.wrap(find).presence
         paths = paths.detect {|path| find.any? {|pattern| path.index(pattern) } }
-        raise(ImportError, "No file matched #{find}") unless paths.present?
+        raise(PathNotFound, "Archive did not contain a file matching #{find}") unless paths.present?
       end
 
       return paths
@@ -44,5 +44,9 @@ module SpatialFeatures
     rescue EOFError
       return false
     end
+
+    # EXCEPTIONS
+
+    class PathNotFound < StandardError; end
   end
 end
