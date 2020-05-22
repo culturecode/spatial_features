@@ -141,13 +141,10 @@ module SpatialFeatures
     def spatial_join(other, buffer = 0, table_alias = 'features', other_alias = 'other_features', geom = 'geom_lowres')
       scope = features_scope(self).select("#{geom} AS geom").select(:spatial_model_id)
 
-      other_scope = features_scope(other)
-      other_scope_select_sql = "ST_Union(#{geom})"
-      other_scope_select_sql = "ST_Buffer(#{other_scope_select_sql}, #{buffer})" if buffer&.positive?
-      other_scope = other_scope.select("ST_Union(#{geom}) AS geom").select("#{other_scope_select_sql} AS buffered_geom")
+      other_scope = features_scope(other).select("ST_Union(#{geom}) AS geom")
 
       return joins(%Q(INNER JOIN (#{scope.to_sql}) AS #{table_alias} ON #{table_alias}.spatial_model_id = #{table_name}.id))
-            .joins(%Q(INNER JOIN (#{other_scope.to_sql}) AS #{other_alias} ON ST_Intersects(#{table_alias}.geom, #{other_alias}.buffered_geom)))
+            .joins(%Q(INNER JOIN (#{other_scope.to_sql}) AS #{other_alias} ON ST_DWithin(#{table_alias}.geom, #{other_alias}.geom, #{buffer})))
     end
 
     def features_scope(other)
