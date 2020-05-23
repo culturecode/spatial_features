@@ -142,9 +142,11 @@ module SpatialFeatures
       scope = features_scope(self).select("#{geom} AS geom").select(:spatial_model_id)
 
       other_scope = features_scope(other).select("ST_Union(#{geom}) AS geom")
-
       return joins(%Q(INNER JOIN (#{scope.to_sql}) AS #{table_alias} ON #{table_alias}.spatial_model_id = #{table_name}.id))
-            .joins(%Q(INNER JOIN (#{other_scope.to_sql}) AS #{other_alias} ON ST_DWithin(#{table_alias}.geom, #{other_alias}.geom, #{buffer})))
+            .joins(%Q(INNER JOIN (#{other_scope.to_sql}) AS #{other_alias}
+                       ON NOT ST_IsEmpty(#{table_alias}.geom) -- Can't ST_DWithin empty geometry
+                      AND NOT ST_IsEmpty(#{other_alias}.geom) -- Can't ST_DWithin empty geometry
+                      AND ST_DWithin(#{table_alias}.geom, #{other_alias}.geom, #{buffer})))
     end
 
     def features_scope(other)
