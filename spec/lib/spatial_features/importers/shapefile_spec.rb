@@ -50,7 +50,7 @@ describe SpatialFeatures::Importers::Shapefile do
         end
 
         it 'is uses the `default_proj4_projection` when no projection can be determined from the shapefile' do
-          allow(SpatialFeatures::Importers::Shapefile).to receive(:default_proj4_projection).and_return("+proj=aea +lat_1=50 +lat_2=58.5 +lat_0=45 +lon_0=-126 +x_0=1000000 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m +no_defs")
+          allow(SpatialFeatures::Importers::Shapefile).to receive(:default_proj4_projection).and_return("+proj=utm +zone=11 +datum=NAD83 +units=m +no_defs")
           expect(subject.features).to be_present
         end
       end
