@@ -131,7 +131,7 @@ module SpatialFeatures
       scope = scope.select(options[:columns])
 
       scope = scope.select("ST_Distance(features.geom, other_features.geom) AS distance_in_meters") if options[:distance]
-      scope = scope.select("ST_Area(ST_Intersection(features.geom, other_features.geom)) AS intersection_area_in_square_meters") if options[:intersection_area]
+      scope = scope.select("ST_Area(ST_Intersection(ST_CollectionExtract(features.geom, 3), ST_CollectionExtract(other_features.geom, 3))) AS intersection_area_in_square_meters") if options[:intersection_area] # Use ST_CollectionExtract to avoid a segfault we've been seeing when intersecting certain geometry
 
       return scope
     end

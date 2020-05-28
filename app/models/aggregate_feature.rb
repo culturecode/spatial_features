@@ -14,10 +14,8 @@ class AggregateFeature < AbstractFeature
     SQL
 
     # Remove empty features so ST_COLLECT doesn't choke. This seems to be a difference between PostGIS 2.x and 3.x
-    # NOTE: ST_CollectionHomogenize is used to normalize geometry representation in order to avoid a segmentation fault
-    #       we were seeing when intersecting complex geometry.
     self.geog = ActiveRecord::Base.connection.select_value <<~SQL
-      SELECT COALESCE(ST_CollectionHomogenize(ST_Collect(unnest))::geography, ST_GeogFromText('MULTIPOLYGON EMPTY'))
+      SELECT COALESCE(ST_Collect(unnest)::geography, ST_GeogFromText('MULTIPOLYGON EMPTY'))
       FROM (SELECT unnest(#{feature_array_sql})) AS features
       WHERE NOT ST_IsEmpty(unnest)
     SQL
