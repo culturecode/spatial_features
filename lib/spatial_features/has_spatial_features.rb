@@ -183,7 +183,7 @@ module SpatialFeatures
     end
 
     def intersects?(other)
-      self.class.intersecting(other).exists?(self)
+      self.class.unscoped { self.class.intersecting(other).exists?(id) }
     end
 
     def total_intersection_area_percentage(klass)
