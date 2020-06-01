@@ -40,6 +40,11 @@ class AbstractFeature < ActiveRecord::Base
     where(:feature_type => 'point')
   end
 
+  def self.within_distance(lat, lng, distance_in_meters)
+    # where("ST_DWithin(features.geog, ST_SetSRID( ST_Point( -71.104, 42.315), 4326)::geography, :distance)", :lat => lat, :lng => lng, :distance => distance_in_meters)
+    where("ST_DWithin(features.geog, ST_Point(:lng, :lat), :distance)", :lat => lat, :lng => lng, :distance => distance_in_meters)
+  end
+
   def self.area_in_square_meters(geom = 'geom_lowres')
     current_scope = all.polygons
     unscoped { connection.select_value(select("ST_Area(ST_Union(#{geom}))").from(current_scope, :features)).to_f }
