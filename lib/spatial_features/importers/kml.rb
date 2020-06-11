@@ -6,22 +6,24 @@ module SpatialFeatures
       private
 
       def each_record(&block)
-        Nokogiri::XML(@data).css('Placemark').each do |placemark|
-          name = placemark.css('name').text
-          metadata = extract_metadata(placemark)
-
-          {'Polygon' => 'POLYGON', 'LineString' => 'LINE', 'Point' => 'POINT'}.each do |kml_type, sql_type|
-            placemark.css(kml_type).each do |placemark|
-              next if blank_placemark?(placemark)
-
-              yield OpenStruct.new(:feature_type => sql_type, :geog => geom_from_kml(placemark), :name => name, :metadata => metadata)
+        {'Polygon' => 'POLYGON', 'LineString' => 'LINE', 'Point' => 'POINT'}.each do |kml_type, sql_type|
+          Nokogiri::XML(@data).css(kml_type).each do |feature|
+            if placemark = feature.ancestors('Placemark').first
+              name = placemark.css('name').text
+              metadata = extract_metadata(placemark)
+            else
+              metadata = {}
             end
+    
+            next if blank_feature?(feature)
+
+            yield OpenStruct.new(:feature_type => sql_type, :geog => geom_from_kml(feature), :name => name, :metadata => metadata)
           end
         end
       end
 
-      def blank_placemark?(placemark)
-        placemark.css('coordinates').text.blank?
+      def blank_feature?(feature)
+        feature.css('coordinates').text.blank?
       end
 
       def geom_from_kml(kml)

@@ -6,6 +6,10 @@ def kmz_file
   File.open("#{SpatialFeatures::Engine.root}/spec/fixtures/test.kmz")
 end
 
+def kmz_file_features_without_placemarks
+  File.open("#{SpatialFeatures::Engine.root}/spec/fixtures/kmz_file_features_without_placemarks.kmz")
+end
+
 def shapefile
   File.open("#{SpatialFeatures::Engine.root}/spec/fixtures/shapefile.zip")
 end
