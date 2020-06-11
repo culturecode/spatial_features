@@ -23,6 +23,29 @@ describe SpatialFeatures::Importers::KML do
     end
   end
 
+  shared_examples_for 'kml importer without placemarks' do |data|
+    subject { SpatialFeatures::Importers::KMLFile.new(data) }
+
+    describe '#features' do
+      it 'returns all records' do
+        expect(subject.features.count).to eq(2)
+      end
+
+      it 'does not set the feature name' do
+        expect(subject.features).to all(have_attributes :name => be_blank)
+      end
+
+      it 'sets the feature type' do
+        expect(subject.features).to all(have_attributes :feature_type => be_present)
+      end
+
+      it 'does not set the feature metadata' do
+        expect(subject.features).to all(have_attributes :metadata => {})
+      end
+    end
+  end
+
+
   context 'when given a path to a KML file' do
     it_behaves_like 'kml importer', kml_file.path
   end
@@ -33,5 +56,9 @@ describe SpatialFeatures::Importers::KML do
 
   context 'when given KMZ file' do
     it_behaves_like 'kml importer', kmz_file
+  end
+
+  context 'when given KMZ file with features but no placemarks' do
+    it_behaves_like 'kml importer without placemarks', kmz_file_features_without_placemarks
   end
 end
