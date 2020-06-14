@@ -81,6 +81,15 @@ module SpatialFeatures
       end
     end
 
+    def aggregate_features
+      type = base_class.to_s # Rails stores polymorphic foreign keys as the base class
+      if all == unscoped
+        AggregateFeature.where(:spatial_model_type => type)
+      else
+        AggregateFeature.where(:spatial_model_type => type, :spatial_model_id => all.unscope(:select))
+      end
+    end
+
     # Returns true if the model stores a hash of the features so we don't need to process the features if they haven't changed
     def has_spatial_features_hash?
       column_names.include? 'features_hash'
