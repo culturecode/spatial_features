@@ -1,8 +1,8 @@
 module PostGISTypes
-  def initialize_type_map(mapping)
+  def initialize_type_map(m = type_map)
     super
-    register_class_with_limit mapping, 'geometry', ActiveRecord::ConnectionAdapters::PostgreSQLAdapter::OID::SpecializedString
-    register_class_with_limit mapping, 'geography', ActiveRecord::ConnectionAdapters::PostgreSQLAdapter::OID::SpecializedString
+    register_class_with_limit m, 'geometry', ActiveRecord::ConnectionAdapters::PostgreSQLAdapter::OID::SpecializedString
+    register_class_with_limit m, 'geography', ActiveRecord::ConnectionAdapters::PostgreSQLAdapter::OID::SpecializedString
   end
 end
 
