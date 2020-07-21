@@ -36,12 +36,8 @@ module SpatialFeatures
       true
     end
 
-    # Add methods to generate cache keys for a record or all records of this class
-    # NOTE: features are never updated, only deleted and created, therefore we can
-    # tell if they have changed by finding the maximum id and count instead of needing timestamps
     def features_cache_key
-      # Do two separate queries because it is much faster for some reason
-      "#{name}/#{features.cache_key}"
+      "#{name}/#{aggregate_features.cache_key}"
     end
 
     def intersecting(other, options = {})
@@ -172,7 +168,7 @@ module SpatialFeatures
     end
 
     def features_cache_key
-      "#{self.class.name}/#{self.id}-#{features.cache_key}"
+      "#{self.class.name}/#{id}-#{has_spatial_features_hash? ? features_hash : aggregate_feature.cache_key}"
     end
 
     def polygons?
