@@ -48,6 +48,38 @@ describe SpatialFeatures::FeatureImport do
       expect(double.features.count).to eq(single.features.count * 2)
     end
 
+    it 'accepts multiple sources within a single importer' do
+      subject = new_dummy_class(:parent => FeatureImportMock) do
+        has_spatial_features :import => { :test_files => :KMLFile }
+
+        def test_files
+          [test_kml, test_kmz]
+        end
+      end.new
+
+      expect(SpatialFeatures::Importers::KMLFile).to receive(:new).with(subject.test_kml, be_a(Hash)).and_call_original
+      expect(SpatialFeatures::Importers::KMLFile).to receive(:new).with(subject.test_kmz, be_a(Hash)).and_call_original
+      subject.update_features!
+    end
+
+    it 'aggregates features if multiple sources are specified within a single importer' do
+      single = new_dummy_class(:parent => FeatureImportMock) do
+        has_spatial_features :import => { :test_kml => :KMLFile }
+      end.new
+
+      double = new_dummy_class(:parent => FeatureImportMock) do
+        has_spatial_features :import => { :test_files => :KMLFile }
+
+        def test_files
+          [test_kml, test_kml]
+        end
+      end.new
+
+      single.update_features!
+      double.update_features!
+      expect(double.features.count).to eq(single.features.count * 2)
+    end
+
     it 'ignores empty source values' do
       subject = new_dummy_class do
         has_spatial_features :import => { :empty_string => :KMLFile }
