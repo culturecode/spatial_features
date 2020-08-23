@@ -17,7 +17,8 @@ class AbstractFeature < ActiveRecord::Base
   after_save :cache_derivatives, :if => :saved_change_to_geog?
 
   def self.cache_key
-    "#{maximum(:id)}-#{count}"
+    result = connection.select_one(all.select('max(id) AS max, count(*) AS count').to_sql)
+    "#{result['max']}-#{result['count']}"
   end
 
   def self.with_metadata(k, v)
