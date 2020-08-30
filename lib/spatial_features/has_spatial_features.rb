@@ -184,7 +184,11 @@ module SpatialFeatures
     end
 
     def features?
-      features.present?
+      if features.loaded?
+        features.present?
+      else
+        features.exists?
+      end
     end
 
     def intersects?(other)
