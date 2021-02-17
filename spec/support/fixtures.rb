@@ -10,6 +10,10 @@ def kmz_file_features_without_placemarks
   File.open("#{SpatialFeatures::Engine.root}/spec/fixtures/kmz_file_features_without_placemarks.kmz")
 end
 
+def kml_file_with_invalid_placemark
+  File.open("#{SpatialFeatures::Engine.root}/spec/fixtures/kml_file_with_invalid_placemark.kml")
+end
+
 def shapefile
   File.open("#{SpatialFeatures::Engine.root}/spec/fixtures/shapefile.zip")
 end
