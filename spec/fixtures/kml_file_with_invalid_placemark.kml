@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom">
+<Document>
+	<name>Invalid Placemark Test</name>
+	<Folder>
+		<name>Invalid Placemark Test</name>
+		<open>1</open>
+		<Placemark>
+			<name>Point</name>
+			<description>This is a point description</description>
+			<LookAt>
+				<longitude>-118.0953599553694</longitude>
+				<latitude>50.99976018029227</latitude>
+				<altitude>0</altitude>
+				<heading>-0.009312185540276758</heading>
+				<tilt>0</tilt>
+				<range>360.2334266582566</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#m_ylw-pushpin0</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-118.0968344614107,50.9990699595207,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>Line</name>
+			<description>This is a line description</description>
+			<styleUrl>#style22</styleUrl>
+			<LineString>
+				<tessellate>1</tessellate>
+				<coordinates>
+					-118.089675764091,51.01032558585955,0 -118.0889732713068,51.01048708669069,0 -118.0882312998693,51.01038325932011,0 -118.0877197966999,51.01036310703023,0 -118.0873122359602,51.01049795237122,0 -118.0869963579566,51.01063073053858,0 -118.0867423850594,51.01085054082176,0 -118.0861869980127,51.01098790099778,0 -118.0857272461739,51.0110873219875,0 -118.0851719812874,51.01120768069855,0 -118.0850921271063,51.01080949798535,0 -118.0849976280212,51.01051916845486,0 -118.0845868106561,51.01028844459033,0 -118.0841096483554,51.01009006296836,0 -118.0835695118624,51.00983098183438,0 -118.0829613742243,51.00953266686324,0 -118.0816432002301,51.00884818663192,0 -118.0832712945097,51.00830364503589,0 -118.0834312915085,51.00775322625655,0 -118.0777201624215,51.00940636141441,0 -118.0765236136034,51.00948248932291,0 -118.0762191929838,51.00958404332551,0 -118.0761948478318,51.01005855027813,0 -118.0768415304803,51.01013628851712,0 -118.0816751884237,51.00883791703497,0
+				</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>Invalid Line</name>
+			<description>This is a line description</description>
+			<styleUrl>#style29</styleUrl>
+			<LineString>
+				<tessellate>1</tessellate>
+				<coordinates>
+					-118.0895974528835,51.01061493979792,0
+				</coordinates>
+			</LineString>
+		</Placemark>
+	</Folder>
+</Document>
+</kml>

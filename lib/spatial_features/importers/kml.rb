@@ -14,10 +14,14 @@ module SpatialFeatures
             else
               metadata = {}
             end
-    
+
             next if blank_feature?(feature)
 
-            yield OpenStruct.new(:feature_type => sql_type, :geog => geom_from_kml(feature), :name => name, :metadata => metadata)
+            geog = geom_from_kml(feature)
+
+            next if geog.blank?
+
+            yield OpenStruct.new(:feature_type => sql_type, :geog => geog, :name => name, :metadata => metadata)
           end
         end
       end
@@ -27,7 +31,16 @@ module SpatialFeatures
       end
 
       def geom_from_kml(kml)
-        ActiveRecord::Base.connection.select_value("SELECT ST_GeomFromKML(#{ActiveRecord::Base.connection.quote(kml.to_s)})")
+        geom = nil
+
+        # Do query in a new thread so we use a new connection (if the query fails it will poison the transaction of the current connection)
+        Thread.new do
+          geom = ActiveRecord::Base.connection.select_value("SELECT ST_GeomFromKML(#{ActiveRecord::Base.connection.quote(kml.to_s)})")
+        rescue ActiveRecord::StatementInvalid => e # Discard Invalid KML features
+          geom = nil
+        end.join
+
+        return geom
       end
 
       def extract_metadata(placemark)
