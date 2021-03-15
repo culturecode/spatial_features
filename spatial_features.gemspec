@@ -20,7 +20,7 @@ Gem::Specification.new do |s|
   s.add_dependency "rails", '>= 4.2', '< 6.0'
   s.add_dependency "delayed_job_active_record", '~> 4.1'
   s.add_dependency "rgeo-shapefile", '~> 3.0'
-  s.add_dependency "rubyzip", '~> 1.1'
+  s.add_dependency "rubyzip", '>= 1.0.0'
   s.add_dependency "nokogiri", '~> 1.6'
   s.add_dependency "chroma", "~> 0.1.0"
 
