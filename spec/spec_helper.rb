@@ -9,8 +9,14 @@ Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each { |f| require f }
 # Load app files
 Dir["#{File.dirname(__FILE__)}/../app/**/*.rb"].each { |f| require f }
 
-ActiveRecord::Base.establish_connection(:adapter => "postgresql", :database => "spatial_features_test")
-
+ActiveRecord::Base.establish_connection(
+  :adapter => "postgresql",
+  :host => "localhost",
+  :encoding => "unicode",
+  :database => "spatial_features_test",
+  :username => ENV["POSTGRES_USER"],
+  :password => ENV["POSTGRES_PASSWORD"]
+)
 # Load OID initializer
 Dir["#{File.dirname(__FILE__)}/../config/initializers/**/*.rb"].each { |f| require f }
 
