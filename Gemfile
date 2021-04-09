@@ -16,5 +16,4 @@ gemspec
 group :test do
   gem 'pry'
   gem 'pry-byebug'
-  require 'pry'
 end
