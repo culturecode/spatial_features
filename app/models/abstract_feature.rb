@@ -21,6 +21,12 @@ class AbstractFeature < ActiveRecord::Base
     "#{result['max']}-#{result['count']}"
   end
 
+  # for Rails >= 5 ActiveRecord collections we override the collection_cache_key
+  # to prevent Rails doing its default query on `updated_at`
+  def self.collection_cache_key(_collection, _timestamp_column)
+    self.cache_key
+  end
+
   def self.with_metadata(k, v)
     if k.present? && v.present?
       where('metadata->? = ?', k, v)

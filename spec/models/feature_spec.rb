@@ -74,4 +74,18 @@ describe Feature do
       it_behaves_like 'within_buffer', 1, {:group => true}
     end
   end
+
+  describe '#cache_key' do
+    it 'generates a cache_key with max and count' do
+      House.create(:features => [create_polygon(Rectangle.new(1, 1))])
+      expected = "#{Feature.maximum(:id)}-#{Feature.count}"
+      expect(house.features.cache_key).to match(expected)
+    end
+  end
+
+  describe '#features_cache_key' do
+    it 'generates features_cache_key' do
+      expect(house.features_cache_key).to be_a(String)
+    end
+  end
 end
