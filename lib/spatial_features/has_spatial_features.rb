@@ -88,12 +88,12 @@ module SpatialFeatures
 
     # Returns true if the model stores a hash of the features so we don't need to process the features if they haven't changed
     def has_spatial_features_hash?
-      column_names.include? 'features_hash'
+      owner_class_has_loaded_column?('features_hash')
     end
 
     # Returns true if the model stores a cache of the features area
     def has_features_area?
-      column_names.include? 'features_area'
+      owner_class_has_loaded_column?('features_area')
     end
 
     def area_in_square_meters
@@ -159,6 +159,12 @@ module SpatialFeatures
       scope = scope.where(:spatial_model_type => Utils.base_class_of(other).to_s)
       scope = scope.where(:spatial_model_id => other) unless Utils.class_of(other) == other
       return scope
+    end
+
+    def owner_class_has_loaded_column?(column_name)
+      return false unless connected?
+      return false unless table_exists?
+      column_names.include? column_name
     end
   end
 
