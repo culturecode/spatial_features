@@ -88,4 +88,14 @@ describe Feature do
       expect(house.features_cache_key).to be_a(String)
     end
   end
+
+  describe 'has_spatial_features' do
+    it 'evaluates model without error when no database table exists' do
+      eval("class NoTable < ActiveRecord::Base; end")
+      klass = NoTable
+
+      klass.table_name = "some_table_that_does_not_exist"
+      expect(klass.has_spatial_features).to be_truthy
+    end
+  end
 end
