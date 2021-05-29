@@ -26,6 +26,12 @@ module SpatialFeatures
       end
     end
 
+    def self.entries(file)
+      file = Kernel.open(file)
+      file = normalize_file(file) if file.is_a?(StringIO)
+      Unzip.entries(file)
+    end
+
     def self.find_in_zip(file, find:, **unzip_options)
       return File.open(Unzip.paths(file, :find => find, **unzip_options))
     end

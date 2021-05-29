@@ -33,20 +33,36 @@ describe SpatialFeatures::Importers::Shapefile do
         it_behaves_like "a well formed shapefile"
       end
 
-      context 'when the shapefile is missing a required file' do
-        let(:subject) { SpatialFeatures::Importers::Shapefile.new(shapefile_with_missing_required_file) }
+      context 'when the shapefile is missing a SHX file' do
+        let(:subject) { SpatialFeatures::Importers::Shapefile.new(shapefile_without_shape_index) }
 
         it 'raises an exception' do
-          expect { subject.features }.to raise_exception(SpatialFeatures::Importers::IncompleteShapefileArchive)
+          expect { subject.features }.to raise_exception(SpatialFeatures::Importers::IncompleteShapefileArchive, /shapefile_without_shape_index\.shx/)
         end
       end
 
-      context 'when the shapefile has no projection' do
+      context 'when the shapefile is missing a SHP file' do
+        let(:subject) { SpatialFeatures::Importers::Shapefile.new(shapefile_without_shape_format) }
+
+        it 'raises an exception' do
+          expect { subject.features }.to raise_exception(SpatialFeatures::Importers::IncompleteShapefileArchive, /shapefile_without_shape_format\.shp/)
+        end
+      end
+
+      context 'when the shapefile is missing a DBF file' do
+        let(:subject) { SpatialFeatures::Importers::Shapefile.new(shapefile_with_missing_dbf_file) }
+
+        it 'raises an exception' do
+          expect { subject.features }.to raise_exception(SpatialFeatures::Importers::IncompleteShapefileArchive, /shapefile_with_missing_dbf_file\.dbf/)
+        end
+      end
+
+      context 'when the shapefile is missing a PRJ file' do
         let(:subject) { SpatialFeatures::Importers::Shapefile.new(shapefile_without_projection) }
 
         it 'raises an exception if there is no default projection' do
           allow(SpatialFeatures::Importers::Shapefile).to receive(:default_proj4_projection).and_return(nil)
-          expect { subject.features }.to raise_exception(SpatialFeatures::Importers::IndeterminateShapefileProjection)
+          expect { subject.features }.to raise_exception(SpatialFeatures::Importers::IndeterminateShapefileProjection, /shapefile_without_projection\.prj/)
         end
 
         it 'is uses the `default_proj4_projection` when no projection can be determined from the shapefile' do

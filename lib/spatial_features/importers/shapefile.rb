@@ -17,7 +17,13 @@ module SpatialFeatures
 
       private
 
+      def validate!
+        Validation.validate_shapefile_archive!(@data.path, Download.entries(@data), default_proj4_projection: default_proj4_projection)
+      end
+
       def each_record(&block)
+        validate!
+
         RGeo::Shapefile::Reader.open(file.path) do |records|
           records.each do |record|
             yield OpenStruct.new data_from_wkt(record.geometry.as_text, proj4_projection).merge(:metadata => record.attributes) if record.geometry.present?

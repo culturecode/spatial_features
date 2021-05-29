@@ -1,35 +1,48 @@
+def open_fixture_file(path)
+  File.open("#{SpatialFeatures::Engine.root}/spec/fixtures/#{path}")
+end
+
 def kml_file
-  File.open("#{SpatialFeatures::Engine.root}/spec/fixtures/test.kml")
+  open_fixture_file("test.kml")
 end
 
 def kmz_file
-  File.open("#{SpatialFeatures::Engine.root}/spec/fixtures/test.kmz")
+  open_fixture_file("test.kmz")
 end
 
 def kmz_file_features_without_placemarks
-  File.open("#{SpatialFeatures::Engine.root}/spec/fixtures/kmz_file_features_without_placemarks.kmz")
+  open_fixture_file("kmz_file_features_without_placemarks.kmz")
 end
 
 def kml_file_with_invalid_placemark
-  File.open("#{SpatialFeatures::Engine.root}/spec/fixtures/kml_file_with_invalid_placemark.kml")
+  open_fixture_file("kml_file_with_invalid_placemark.kml")
 end
 
 def shapefile
-  File.open("#{SpatialFeatures::Engine.root}/spec/fixtures/shapefile.zip")
+  open_fixture_file("shapefile.zip")
 end
 
 def shapefile_without_projection
-  File.open("#{SpatialFeatures::Engine.root}/spec/fixtures/shapefile_without_projection.zip")
+  open_fixture_file("shapefile_without_projection.zip")
 end
 
 def shapefile_with_upcase_shp
-  File.open("#{SpatialFeatures::Engine.root}/spec/fixtures/shapefile_with_upcase_shp.zip")
+  open_fixture_file("shapefile_with_upcase_shp.zip")
 end
 
-def shapefile_with_missing_required_file
-  File.open("#{SpatialFeatures::Engine.root}/spec/fixtures/shapefile_with_missing_required_file.zip")
+def shapefile_without_shape_format
+  open_fixture_file("shapefile_without_shape_format.zip")
+end
+
+def shapefile_without_shape_index
+  open_fixture_file("shapefile_without_shape_index.zip")
+end
+
+
+def shapefile_with_missing_dbf_file
+  open_fixture_file("shapefile_with_missing_dbf_file.zip")
 end
 
 def archive_without_any_known_file
-  File.open("#{SpatialFeatures::Engine.root}/spec/fixtures/archive_without_any_known_file.zip")
+  open_fixture_file("archive_without_any_known_file.zip")
 end
