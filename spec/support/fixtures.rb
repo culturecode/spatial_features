@@ -38,9 +38,12 @@ def shapefile_without_shape_index
   open_fixture_file("shapefile_without_shape_index.zip")
 end
 
-
 def shapefile_with_missing_dbf_file
   open_fixture_file("shapefile_with_missing_dbf_file.zip")
+end
+
+def shapefile_with_incorrect_shx_basename
+  open_fixture_file("shapefile_with_incorrect_shx_basename.zip")
 end
 
 def archive_without_any_known_file
