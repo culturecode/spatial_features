@@ -18,7 +18,7 @@ module SpatialFeatures
       private
 
       def validate!
-        Validation.validate_shapefile_archive!(@data.path, Download.entries(@data), default_proj4_projection: default_proj4_projection)
+        Validation.validate_shapefile_archive!(Download.entries(@data), default_proj4_projection: default_proj4_projection)
       end
 
       def each_record(&block)

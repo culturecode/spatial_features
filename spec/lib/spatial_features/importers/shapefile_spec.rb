@@ -37,7 +37,7 @@ describe SpatialFeatures::Importers::Shapefile do
         let(:subject) { SpatialFeatures::Importers::Shapefile.new(shapefile_without_shape_index) }
 
         it 'raises an exception' do
-          expect { subject.features }.to raise_exception(SpatialFeatures::Importers::IncompleteShapefileArchive, /shapefile_without_shape_index\.shx/)
+          expect { subject.features }.to raise_exception(SpatialFeatures::Importers::IncompleteShapefileArchive, /FirstNationReserves\.shx/)
         end
       end
 
@@ -45,7 +45,7 @@ describe SpatialFeatures::Importers::Shapefile do
         let(:subject) { SpatialFeatures::Importers::Shapefile.new(shapefile_without_shape_format) }
 
         it 'raises an exception' do
-          expect { subject.features }.to raise_exception(SpatialFeatures::Importers::IncompleteShapefileArchive, /shapefile_without_shape_format\.shp/)
+          expect { subject.features }.to raise_exception(SpatialFeatures::Importers::IncompleteShapefileArchive, /missing a SHP file/)
         end
       end
 
@@ -53,7 +53,15 @@ describe SpatialFeatures::Importers::Shapefile do
         let(:subject) { SpatialFeatures::Importers::Shapefile.new(shapefile_with_missing_dbf_file) }
 
         it 'raises an exception' do
-          expect { subject.features }.to raise_exception(SpatialFeatures::Importers::IncompleteShapefileArchive, /shapefile_with_missing_dbf_file\.dbf/)
+          expect { subject.features }.to raise_exception(SpatialFeatures::Importers::IncompleteShapefileArchive, /FirstNationReserves\.dbf/)
+        end
+      end
+
+      context 'when the shapefile has an incorrect component basename' do
+        let(:subject) { SpatialFeatures::Importers::Shapefile.new(shapefile_with_incorrect_shx_basename) }
+
+        it 'raises an exception' do
+          expect { subject.features }.to raise_exception(SpatialFeatures::Importers::IncompleteShapefileArchive, /FirstNationReserves\.shx/)
         end
       end
 
@@ -62,7 +70,7 @@ describe SpatialFeatures::Importers::Shapefile do
 
         it 'raises an exception if there is no default projection' do
           allow(SpatialFeatures::Importers::Shapefile).to receive(:default_proj4_projection).and_return(nil)
-          expect { subject.features }.to raise_exception(SpatialFeatures::Importers::IndeterminateShapefileProjection, /shapefile_without_projection\.prj/)
+          expect { subject.features }.to raise_exception(SpatialFeatures::Importers::IndeterminateShapefileProjection, /FirstNationReserves\.prj/)
         end
 
         it 'is uses the `default_proj4_projection` when no projection can be determined from the shapefile' do
