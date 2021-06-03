@@ -4,7 +4,7 @@ def create_record_with_polygon(klass, *coordinates)
     record.features << build_polygon(coords)
   end
 
-  record.update_attributes :features_hash => 'some new value'
+  record.update! :features_hash => 'some new value'
 
   SpatialFeatures.cache_proximity(*Feature.pluck(:spatial_model_type).uniq.collect(&:constantize)) # automatically update spatial cache
 
@@ -61,7 +61,7 @@ def create_record_with_point(klass, *coordinates)
     record.features << build_point(coords)
   end
 
-  record.update_attributes :features_hash => 'some new value'
+  record.update! :features_hash => 'some new value'
 
   SpatialFeatures.cache_proximity(*Feature.pluck(:spatial_model_type).uniq.collect(&:constantize)) # automatically update spatial cache
 
