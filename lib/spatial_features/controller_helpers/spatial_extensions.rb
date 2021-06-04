@@ -6,8 +6,6 @@ module SpatialExtensions
       model.failed_feature_update_jobs.destroy_all
       model.delay_update_features!
     end
-
-    redirect_to :back
   end
 
   def abstract_proximity_action(scope, target, distance, &block)
