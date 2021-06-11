@@ -138,7 +138,7 @@ class AbstractFeature < ActiveRecord::Base
   end
 
   def cache_derivatives(*args)
-    self.class.where(:id => self.id).cache_derivatives(*args)
+    self.class.default_scoped.where(:id => self.id).cache_derivatives(*args)
   end
 
   def kml(options = {})
