@@ -30,9 +30,10 @@ class Feature < AbstractFeature
 
   def self.refresh_aggregates
     # Find one feature from each spatial model and trigger the aggregate feature refresh
-    ids = select('MAX(id)')
-            .where.not(:spatial_model_type => nil, :spatial_model_id => nil)
+    ids = where.not(:spatial_model_type => nil)
+            .where.not(:spatial_model_id => nil)
             .group('spatial_model_type, spatial_model_id')
+            .pluck('MAX(id)')
 
     # Unscope so that newly built AggregateFeatures get their type column set correctly
     AbstractFeature.unscoped { where(:id => ids).find_each(&:refresh_aggregate) }
