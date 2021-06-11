@@ -17,13 +17,12 @@ module SpatialFeatures
 
       private
 
-      def validate!
+      def validate_file!
+        return unless Unzip.is_zip?(@data)
         Validation.validate_shapefile_archive!(Download.entries(@data), default_proj4_projection: default_proj4_projection)
       end
 
       def each_record(&block)
-        validate!
-
         RGeo::Shapefile::Reader.open(file.path) do |records|
           records.each do |record|
             yield OpenStruct.new data_from_wkt(record.geometry.as_text, proj4_projection).merge(:metadata => record.attributes) if record.geometry.present?
@@ -56,12 +55,16 @@ module SpatialFeatures
       end
 
       def file
-        @file ||= Download.open(@data, unzip: /\.shp$/, downcase: true)
+        @file ||= begin
+          validate_file!
+          Download.open(@data, unzip: /\.shp$/, downcase: true)
+        end
       end
     end
 
     # ERRORS
     class IndeterminateShapefileProjection < SpatialFeatures::ImportError; end
     class IncompleteShapefileArchive < SpatialFeatures::ImportError; end
+    class InvalidShapefileArchive < SpatialFeatures::ImportError; end
   end
 end
