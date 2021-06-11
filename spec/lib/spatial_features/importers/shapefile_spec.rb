@@ -78,6 +78,14 @@ describe SpatialFeatures::Importers::Shapefile do
           expect(subject.features).to be_present
         end
       end
+
+      context 'when the archive contains multiple SHP files' do
+        let(:subject) { SpatialFeatures::Importers::Shapefile.new(archive_with_multiple_shps) }
+
+        it 'raises an exception' do
+          expect { subject.features }.to raise_exception(SpatialFeatures::Importers::InvalidShapefileArchive, /multiple Shapefiles are not supported/)
+        end
+      end
     end
 
     describe '#cache_key' do

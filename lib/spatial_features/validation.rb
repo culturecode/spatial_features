@@ -11,7 +11,14 @@ module SpatialFeatures
     # @param [Boolean] allow_generic_zip_files    When true, we skip validation entirely if the archive does not contain a .SHP file
     def self.validate_shapefile_archive!(zip_file, default_proj4_projection: nil, allow_generic_zip_files: false)
       zip_file_entries = zip_file.entries.each_with_object({}) do |f, obj|
-        obj[File.extname(f.name).downcase[1..-1]] = File.basename(f.name, '.*')
+        ext = File.extname(f.name).downcase[1..-1]
+        next unless ext
+
+        if ext.casecmp?("shp") && obj.key?(ext)
+          raise ::SpatialFeatures::Importers::InvalidShapefileArchive, "Zip files that contain multiple Shapefiles are not supported. Please separate each Shapefile into its own zip file."
+        end
+
+        obj[ext] = File.basename(f.name, '.*')
       end
 
       shapefile_basename = zip_file_entries["shp"]

@@ -49,3 +49,7 @@ end
 def archive_without_any_known_file
   open_fixture_file("archive_without_any_known_file.zip")
 end
+
+def archive_with_multiple_shps
+  open_fixture_file("archive_with_multiple_shps.zip")
+end
