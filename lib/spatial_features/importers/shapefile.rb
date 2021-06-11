@@ -63,5 +63,6 @@ module SpatialFeatures
     # ERRORS
     class IndeterminateShapefileProjection < SpatialFeatures::ImportError; end
     class IncompleteShapefileArchive < SpatialFeatures::ImportError; end
+    class InvalidShapefileArchive < SpatialFeatures::ImportError; end
   end
 end
