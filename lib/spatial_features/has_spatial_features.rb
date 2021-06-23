@@ -97,7 +97,7 @@ module SpatialFeatures
     end
 
     def area_in_square_meters
-      features.area_in_square_meters
+      aggregate_feature.area
     end
 
     private
