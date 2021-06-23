@@ -97,7 +97,7 @@ module SpatialFeatures
     end
 
     def area_in_square_meters
-      aggregate_feature.area
+      features.area
     end
 
     private
@@ -208,7 +208,7 @@ module SpatialFeatures
     end
 
     def features_area_in_square_meters
-      @features_area_in_square_meters ||= features.area
+      @features_area_in_square_meters ||= aggregate_feature.area
     end
 
     def total_intersection_area_in_square_meters(other)
