@@ -12,15 +12,10 @@ module SpatialFeatures
       end
 
       def cache_key
-        @cache_key ||= Digest::MD5.hexdigest(features.to_json)
+        @cache_key ||= Digest::MD5.file(archive).to_s
       end
 
       private
-
-      def validate_file!
-        return unless Unzip.is_zip?(@data)
-        Validation.validate_shapefile_archive!(Download.entries(@data), default_proj4_projection: default_proj4_projection)
-      end
 
       def each_record(&block)
         RGeo::Shapefile::Reader.open(file.path) do |records|
@@ -54,11 +49,21 @@ module SpatialFeatures
         SQL
       end
 
+
       def file
         @file ||= begin
           validate_file!
-          Download.open(@data, unzip: /\.shp$/, downcase: true)
+          Download.open(archive, unzip: /\.shp$/, downcase: true)
         end
+      end
+
+      def validate_file!
+        return unless Unzip.is_zip?(archive)
+        Validation.validate_shapefile_archive!(Download.entries(archive), default_proj4_projection: default_proj4_projection)
+      end
+
+      def archive
+        @archive ||= Download.open(@data)
       end
     end
 
