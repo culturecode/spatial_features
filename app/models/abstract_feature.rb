@@ -12,9 +12,9 @@ class AbstractFeature < ActiveRecord::Base
 
   before_validation :sanitize_feature_type
   validates_presence_of :geog
-  validate :validate_geometry
-  before_save :sanitize
   after_save :cache_derivatives, :if => :saved_change_to_geog?
+  validate :validate_geometry, if: :will_save_change_to_geog?
+  before_save :sanitize, if: :will_save_change_to_geog?
 
   def self.cache_key
     result = connection.select_one(all.select('max(id) AS max, count(*) AS count').to_sql)
