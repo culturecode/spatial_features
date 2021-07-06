@@ -12,7 +12,7 @@ module SpatialFeatures
     def self.open(file, unzip: nil, **unzip_options)
       file = Kernel.open(file)
       file = normalize_file(file) if file.is_a?(StringIO)
-      if Unzip.is_zip?(file)
+      if unzip && Unzip.is_zip?(file)
         file = find_in_zip(file, find: unzip, **unzip_options)
       end
       return file
