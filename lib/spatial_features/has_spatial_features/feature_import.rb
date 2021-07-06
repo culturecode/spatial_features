@@ -79,12 +79,22 @@ module SpatialFeatures
     end
 
     def import_features(imports, skip_invalid)
-      self.features.delete_all
+      features.delete_all
       valid, invalid = Feature.defer_aggregate_refresh do
-        imports.flat_map(&:features).partition do |feature|
-          feature.spatial_model = self
-          feature.save
+        Feature.without_caching_derivatives do
+          imports.flat_map(&:features).partition do |feature|
+            feature.spatial_model = self
+            feature.save
+          end
         end
+      end
+
+      if persisted?
+        features.reset # Reset the association cache because we've updated the features
+        features.cache_derivatives
+      else
+        self.features = valid # Assign the features so when we save this record we update the foreign key on the features
+        Feature.where(id: features).cache_derivatives
       end
 
       errors = imports.flat_map(&:errors)
@@ -98,7 +108,7 @@ module SpatialFeatures
         raise ImportError, "Error updating #{self.class} #{self.id}. #{errors.to_sentence}"
       end
 
-      self.features = valid
+      return features
     end
 
     def features_cache_key_matches?(cache_key)
