@@ -1,6 +1,9 @@
 class AbstractFeature < ActiveRecord::Base
   self.table_name = 'features'
 
+  class_attribute :automatically_cache_derivatives
+  self.automatically_cache_derivatives = true
+
   class_attribute :lowres_simplification
   self.lowres_simplification = 2 # Threshold in meters
 
@@ -12,9 +15,9 @@ class AbstractFeature < ActiveRecord::Base
 
   before_validation :sanitize_feature_type
   validates_presence_of :geog
-  after_save :cache_derivatives, :if => :saved_change_to_geog?
   validate :validate_geometry, if: :will_save_change_to_geog?
   before_save :sanitize, if: :will_save_change_to_geog?
+  after_save :cache_derivatives, :if => [:automatically_cache_derivatives?, :saved_change_to_geog?]
 
   def self.cache_key
     result = connection.select_one(all.select('max(id) AS max, count(*) AS count').to_sql)
@@ -86,6 +89,14 @@ class AbstractFeature < ActiveRecord::Base
     raise "Can't calculate envelope for Feature #{self.id}" if envelope_json.blank?
 
     return envelope_json.values_at(0,2)
+  end
+
+  def self.without_caching_derivatives(&block)
+    old = automatically_cache_derivatives
+    self.automatically_cache_derivatives = false
+    block.call
+  ensure
+    self.automatically_cache_derivatives = old
   end
 
   def self.cache_derivatives(options = {})
