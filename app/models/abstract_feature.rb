@@ -123,10 +123,10 @@ class AbstractFeature < ActiveRecord::Base
     SQL
   end
 
-  def self.geojson(lowres: false, precision: 6, properties: {}, srid: 4326) # default srid is 4326 so output is Google Maps compatible
+  def self.geojson(lowres: false, precision: 6, properties: true, srid: 4326) # default srid is 4326 so output is Google Maps compatible
     column = lowres ? "ST_Transform(geom_lowres, #{srid})" : 'geog'
-    properties_sql = <<~SQL if properties.present?
-      , 'properties', json_build_object(#{properties.map {|k,v| "'#{k}',#{v}" }.join(',') })
+    properties_sql = <<~SQL if properties
+      , 'properties', hstore_to_json(metadata)
     SQL
 
     sql = <<~SQL
