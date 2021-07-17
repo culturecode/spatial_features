@@ -152,7 +152,7 @@ class AbstractFeature < ActiveRecord::Base
   end
 
   def feature_bounds
-    {n: north, e: east, s: south, w: west}
+    slice(:north, :east, :south, :west)
   end
 
   def cache_derivatives(*args)

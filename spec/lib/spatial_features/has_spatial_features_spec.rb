@@ -6,6 +6,33 @@ describe SpatialFeatures do
     it 'returns the features of a scope'
   end
 
+  describe '#bounds' do
+    new_dummy_class(:name => 'House')
+    subject { create_record_with_polygon(House, Rectangle.new(1, 1)) }
+
+    it 'returns a hash' do
+      expect(subject.bounds).to be_a(Hash)
+    end
+
+    it 'returns includes keys for each cardinal direction' do
+      expect(subject.bounds).to include(:north, :east, :south, :west)
+    end
+
+    it 'returns numerical values' do
+      expect(subject.bounds.values).to all(be_a(Numeric))
+    end
+
+    it 'returns the correct bounds when the aggregate feature association is loaded' do
+      subject.aggregate_feature
+      expect(subject.bounds).to eq(subject.features.first.slice(:north, :east, :south, :west))
+    end
+
+    it 'returns the correct bounds when the aggregate feature association is not loaded' do
+      subject.association(:aggregate_feature).reset
+      expect(subject.bounds).to eq(subject.features.first.slice(:north, :east, :south, :west))
+    end
+  end
+
   describe '#total_intersection_area_in_square_meters' do
     TOLERANCE = 0.000001 # Because calculations are performed using projected geometry, there will be a slight inaccuracy
     new_dummy_class(:name => 'House')
@@ -33,7 +60,7 @@ describe SpatialFeatures do
 
       expect(subject.total_intersection_area_in_square_meters(flood))
         .to be_within(TOLERANCE).of(0.5)
-    end    
+    end
   end
 
   describe "::within_buffer" do

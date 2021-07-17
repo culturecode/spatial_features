@@ -201,6 +201,15 @@ module SpatialFeatures
       self.class.unscoped { self.class.intersecting(other).exists?(id) }
     end
 
+    def bounds
+      if association(:aggregate_feature).loaded?
+        aggregate_feature.feature_bounds
+      else
+        result = aggregate_features.pluck(:north, :east, :south, :west).first
+        [:north, :east, :south, :west].zip(result.map {|bound| BigDecimal(bound) }).to_h.with_indifferent_access if result
+      end
+    end
+
     def total_intersection_area_percentage(klass)
       return 0.0 unless features_area_in_square_meters > 0
 
@@ -227,6 +236,11 @@ module SpatialFeatures
       else
         return false
       end
+    end
+
+    # Scope to perform SQL-only calculations on a record's aggregate feature. This avoids loading the large data payload if all that is needed is metadata
+    def aggregate_features
+      self.class.where(id: id).aggregate_features
     end
   end
 
