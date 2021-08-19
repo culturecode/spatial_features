@@ -103,10 +103,10 @@ describe SpatialFeatures::Importers::Shapefile do
       expect(subject.features).not_to be_empty
     end
 
-    it 'generates features for specific shp_file_path' do
-      shapefile_features.each do |shp_file_path, feature_count|
+    it 'generates features for specific shp_file_name' do
+      shapefile_features.each do |shp_file_name, feature_count|
 
-        subject = SpatialFeatures::Importers::Shapefile.new(data, shp_file_path: shp_file_path)
+        subject = SpatialFeatures::Importers::Shapefile.new(data, shp_file_name: shp_file_name)
         expect(subject.features.count).to eq(feature_count)
       end
     end
