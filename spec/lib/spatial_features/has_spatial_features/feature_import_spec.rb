@@ -62,6 +62,35 @@ describe SpatialFeatures::FeatureImport do
       subject.update_features!
     end
 
+    it 'passes single shapefile from the zipped archive to the shapefile importer' do
+      subject = new_dummy_class(:parent => FeatureImportMock) do
+        has_spatial_features :import => { :test_files => :File }
+
+        def test_files
+          [shapefile]
+        end
+      end.new
+
+      expect(SpatialFeatures::Importers::File).to receive(:create).once.and_call_original
+      expect(SpatialFeatures::Importers::Shapefile).to receive(:new).once.and_call_original
+      subject.update_features!
+    end
+
+    it 'passes multiple shapefiles from the zipped archive to the shapefile importer' do
+      subject = new_dummy_class(:parent => FeatureImportMock) do
+        has_spatial_features :import => { :test_files => :File }
+
+        def test_files
+          [archive_with_multiple_shps]
+        end
+      end.new
+
+      expect(SpatialFeatures::Importers::File).to receive(:create).once.and_call_original
+      expect(SpatialFeatures::Importers::Shapefile).to receive(:new).twice.and_call_original
+      subject.update_features!
+    end
+
+
     it 'passes the zipped archive to the shapefile importer' do
       subject = new_dummy_class(:parent => FeatureImportMock) do
         has_spatial_features :import => { :test_files => :File }
@@ -79,6 +108,7 @@ describe SpatialFeatures::FeatureImport do
       expect(SpatialFeatures::Importers::Shapefile).to receive(:new).with(subject.shapefile_archive_path, be_a(Hash)).and_call_original
       subject.update_features!
     end
+
 
     it 'aggregates features if multiple sources are specified within a single importer' do
       single = new_dummy_class(:parent => FeatureImportMock) do

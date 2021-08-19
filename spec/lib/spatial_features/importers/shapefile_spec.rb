@@ -78,14 +78,6 @@ describe SpatialFeatures::Importers::Shapefile do
           expect(subject.features).to be_present
         end
       end
-
-      context 'when the archive contains multiple SHP files' do
-        let(:subject) { SpatialFeatures::Importers::Shapefile.new(archive_with_multiple_shps) }
-
-        it 'raises an exception' do
-          expect { subject.features }.to raise_exception(SpatialFeatures::Importers::InvalidShapefileArchive, /multiple Shapefiles are not supported/)
-        end
-      end
     end
 
     describe '#cache_key' do
@@ -95,6 +87,27 @@ describe SpatialFeatures::Importers::Shapefile do
 
       it 'changes if the records are different' do
 
+      end
+    end
+  end
+
+  context 'when given an archive with multiple shapefiles' do
+    let(:data) { archive_with_multiple_shps }
+    let(:shapefile_features) { {
+      "crims_alcids_treatyareas.shp" => 22,
+      "crims_bald_eagles_3n_24june2021.shp" => 48
+    } }
+
+    it 'automatically chooses a shapefile' do
+      subject = SpatialFeatures::Importers::Shapefile.new(data)
+      expect(subject.features).not_to be_empty
+    end
+
+    it 'generates features for specific shp_file_path' do
+      shapefile_features.each do |shp_file_path, feature_count|
+
+        subject = SpatialFeatures::Importers::Shapefile.new(data, shp_file_path: shp_file_path)
+        expect(subject.features.count).to eq(feature_count)
       end
     end
   end

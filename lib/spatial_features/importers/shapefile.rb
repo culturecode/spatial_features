@@ -7,8 +7,9 @@ module SpatialFeatures
       class_attribute :default_proj4_projection
 
       def initialize(data, *args, proj4: nil, **options)
-        super(data, *args, **options)
-        @proj4 = proj4
+        @proj4 = options.delete(:proj4)
+        @shp_file_path = options.delete(:shp_file_path)
+        super(data, **options)
       end
 
       def cache_key
@@ -49,12 +50,29 @@ module SpatialFeatures
         SQL
       end
 
-
       def file
-        @file ||= begin
+        @file ||= (requested_shp_file || possible_shp_files.first)
+      end
+
+      # a zip archive may contain multiple SHP files
+      def possible_shp_files
+        @possible_shp_files ||= begin
           validate_file!
-          Download.open(archive, unzip: /\.shp$/, downcase: true)
+          Download.open_each(archive, unzip: /\.shp$/, downcase: true)
         end
+      end
+
+      def requested_shp_file
+        return unless @shp_file_path
+        expected_match = "*/#{@shp_file_path}"
+        file = possible_shp_files.find do |candidate|
+          ::File.fnmatch?(expected_match, candidate.path)
+        end
+
+        raise SpatialFeatures::Unzip::PathNotFound, "could not find #{@shp_file_path} in #{possible_shp_files.map(&:path)}" \
+          unless file
+
+        file
       end
 
       def validate_file!

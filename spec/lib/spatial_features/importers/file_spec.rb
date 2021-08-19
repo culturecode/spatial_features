@@ -34,6 +34,11 @@ describe SpatialFeatures::Importers::File do
         expect(SpatialFeatures::Importers::Shapefile).to receive(:new).once
         subject.new(shapefile)
       end
+
+      it 'detects zip archive with multiple shape files' do
+        expect(SpatialFeatures::Importers::Shapefile).to receive(:new).once
+        subject.new(archive_with_multiple_shps)
+      end
     end
 
     context 'when extensions are lower case' do
@@ -59,6 +64,25 @@ describe SpatialFeatures::Importers::File do
     context 'when archive does not include the expected file' do
       it 'raises an exception' do
         expect { subject.new(archive_without_any_known_file) }.to raise_exception(SpatialFeatures::ImportError)
+      end
+    end
+
+    describe '::create' do
+      subject { SpatialFeatures::Importers::File }
+
+      it "handles kml file urls" do
+        expect(SpatialFeatures::Importers::KMLFile).to receive(:new).once
+        subject.create(kml_file.path)
+      end
+
+      it 'handles zipped shapefile file urls' do
+        expect(SpatialFeatures::Importers::Shapefile).to receive(:new).once
+        subject.create(shapefile.path)
+      end
+
+      it "imports multiple shapefiles from a zipped archive" do
+        expect(SpatialFeatures::Importers::Shapefile).to receive(:new).twice
+        subject.create(archive_with_multiple_shps)
       end
     end
   end
