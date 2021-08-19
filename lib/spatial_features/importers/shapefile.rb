@@ -8,7 +8,7 @@ module SpatialFeatures
 
       def initialize(data, *args, proj4: nil, **options)
         @proj4 = options.delete(:proj4)
-        @shp_file_path = options.delete(:shp_file_path)
+        @shp_file_name = options.delete(:shp_file_name)
         super(data, **options)
       end
 
@@ -17,6 +17,8 @@ module SpatialFeatures
       end
 
       private
+
+      attr_reader :shp_file_name
 
       def each_record(&block)
         RGeo::Shapefile::Reader.open(file.path) do |records|
@@ -63,13 +65,13 @@ module SpatialFeatures
       end
 
       def requested_shp_file
-        return unless @shp_file_path
-        expected_match = "*/#{@shp_file_path}"
+        return unless shp_file_name
+        expected_match = "*/#{shp_file_name}"
         file = possible_shp_files.find do |candidate|
           ::File.fnmatch?(expected_match, candidate.path)
         end
 
-        raise SpatialFeatures::Unzip::PathNotFound, "could not find #{@shp_file_path} in #{possible_shp_files.map(&:path)}" \
+        raise SpatialFeatures::Unzip::PathNotFound, "could not find #{shp_file_name} in #{possible_shp_files.map(&:path)}" \
           unless file
 
         file
