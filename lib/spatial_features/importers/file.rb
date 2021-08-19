@@ -14,7 +14,7 @@ module SpatialFeatures
         when '.kml'
           __setobj__(KMLFile.new(file, *args))
         when '.shp'
-          __setobj__(Shapefile.new(file, *args))
+          __setobj__(Shapefile.new(data, *args))
         else
           raise ImportError, "Could not import file. Supported formats are KMZ, KML, and zipped ArcGIS shapefiles"
         end
