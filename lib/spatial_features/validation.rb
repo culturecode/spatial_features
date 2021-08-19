@@ -14,9 +14,10 @@ module SpatialFeatures
         ext = File.extname(f.name).downcase[1..-1]
         next unless ext
 
-        if ext.casecmp?("shp") && obj.key?(ext)
-          raise ::SpatialFeatures::Importers::InvalidShapefileArchive, "Zip files that contain multiple Shapefiles are not supported. Please separate each Shapefile into its own zip file."
-        end
+        # TODO: we can do better here
+        # if ext.casecmp?("shp") && obj.key?(ext)
+        #   raise ::SpatialFeatures::Importers::InvalidShapefileArchive, "Zip files that contain multiple Shapefiles are not supported. Please separate each Shapefile into its own zip file."
+        # end
 
         obj[ext] = File.basename(f.name, '.*')
       end
