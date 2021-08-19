@@ -1,56 +1,62 @@
 module SpatialFeatures
   module Validation
-    # SHP file must come first
     REQUIRED_SHAPEFILE_COMPONENT_EXTENSIONS = %w[shp shx dbf prj].freeze
 
-    # Check if a shapefile archive includes the required component files, otherwise
-    # raise an exception.
-    #
-    # @param [Zip::File] zip_file                 A Zip::File object
-    # @param [String] default_proj4_projection    Optional, if supplied we don't raise an exception when we're missing a .PRJ file
-    # @param [Boolean] allow_generic_zip_files    When true, we skip validation entirely if the archive does not contain a .SHP file
-    def self.validate_shapefile_archive!(zip_file, default_proj4_projection: nil, allow_generic_zip_files: false)
-      zip_file_entries = zip_file.entries.each_with_object({}) do |f, obj|
-        ext = File.extname(f.name).downcase[1..-1]
-        next unless ext
+    class << self
+      # Check if a shapefile archive includes the required component files, otherwise
+      # raise an exception.
+      #
+      # @param [Zip::File] zip_file                 A Zip::File object
+      # @param [String] default_proj4_projection    Optional, if supplied we don't raise an exception when we're missing a .PRJ file
+      # @param [Boolean] allow_generic_zip_files    When true, we skip validation entirely if the archive does not contain a .SHP file
+      def validate_shapefile_archive!(zip_file, default_proj4_projection: nil, allow_generic_zip_files: false)
+        contains_shp_file = false
 
-        # TODO: we can do better here
-        # if ext.casecmp?("shp") && obj.key?(ext)
-        #   raise ::SpatialFeatures::Importers::InvalidShapefileArchive, "Zip files that contain multiple Shapefiles are not supported. Please separate each Shapefile into its own zip file."
-        # end
+        zip_file_basenames = shapefiles_with_components(zip_file)
 
-        obj[ext] = File.basename(f.name, '.*')
+        if zip_file_basenames.empty?
+          return if allow_generic_zip_files
+          raise ::SpatialFeatures::Importers::IncompleteShapefileArchive, "Shapefile archive is missing a SHP file"
+        end
+
+        zip_file_basenames.each do |basename, extensions|
+          validate_components_for_basename(basename, extensions, default_proj4_projection)
+        end
+
+        true
       end
 
-      shapefile_basename = zip_file_entries["shp"]
-      unless shapefile_basename
-        # not a shapefile archive but we don't care
-        return if allow_generic_zip_files
+      def shapefiles_with_components(zip_file)
+        zip_file.entries.each_with_object({}) do |f, obj|
+          filename = f.name
 
-        raise ::SpatialFeatures::Importers::IncompleteShapefileArchive, "Shapefile archive is missing a SHP file"
+          basename = File.basename(filename, '.*')
+          ext = File.extname(filename).downcase[1..-1]
+          next unless ext
+
+          obj[basename] ||= []
+          obj[basename] << ext
+        end.delete_if { |basename, exts| !exts.include?("shp") }
       end
 
-      REQUIRED_SHAPEFILE_COMPONENT_EXTENSIONS[1..-1].each do |ext|
-        ext_basename = zip_file_entries[ext]
-        next if ext_basename&.casecmp?(shapefile_basename)
+      def validate_components_for_basename(basename, extensions, has_default_proj4_projection)
+        required_extensions = REQUIRED_SHAPEFILE_COMPONENT_EXTENSIONS
+        required_extensions -= ['prj'] if has_default_proj4_projection
+        missing_extensions = required_extensions - extensions
 
-        case ext
-        when "prj"
-          # special case for missing projection files to allow using default_proj4_projection
-          next if default_proj4_projection
-
-          raise ::SpatialFeatures::Importers::IndeterminateShapefileProjection, "Shapefile archive is missing a projection file: #{expected_component_path(shapefile_basename, ext)}"
-        else
-          # for all un-handled cases of missing files raise the more generic error
-          raise ::SpatialFeatures::Importers::IncompleteShapefileArchive, "Shapefile archive is missing a required file: #{expected_component_path(shapefile_basename, ext)}"
+        missing_extensions.each do |ext|
+          case ext
+            when "prj"
+              raise ::SpatialFeatures::Importers::IndeterminateShapefileProjection, "Shapefile archive is missing a projection file: #{expected_component_path(basename, ext)}"
+            else
+              raise ::SpatialFeatures::Importers::IncompleteShapefileArchive, "Shapefile archive is missing a required file: #{expected_component_path(basename, ext)}"
+            end
         end
       end
 
-      true
-    end
-
-    def self.expected_component_path(basename, ext)
-      "#{basename}.#{ext}"
+      def expected_component_path(basename, ext)
+        "#{basename}.#{ext}"
+      end
     end
   end
 end
