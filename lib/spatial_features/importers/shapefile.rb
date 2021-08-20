@@ -6,9 +6,9 @@ module SpatialFeatures
     class Shapefile < Base
       class_attribute :default_proj4_projection
 
-      def initialize(data, *args, proj4: nil, **options)
-        @proj4 = options.delete(:proj4)
-        @shp_file_name = options.delete(:shp_file_name)
+      def initialize(data, *args, proj4: nil, shp_file_name: nil, **options)
+        @proj4 = proj4
+        @shp_file_name = shp_file_name
         super(data, **options)
       end
 
