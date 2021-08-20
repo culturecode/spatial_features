@@ -35,9 +35,14 @@ describe SpatialFeatures::Importers::File do
         subject.new(shapefile)
       end
 
-      it 'detects zip archive with multiple shape files' do
+      it 'detects zip archive with multiple shapefiles' do
         expect(SpatialFeatures::Importers::Shapefile).to receive(:new).once
         subject.new(archive_with_multiple_shps)
+      end
+
+      it 'detects zip archive with multiple kml files' do
+        expect(SpatialFeatures::Importers::KMLFile).to receive(:new).once
+        subject.new(archive_with_multiple_kmls)
       end
     end
 
@@ -83,6 +88,11 @@ describe SpatialFeatures::Importers::File do
       it "imports multiple shapefiles from a zipped archive" do
         expect(SpatialFeatures::Importers::Shapefile).to receive(:new).twice
         subject.create_all(archive_with_multiple_shps)
+      end
+
+      it "imports multiple shapefiles from a zipped archive" do
+        expect(SpatialFeatures::Importers::KMLFile).to receive(:new).twice
+        subject.create_all(archive_with_multiple_kmls)
       end
     end
   end

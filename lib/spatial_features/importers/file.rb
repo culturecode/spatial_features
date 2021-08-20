@@ -13,11 +13,14 @@ module SpatialFeatures
         raise ImportError, INVALID_ARCHIVE
       end
 
-      def initialize(data, *args, current_file: nil, **options)
-        # the current_file param is passed by `::create_all` after it has opened a zip
-        # archive and extracted the KML and SHP files
-        # current_file = options.delete(:current_file)
 
+      # The File importer may be initialized multiple times by `::create_all` if it
+      # receives ZIP data containinng multiple KML and SHP files
+      #
+      # We use `current_file` to distinguish which file in the archive is currently being
+      # processed. If no `current_file` is passed then we just take the first valid
+      # file that we find.
+      def initialize(data, *args, current_file: nil, **options)
         begin
           current_file ||= Download.open_each(data, unzip: [/\.kml$/, /\.shp$/], downcase: true).first
         rescue Unzip::PathNotFound
@@ -28,6 +31,8 @@ module SpatialFeatures
         when '.kml'
           __setobj__(KMLFile.new(current_file, *args))
         when '.shp'
+          # We pass the raw `data` to Importers::Shapefile so it can re-examine any
+          # ZIP archives and see any related SHX, DBF and PRJ files
           __setobj__(
             Shapefile.new(data, *args, **options, shp_file_name: ::File.basename(current_file&.path))
           )

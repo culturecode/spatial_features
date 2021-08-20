@@ -90,6 +90,19 @@ describe SpatialFeatures::FeatureImport do
       subject.update_features!
     end
 
+    it 'passes multiple kmls from the zipped archive to the kml importer' do
+      subject = new_dummy_class(:parent => FeatureImportMock) do
+        has_spatial_features :import => { :test_files => :File }
+
+        def test_files
+          [archive_with_multiple_kmls]
+        end
+      end.new
+
+      expect(SpatialFeatures::Importers::File).to receive(:create_all).once.and_call_original
+      expect(SpatialFeatures::Importers::KMLFile).to receive(:new).twice.and_call_original
+      subject.update_features!
+    end
 
     it 'passes the zipped archive to the shapefile importer' do
       subject = new_dummy_class(:parent => FeatureImportMock) do
