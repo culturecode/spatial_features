@@ -13,7 +13,7 @@ module SpatialFeatures
     def self.open(file)
       file = Kernel.open(file)
       file = normalize_file(file) if file.is_a?(StringIO)
-      file
+      return file
     end
 
     # file can be a url, path, or file, any of which can return be a zipped archive
@@ -25,7 +25,7 @@ module SpatialFeatures
         [file]
       end
 
-      files.map { |f| File.open(f) }
+      return files.map { |f| File.open(f) }
     end
 
     def self.normalize_file(file)
