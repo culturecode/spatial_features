@@ -69,7 +69,7 @@ module SpatialFeatures
     def spatial_feature_imports(import_options, make_valid)
       import_options.flat_map do |data_method, importer_name|
         Array.wrap(send(data_method)).flat_map do |data|
-          spatial_importer_from_name(importer_name).create(data, :make_valid => make_valid) if data.present?
+          spatial_importer_from_name(importer_name).create_all(data, :make_valid => make_valid) if data.present?
         end
       end.compact
     end

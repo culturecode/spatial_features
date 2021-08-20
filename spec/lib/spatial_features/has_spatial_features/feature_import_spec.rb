@@ -71,7 +71,7 @@ describe SpatialFeatures::FeatureImport do
         end
       end.new
 
-      expect(SpatialFeatures::Importers::File).to receive(:create).once.and_call_original
+      expect(SpatialFeatures::Importers::File).to receive(:create_all).once.and_call_original
       expect(SpatialFeatures::Importers::Shapefile).to receive(:new).once.and_call_original
       subject.update_features!
     end
@@ -85,7 +85,7 @@ describe SpatialFeatures::FeatureImport do
         end
       end.new
 
-      expect(SpatialFeatures::Importers::File).to receive(:create).once.and_call_original
+      expect(SpatialFeatures::Importers::File).to receive(:create_all).once.and_call_original
       expect(SpatialFeatures::Importers::Shapefile).to receive(:new).twice.and_call_original
       subject.update_features!
     end
