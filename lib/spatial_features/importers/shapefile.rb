@@ -74,7 +74,7 @@ module SpatialFeatures
         raise SpatialFeatures::Unzip::PathNotFound, "could not find #{shp_file_name} in #{possible_shp_files.map(&:path)}" \
           unless file
 
-        file
+        return file
       end
 
       def validate_file!

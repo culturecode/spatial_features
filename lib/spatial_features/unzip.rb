@@ -10,7 +10,7 @@ module SpatialFeatures
         raise(PathNotFound, "Archive did not contain a file matching #{find}") if paths.empty?
       end
 
-      Array(paths)
+      return Array(paths)
     end
 
     def self.extract(file_path, output_dir = Dir.mktmpdir, downcase: false)
