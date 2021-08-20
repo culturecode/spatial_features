@@ -67,22 +67,22 @@ describe SpatialFeatures::Importers::File do
       end
     end
 
-    describe '::create' do
+    describe '::create_all' do
       subject { SpatialFeatures::Importers::File }
 
       it "handles kml file urls" do
         expect(SpatialFeatures::Importers::KMLFile).to receive(:new).once
-        subject.create(kml_file.path)
+        subject.create_all(kml_file.path)
       end
 
       it 'handles zipped shapefile file urls' do
         expect(SpatialFeatures::Importers::Shapefile).to receive(:new).once
-        subject.create(shapefile.path)
+        subject.create_all(shapefile.path)
       end
 
       it "imports multiple shapefiles from a zipped archive" do
         expect(SpatialFeatures::Importers::Shapefile).to receive(:new).twice
-        subject.create(archive_with_multiple_shps)
+        subject.create_all(archive_with_multiple_shps)
       end
     end
   end
