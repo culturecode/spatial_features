@@ -13,10 +13,10 @@ module SpatialFeatures
         raise ImportError, INVALID_ARCHIVE
       end
 
-      def initialize(data, *args, **options)
+      def initialize(data, *args, current_file: nil, **options)
         # the current_file param is passed by `::create_all` after it has opened a zip
         # archive and extracted the KML and SHP files
-        current_file = options.delete(:current_file)
+        # current_file = options.delete(:current_file)
 
         begin
           current_file ||= Download.open_each(data, unzip: [/\.kml$/, /\.shp$/], downcase: true).first
