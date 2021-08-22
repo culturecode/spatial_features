@@ -18,6 +18,10 @@ def kml_file_with_invalid_placemark
   open_fixture_file("kml_file_with_invalid_placemark.kml")
 end
 
+def geojson_file
+  open_fixture_file("geo.json")
+end
+
 def shapefile
   open_fixture_file("shapefile.zip")
 end
