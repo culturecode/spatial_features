@@ -30,13 +30,7 @@ module SpatialFeatures
         when '.kml'
           __setobj__(KMLFile.new(current_file, *args))
         when '.shp'
-          # We pass the raw `data` to Importers::Shapefile since it needs the entire
-          # ZIP archive to process a SHP file's related SHX, DBF and PRJ files.
-          # `shp_file_name` is also passed to distinguish between multiple SHP files in the
-          # same ZIP archive.
-          __setobj__(
-            Shapefile.new(data, *args, **options, shp_file_name: ::File.basename(current_file&.path))
-          )
+          __setobj__(Shapefile.new(current_file, *args, **options))
         else
           raise ImportError, "Could not import file. Supported formats are KMZ, KML, and zipped ArcGIS shapefiles"
         end

@@ -37,7 +37,7 @@ describe SpatialFeatures::Importers::Shapefile do
         let(:subject) { SpatialFeatures::Importers::Shapefile.new(shapefile_without_shape_index) }
 
         it 'raises an exception' do
-          expect { subject.features }.to raise_exception(SpatialFeatures::Importers::IncompleteShapefileArchive, /FirstNationReserves\.shx/)
+          expect { subject.features }.to raise_exception(SpatialFeatures::Importers::IncompleteShapefileArchive, /FirstNationReserves\.shx/i)
         end
       end
 
@@ -53,7 +53,7 @@ describe SpatialFeatures::Importers::Shapefile do
         let(:subject) { SpatialFeatures::Importers::Shapefile.new(shapefile_with_missing_dbf_file) }
 
         it 'raises an exception' do
-          expect { subject.features }.to raise_exception(SpatialFeatures::Importers::IncompleteShapefileArchive, /FirstNationReserves\.dbf/)
+          expect { subject.features }.to raise_exception(SpatialFeatures::Importers::IncompleteShapefileArchive, /FirstNationReserves\.dbf/i)
         end
       end
 
@@ -61,7 +61,7 @@ describe SpatialFeatures::Importers::Shapefile do
         let(:subject) { SpatialFeatures::Importers::Shapefile.new(shapefile_with_incorrect_shx_basename) }
 
         it 'raises an exception' do
-          expect { subject.features }.to raise_exception(SpatialFeatures::Importers::IncompleteShapefileArchive, /FirstNationReserves\.shx/)
+          expect { subject.features }.to raise_exception(SpatialFeatures::Importers::IncompleteShapefileArchive, /FirstNationReserves\.shx/i)
         end
       end
 
@@ -70,7 +70,7 @@ describe SpatialFeatures::Importers::Shapefile do
 
         it 'raises an exception if there is no default projection' do
           allow(SpatialFeatures::Importers::Shapefile).to receive(:default_proj4_projection).and_return(nil)
-          expect { subject.features }.to raise_exception(SpatialFeatures::Importers::IndeterminateShapefileProjection, /FirstNationReserves\.prj/)
+          expect { subject.features }.to raise_exception(SpatialFeatures::Importers::IndeterminateShapefileProjection, /FirstNationReserves\.prj/i)
         end
 
         it 'is uses the `default_proj4_projection` when no projection can be determined from the shapefile' do
@@ -89,25 +89,38 @@ describe SpatialFeatures::Importers::Shapefile do
 
       end
     end
+
+    describe '#create_all' do
+      let(:subject) { SpatialFeatures::Importers::Shapefile.create_all(shapefile) }
+
+      it 'creates a single importer' do
+        expect(subject.count).to eq(1)
+        expect(subject.first.features.count).to eq(17)
+      end
+    end
   end
 
-  context 'when given an archive with multiple shapefiles' do
+  context 'when given a zip archive with multiple shapefiles' do
     let(:data) { archive_with_multiple_shps }
     let(:shapefile_features) { {
       "crims_alcids_treatyareas.shp" => 22,
       "crims_bald_eagles_3n_24june2021.shp" => 48
     } }
 
-    it 'automatically chooses a shapefile' do
-      subject = SpatialFeatures::Importers::Shapefile.new(data)
-      expect(subject.features).not_to be_empty
+    describe '#new' do
+      it 'automatically selects the first alphabetical SHP file from the archive' do
+        subject = SpatialFeatures::Importers::Shapefile.new(data)
+        expect(subject.features.count).to eq(22)
+      end
     end
 
-    it 'generates features for specific shp_file_name' do
-      shapefile_features.each do |shp_file_name, feature_count|
+    describe '#create_all' do
+      it 'creates multiple shapefile importers' do
+        importers = SpatialFeatures::Importers::Shapefile.create_all(data)
+        expect(importers.count).to eq(2)
 
-        subject = SpatialFeatures::Importers::Shapefile.new(data, shp_file_name: shp_file_name)
-        expect(subject.features.count).to eq(feature_count)
+        expect(importers[0].features.count).to eq(shapefile_features["crims_alcids_treatyareas.shp"])
+        expect(importers[1].features.count).to eq(shapefile_features["crims_bald_eagles_3n_24june2021.shp"])
       end
     end
   end
