@@ -6,19 +6,29 @@ module SpatialFeatures
     class Shapefile < Base
       class_attribute :default_proj4_projection
 
-      def initialize(data, *args, proj4: nil, shp_file_name: nil, **options)
-        @proj4 = proj4
-        @shp_file_name = shp_file_name
+      def initialize(data, *args, proj4: nil, **options)
         super(data, **options)
+        @proj4 = proj4
       end
 
       def cache_key
         @cache_key ||= Digest::MD5.file(archive).to_s
       end
 
+      def self.create_all(data, **options)
+        Download.open_each(data, unzip: [/\.shp$/], downcase: true).map do |file|
+          new(file, **options)
+        end
+      rescue Unzip::PathNotFound
+        raise ImportError, INVALID_ARCHIVE
+      end
+
       private
 
-      attr_reader :shp_file_name
+      def build_features
+        validate_shapefile!
+        super
+      end
 
       def each_record(&block)
         RGeo::Shapefile::Reader.open(file.path) do |records|
@@ -52,34 +62,22 @@ module SpatialFeatures
         SQL
       end
 
+      # the individual SHP file for processing (automatically extracted from a ZIP archive if necessary)
       def file
-        @file ||= (requested_shp_file || possible_shp_files.first)
+        @file ||= Unzip.is_zip?(archive) ? possible_shp_files.first : archive
       end
 
       # a zip archive may contain multiple SHP files
       def possible_shp_files
         @possible_shp_files ||= begin
-          validate_file!
           Download.open_each(archive, unzip: /\.shp$/, downcase: true)
+        rescue Unzip::PathNotFound
+          raise ::SpatialFeatures::Importers::IncompleteShapefileArchive, "Shapefile archive is missing a SHP file"
         end
       end
 
-      def requested_shp_file
-        return unless shp_file_name
-        expected_match = "*/#{shp_file_name}"
-        file = possible_shp_files.find do |candidate|
-          ::File.fnmatch?(expected_match, candidate.path)
-        end
-
-        raise SpatialFeatures::Unzip::PathNotFound, "could not find #{shp_file_name} in #{possible_shp_files.map(&:path)}" \
-          unless file
-
-        return file
-      end
-
-      def validate_file!
-        return unless Unzip.is_zip?(archive)
-        Validation.validate_shapefile_archive!(Download.entries(archive), default_proj4_projection: default_proj4_projection)
+      def validate_shapefile!
+        Validation.validate_shapefile!(file, default_proj4_projection: default_proj4_projection)
       end
 
       def archive
