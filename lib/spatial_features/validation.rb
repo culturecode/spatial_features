@@ -1,6 +1,6 @@
 module SpatialFeatures
   module Validation
-    REQUIRED_SHAPEFILE_COMPONENT_EXTENSIONS = %w[shx dbf prj].freeze
+    REQUIRED_SHAPEFILE_COMPONENT_EXTENSIONS = %w[shp shx dbf prj].freeze
 
     class << self
       # Check if a shapefile includes the required component files, otherwise
@@ -31,6 +31,18 @@ module SpatialFeatures
         end
 
         true
+      end
+
+      # Validation helper that takes examines an entire ZIP file
+      #
+      # Useful for validating before persisting records but not used internally
+      def validate_shapefile_archive!(path, default_proj4_projection: nil, allow_generic_zip_files: false)
+        Download.open_each(path, unzip: /\.shp$/, downcase: true).each do |shp_file|
+          validate_shapefile!(shp_file, default_proj4_projection: default_proj4_projection)
+        end
+      rescue Unzip::PathNotFound
+        raise ::SpatialFeatures::Importers::IncompleteShapefileArchive, "Shapefile archive is missing a SHP file" \
+          unless allow_generic_zip_files
       end
     end
   end
