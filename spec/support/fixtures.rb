@@ -53,3 +53,7 @@ end
 def archive_with_multiple_shps
   open_fixture_file("archive_with_multiple_shps.zip")
 end
+
+def archive_with_multiple_kmls
+  open_fixture_file("archive_with_multiple_kmls.zip")
+end
