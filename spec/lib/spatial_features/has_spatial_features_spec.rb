@@ -33,8 +33,31 @@ describe SpatialFeatures do
     end
   end
 
+  describe '#features_area_in_square_meters' do
+    let(:tolerance) { 0.001 } # Area measurement is more inaccurate than calculations due to projection
+
+    new_dummy_class(:name => 'House')
+    subject { create_record_with_polygon(House, Rectangle.new(1, 1)) }
+
+    context 'when the aggregate_feature association is loaded' do
+      before { subject.aggregate_feature }
+
+      it 'returns the correct value' do
+        expect(subject.features_area_in_square_meters).to be_within(tolerance).of(1)
+      end
+    end
+
+    context 'when the aggregate_feature association is not loaded' do
+      before { subject.association(:aggregate_feature).reset }
+
+      it 'returns the correct value' do
+        expect(subject.features_area_in_square_meters).to be_within(tolerance).of(1)
+      end
+    end
+  end
+
   describe '#total_intersection_area_in_square_meters' do
-    TOLERANCE = 0.000001 # Because calculations are performed using projected geometry, there will be a slight inaccuracy
+    let(:tolerance) { 0.000001 } # Because calculations are performed using projected geometry, there will be a slight inaccuracy
     new_dummy_class(:name => 'House')
     new_dummy_class(:name => 'Disaster')
 
@@ -44,12 +67,12 @@ describe SpatialFeatures do
       flood = create_record_with_polygon(Disaster, Rectangle.new(1, 0.5))
 
       expect(subject.total_intersection_area_in_square_meters(flood))
-        .to be_within(TOLERANCE).of(0.5)
+        .to be_within(tolerance).of(0.5)
     end
   end
 
   describe '#intersects?' do
-    TOLERANCE = 0.000001 # Because calculations are performed using projected geometry, there will be a slight inaccuracy
+    let(:tolerance) { 0.000001 } # Because calculations are performed using projected geometry, there will be a slight inaccuracy
     new_dummy_class(:name => 'House')
     new_dummy_class(:name => 'Disaster')
 
@@ -59,7 +82,7 @@ describe SpatialFeatures do
       flood = create_record_with_polygon(Disaster, Rectangle.new(1, 0.5))
 
       expect(subject.total_intersection_area_in_square_meters(flood))
-        .to be_within(TOLERANCE).of(0.5)
+        .to be_within(tolerance).of(0.5)
     end
   end
 
@@ -68,7 +91,7 @@ describe SpatialFeatures do
     # reshaping geometry in our tests.
     before { allow(AbstractFeature).to receive(:lowres_simplification).and_return(0) }
 
-    TOLERANCE = 0.000001 # Because calculations are performed using projected geometry, there will be a slight inaccuracy
+    let(:tolerance) { 0.000001 } # Because calculations are performed using projected geometry, there will be a slight inaccuracy
     new_dummy_class(:name => 'BufferedRecord')
     new_dummy_class(:name => 'Shape')
     new_dummy_class(:name => 'Outlier')
@@ -159,7 +182,7 @@ describe SpatialFeatures do
 
         it 'returns an accurate distance between non-overlapping shapes' do
           overlapping_shape = Shape.within_buffer(outlier, 2, options).first
-          expect(overlapping_shape.distance_in_meters).to be_within(TOLERANCE).of(1)
+          expect(overlapping_shape.distance_in_meters).to be_within(tolerance).of(1)
         end
       end
 
@@ -179,7 +202,7 @@ describe SpatialFeatures do
         end
 
         it 'returns an accurate overlap area in square meters' do
-          expect(Shape.within_buffer(buffered_record, 0, options).first.intersection_area_in_square_meters).to be_within(TOLERANCE).of(0.5)
+          expect(Shape.within_buffer(buffered_record, 0, options).first.intersection_area_in_square_meters).to be_within(tolerance).of(0.5)
         end
       end
 
@@ -196,15 +219,15 @@ describe SpatialFeatures do
 
       with_options({:intersection_area => true}, '#intersection_area') do
         it 'returns the correct value for a single overlapping record' do
-          expect(Shape.within_buffer(triangle, 0, options).first.intersection_area_in_square_meters).to be_within(TOLERANCE).of(0.75)
+          expect(Shape.within_buffer(triangle, 0, options).first.intersection_area_in_square_meters).to be_within(tolerance).of(0.75)
         end
 
         it 'returns the correct value for multiple overlapping records' do
           create_record_with_polygon(Shape, Rectangle.new(0.5, 0.5))
           squares = Shape.within_buffer(triangle, 0, options).order(:id)
 
-          expect(squares.first.intersection_area_in_square_meters).to be_within(TOLERANCE).of(0.75)
-          expect(squares.last.intersection_area_in_square_meters).to be_within(TOLERANCE).of(0.25)
+          expect(squares.first.intersection_area_in_square_meters).to be_within(tolerance).of(0.75)
+          expect(squares.last.intersection_area_in_square_meters).to be_within(tolerance).of(0.25)
         end
 
         it 'does not duplicate records that overlap multiple features' do
@@ -249,15 +272,15 @@ describe SpatialFeatures do
 
       with_options(:intersection_area => true) do
         it 'returns the correct value for a single overlapping record' do
-          expect(Shape.within_buffer(buffered_scope, 0, options).first.intersection_area_in_square_meters).to be_within(TOLERANCE).of(0.75)
+          expect(Shape.within_buffer(buffered_scope, 0, options).first.intersection_area_in_square_meters).to be_within(tolerance).of(0.75)
         end
 
         it 'returns the correct value for multiple overlapping records' do
           create_record_with_polygon(Shape, Rectangle.new(0.5, 0.5))
           squares = Shape.within_buffer(buffered_scope, 0, options).order(:id)
 
-          expect(squares.first.intersection_area_in_square_meters).to be_within(TOLERANCE).of(0.75)
-          expect(squares.last.intersection_area_in_square_meters).to be_within(TOLERANCE).of(0.25)
+          expect(squares.first.intersection_area_in_square_meters).to be_within(tolerance).of(0.75)
+          expect(squares.last.intersection_area_in_square_meters).to be_within(tolerance).of(0.25)
         end
 
         it 'returns 0 for non-overlapping records' do
@@ -269,29 +292,29 @@ describe SpatialFeatures do
     shared_examples_for 'calculating the area of a record' do
       it 'returns the correct value for a single feature' do
         record = create_record_with_polygon(Shape, Rectangle.new(1, 1))
-        expect(record.features.area(options)).to be_within(TOLERANCE).of(1)
+        expect(record.features.area(options)).to be_within(tolerance).of(1)
       end
 
       it 'returns the correct value for multiple non-overlapping features' do
         record = create_record_with_polygon(Shape, Rectangle.new(1, 1), Rectangle.new(1, 1, :x => 2))
-        expect(record.features.area(options)).to be_within(TOLERANCE).of(2)
+        expect(record.features.area(options)).to be_within(tolerance).of(2)
       end
 
       it 'returns the correct value for multiple overlapping features' do
         record = create_record_with_polygon(Shape, Rectangle.new(1, 1), Rectangle.new(1, 1, :x => 0.5))
-        expect(record.features.area(options)).to be_within(TOLERANCE).of(1.5)
+        expect(record.features.area(options)).to be_within(tolerance).of(1.5)
       end
 
       # This test is supposed to ensure that a we're using the same geometry column in all code paths, but current the
       # test shapes are probably too simple to show any difference between simplified and non-simplified geomtry
       it 'returns the same value as the area_in_square_meters method on the Feature class' do
         record = create_record_with_polygon(Shape, Rectangle.new(1, 1), Rectangle.new(1, 1, :x => 0.5))
-        expect(record.features.area(options)).to be_within(TOLERANCE).of(Feature.where(:id => record.features).area_in_square_meters)
+        expect(record.features.area(options)).to be_within(tolerance).of(Feature.where(:id => record.features).area_in_square_meters)
       end
 
       it 'returns the uncached value if no cached value is set' do
         record = House.create(:features => [create_polygon(Rectangle.new(1, 1))], :features_area => nil)
-        expect(record.features.area(options)).to be_within(TOLERANCE).of(1)
+        expect(record.features.area(options)).to be_within(tolerance).of(1)
       end
 
       it 'does not recalculate the cached area after save if it has been set explicitly during save' do

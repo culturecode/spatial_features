@@ -203,7 +203,7 @@ module SpatialFeatures
 
     def bounds
       if association(:aggregate_feature).loaded?
-        aggregate_feature.feature_bounds
+        aggregate_feature&.feature_bounds
       else
         result = aggregate_features.pluck(:north, :east, :south, :west).first
         [:north, :east, :south, :west].zip(result.map {|bound| BigDecimal(bound) }).to_h.with_indifferent_access if result
@@ -217,7 +217,11 @@ module SpatialFeatures
     end
 
     def features_area_in_square_meters
-      aggregate_feature&.area
+      if association(:aggregate_feature).loaded?
+        aggregate_feature&.area
+      else
+        aggregate_features.pluck(:area).first
+      end
     end
 
     def total_intersection_area_in_square_meters(other)
