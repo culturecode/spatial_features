@@ -6,11 +6,11 @@ module SpatialFeatures
       paths = extract(file_path, **extract_options)
 
       if find = Array.wrap(find).presence
-        paths = paths.detect {|path| find.any? {|pattern| path.index(pattern) } }
-        raise(PathNotFound, "Archive did not contain a file matching #{find}") unless paths.present?
+        paths = paths.select {|path| find.any? {|pattern| path.index(pattern) } }
+        raise(PathNotFound, "Archive did not contain a file matching #{find}") if paths.empty?
       end
 
-      return paths
+      return Array(paths)
     end
 
     def self.extract(file_path, output_dir = Dir.mktmpdir, downcase: false)

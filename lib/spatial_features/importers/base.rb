@@ -19,6 +19,12 @@ module SpatialFeatures
         @cache_key ||= Digest::MD5.hexdigest(@data)
       end
 
+      # factory method that should always be used instead of `new` when creating importers
+      # returns an array of Importer::* objects
+      def self.create_all(data, **options)
+        [new(data, **options)]
+      end
+
       private
 
       def build_features
