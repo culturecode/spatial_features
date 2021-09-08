@@ -56,7 +56,7 @@ class AbstractFeature < ActiveRecord::Base
 
   def self.area_in_square_meters(geom = 'geom_lowres')
     current_scope = all.polygons
-    unscoped { connection.select_value(select("ST_Area(ST_Union(#{geom}))").from(current_scope, :features)).to_f }
+    unscoped { SpatialFeatures::Utils.select_db_value(select("ST_Area(ST_Union(#{geom}))").from(current_scope, :features)).to_f }
   end
 
   def self.total_intersection_area_in_square_meters(other_features, geom = 'geom_lowres')
@@ -66,7 +66,7 @@ class AbstractFeature < ActiveRecord::Base
     query = base_class.unscoped.select('ST_Area(ST_Intersection(ST_Union(features.geom), ST_Union(other_features.geom)))')
                     .from(scope, "features")
                     .joins("INNER JOIN (#{other_scope.to_sql}) AS other_features ON ST_Intersects(features.geom, other_features.geom)")
-    return connection.select_value(query).to_f
+    return SpatialFeatures::Utils.select_db_value(query).to_f
   end
 
   def self.intersecting(other)
@@ -147,7 +147,7 @@ class AbstractFeature < ActiveRecord::Base
         )
       )
     SQL
-    connection.select_value(all.select(sql))
+    SpatialFeatures::Utils.select_db_value(all.select(sql))
   end
 
   def feature_bounds
@@ -175,17 +175,17 @@ class AbstractFeature < ActiveRecord::Base
   private
 
   def make_valid
-    self.geog = ActiveRecord::Base.connection.select_value("SELECT ST_Buffer('#{sanitize}', 0)")
+    self.geog = SpatialFeatures::Utils.select_db_value("SELECT ST_Buffer('#{sanitize}', 0)")
   end
 
   # Use ST_Force2D to discard z-coordinates that cause failures later in the process
   def sanitize
-    self.geog = ActiveRecord::Base.connection.select_value("SELECT ST_Force2D('#{geog}')")
+    self.geog = SpatialFeatures::Utils.select_db_value("SELECT ST_Force2D('#{geog}')")
   end
 
   SRID_CACHE = {}
   def self.detect_srid(column_name)
-    SRID_CACHE[column_name] ||= connection.select_value("SELECT Find_SRID('public', '#{table_name}', '#{column_name}')")
+    SRID_CACHE[column_name] ||= SpatialFeatures::Utils.select_db_value("SELECT Find_SRID('public', '#{table_name}', '#{column_name}')")
   end
 
   def self.join_other_features(other)
