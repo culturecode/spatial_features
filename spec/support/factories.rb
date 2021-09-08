@@ -48,7 +48,7 @@ def build_polygon(coordinates, attributes = {})
     "#{easting} #{northing}"
   end.join(',')
 
-  geog = Feature.connection.select_value("
+  geog = SpatialFeatures::Utils.select_db_value("
     SELECT ST_Transform(ST_GeometryFromText( 'POLYGON((#{coordinates}))', 26910 ), 4326)
   ")
 
@@ -99,7 +99,7 @@ def build_point(coordinates, attributes = {})
   northing = northing.to_f + geom_projection_offset_northing
   coordinates = "#{easting} #{northing}"
 
-  geog = Feature.connection.select_value("
+  geog = SpatialFeatures::Utils.select_db_value("
     SELECT ST_Transform(ST_GeometryFromText( 'POINT(#{coordinates})', 26910 ), 4326)
   ")
 
