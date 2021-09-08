@@ -23,6 +23,12 @@ describe SpatialFeatures::Importers::GeoJSON do
        expect(subject.features).to all(have_attributes :metadata => include('prop0' => 'value'))
       end
     end
+
+    describe '#cache_key' do
+      it 'returns a string' do
+        expect(subject.cache_key).to be_a(String)
+      end
+    end
   end
 
   context 'when given an empty object' do
