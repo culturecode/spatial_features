@@ -5,7 +5,7 @@ module SpatialFeatures
   module Importers
     class GeoJSON < Base
       def cache_key
-        @cache_key ||= Digest::MD5.hexdigest(features.to_json)
+        @cache_key ||= Digest::MD5.hexdigest(@data.to_json)
       end
 
       private
