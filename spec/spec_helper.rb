@@ -20,6 +20,8 @@ ActiveRecord::Base.establish_connection(
 # Load OID initializer
 Dir["#{File.dirname(__FILE__)}/../config/initializers/**/*.rb"].each { |f| require f }
 
+NAME_COLUMN_LIMIT = 100
+
 ActiveRecord::Schema.define(:version => 0) do
   execute("
     CREATE EXTENSION IF NOT EXISTS hstore SCHEMA public;
@@ -28,7 +30,7 @@ ActiveRecord::Schema.define(:version => 0) do
 
   create_table :features, :force => true do |t|
     t.references :spatial_model, :polymorphic => true, :index => true
-    t.string :name
+    t.string :name, :limit => NAME_COLUMN_LIMIT
     t.string :feature_type
     t.hstore :metadata
     t.decimal :area
