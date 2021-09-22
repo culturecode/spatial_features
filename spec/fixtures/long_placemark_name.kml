@@ -1,0 +1,1104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="http://www.opengis.net/kml/2.2 http://schemas.opengis.net/kml/2.2.0/ogckml22.xsd http://www.google.com/kml/ext/2.2 http://code.google.com/apis/kml/schema/kml22gx.xsd">
+<Document id="Habitat_Rehabilitation">
+  <name>Habitat Rehabilitation</name>
+  <Snippet></Snippet>
+  <Style id="PolyStyle00">
+    <LabelStyle>
+      <color>00000000</color>
+      <scale>0.000000</scale>
+    </LabelStyle>
+    <LineStyle>
+      <color>ff6e6e6e</color>
+      <width>0.400000</width>
+    </LineStyle>
+    <PolyStyle>
+      <color>fff1f2c9</color>
+      <outline>1</outline>
+    </PolyStyle>
+  </Style>
+  <Folder id="FeatureLayer0">
+    <name>Habitat Rehabilitation</name>
+    <Snippet></Snippet>
+    <Placemark id="ID_00000">
+      <name>Reshape the riverbed by excavating a single thread channel in braided sections. Some pools will be deepened in areas next to existing large woody debris structures.</name>
+      <Snippet></Snippet>
+      <description><![CDATA[<html xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:msxsl="urn:schemas-microsoft-com:xslt">
+
+<head>
+
+<META http-equiv="Content-Type" content="text/html">
+
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+</head>
+
+<body style="margin:0px 0px 0px 0px;overflow:auto;background:#FFFFFF;">
+
+<table style="font-family:Arial,Verdana,Times;font-size:12px;text-align:left;width:100%;border-collapse:collapse;padding:3px 3px 3px 3px">
+
+<tr style="text-align:center;font-weight:bold;background:#9CBCE2">
+
+<td>Reshape the riverbed by excavating a single thread channel in braided sections. Some pools will be deepened in areas next to existing large woody debris structures.</td>
+
+</tr>
+
+<tr>
+
+<td>
+
+<table style="font-family:Arial,Verdana,Times;font-size:12px;text-align:left;width:100%;border-spacing:0px; padding:3px 3px 3px 3px">
+
+<tr>
+
+<td>SHAPE</td>
+
+<td>Polygon</td>
+
+</tr>
+
+<tr bgcolor="#D4E4F3">
+
+<td>SHAPE_Length</td>
+
+<td>608.933544</td>
+
+</tr>
+
+<tr>
+
+<td>SHAPE_Area</td>
+
+<td>7414.119023</td>
+
+</tr>
+
+<tr bgcolor="#D4E4F3">
+
+<td>AreaNumber</td>
+
+<td>3</td>
+
+</tr>
+
+<tr>
+
+<td>Site</td>
+
+<td>1</td>
+
+</tr>
+
+<tr bgcolor="#D4E4F3">
+
+<td>Description</td>
+
+<td>Reshape the riverbed by excavating a single thread channel in braided sections. Some pools will be deepened in areas next to existing large woody debris structures.</td>
+
+</tr>
+
+</table>
+
+</td>
+
+</tr>
+
+</table>
+
+</body>
+
+</html>
+
+]]></description>
+      <styleUrl>#PolyStyle00</styleUrl>
+      <MultiGeometry>
+        <Polygon>
+          <extrude>0</extrude><altitudeMode>absolute</altitudeMode>
+          <outerBoundaryIs><LinearRing><coordinates> -114.8879090578541,50.21064339197977,0 -114.8880809223482,50.21044660730991,0 -114.8879308385375,50.20998217985107,0 -114.8875476593892,50.20958966913109,0 -114.8873549627254,50.20925060022238,0 -114.8874168170316,50.20902563584355,0 -114.8871471790634,50.20874942420726,0 -114.8867883572849,50.20864531985215,0 -114.8866299211813,50.20878998990126,0 -114.8867532026039,50.20893740615186,0 -114.8871234964431,50.20945343964124,0 -114.8875355347956,50.21003210748727,0 -114.8877177800608,50.21044000325888,0 -114.8874116151487,50.21048679159924,0 -114.8874128217385,50.21049006517734,0 -114.8870294971595,50.21047317685682,0 -114.8870985893313,50.21065530544941,0 -114.8874251259222,50.21070342772259,0 -114.8875101263528,50.21069973885186,0 -114.8879090578541,50.21064339197977,0</coordinates></LinearRing></outerBoundaryIs>
+        </Polygon>
+      </MultiGeometry>
+    </Placemark>
+    <Placemark id="ID_00001">
+      <name>Plug the cut side channel at upstream end. Plug to consist of large keystons (0.75-1m diameter) with graded native material behind it. Plug width is ~20m. Plug length TBD (~20-30m). Plan will ikely include a revegetation component (live cuttings or seedlings).</name>
+      <Snippet></Snippet>
+      <description><![CDATA[<html xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:msxsl="urn:schemas-microsoft-com:xslt">
+
+<head>
+
+<META http-equiv="Content-Type" content="text/html">
+
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+</head>
+
+<body style="margin:0px 0px 0px 0px;overflow:auto;background:#FFFFFF;">
+
+<table style="font-family:Arial,Verdana,Times;font-size:12px;text-align:left;width:100%;border-collapse:collapse;padding:3px 3px 3px 3px">
+
+<tr style="text-align:center;font-weight:bold;background:#9CBCE2">
+
+<td>Plug the cut side channel at upstream end. Plug to consist of large keystons (0.75-1m diameter) with graded native material behind it. Plug width is ~20m. Plug length TBD (~20-30m). Plan will ikely include a revegetation component (live cuttings or seedlings).</td>
+
+</tr>
+
+<tr>
+
+<td>
+
+<table style="font-family:Arial,Verdana,Times;font-size:12px;text-align:left;width:100%;border-spacing:0px; padding:3px 3px 3px 3px">
+
+<tr>
+
+<td>SHAPE</td>
+
+<td>Polygon</td>
+
+</tr>
+
+<tr bgcolor="#D4E4F3">
+
+<td>SHAPE_Length</td>
+
+<td>101.839565</td>
+
+</tr>
+
+<tr>
+
+<td>SHAPE_Area</td>
+
+<td>697.9634</td>
+
+</tr>
+
+<tr bgcolor="#D4E4F3">
+
+<td>AreaNumber</td>
+
+<td>2</td>
+
+</tr>
+
+<tr>
+
+<td>Site</td>
+
+<td>1</td>
+
+</tr>
+
+<tr bgcolor="#D4E4F3">
+
+<td>Description</td>
+
+<td>Plug the cut side channel at upstream end. Plug to consist of large keystons (0.75-1m diameter) with graded native material behind it. Plug width is ~20m. Plug length TBD (~20-30m). Plan will ikely include a revegetation component (live cuttings or seedlings).</td>
+
+</tr>
+
+</table>
+
+</td>
+
+</tr>
+
+</table>
+
+</body>
+
+</html>
+
+]]></description>
+      <styleUrl>#PolyStyle00</styleUrl>
+      <MultiGeometry>
+        <Polygon>
+          <extrude>0</extrude><altitudeMode>absolute</altitudeMode>
+          <outerBoundaryIs><LinearRing><coordinates> -114.8874123293503,50.21047062199627,0 -114.887446595464,50.21036653020828,0 -114.8873955648135,50.21024565503284,0 -114.8870758273894,50.21023031927297,0 -114.8870259606027,50.21028462499179,0 -114.8870274581594,50.21045219620299,0 -114.8874123293503,50.21047062199627,0</coordinates></LinearRing></outerBoundaryIs>
+        </Polygon>
+      </MultiGeometry>
+    </Placemark>
+    <Placemark id="ID_00002">
+      <name>Regrade the riverbed.  Deepen pool at select locations on the outer bend (near Large Woody Debris (LWD) structures).Excavate (shave down) inner bend for a distance of approx 10-15m from edge of water (red zone).</name>
+      <Snippet></Snippet>
+      <description><![CDATA[<html xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:msxsl="urn:schemas-microsoft-com:xslt">
+
+<head>
+
+<META http-equiv="Content-Type" content="text/html">
+
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+</head>
+
+<body style="margin:0px 0px 0px 0px;overflow:auto;background:#FFFFFF;">
+
+<table style="font-family:Arial,Verdana,Times;font-size:12px;text-align:left;width:100%;border-collapse:collapse;padding:3px 3px 3px 3px">
+
+<tr style="text-align:center;font-weight:bold;background:#9CBCE2">
+
+<td>Regrade the riverbed.  Deepen pool at select locations on the outer bend (near Large Woody Debris (LWD) structures).Excavate (shave down) inner bend for a distance of approx 10-15m from edge of water (red zone).</td>
+
+</tr>
+
+<tr>
+
+<td>
+
+<table style="font-family:Arial,Verdana,Times;font-size:12px;text-align:left;width:100%;border-spacing:0px; padding:3px 3px 3px 3px">
+
+<tr>
+
+<td>SHAPE</td>
+
+<td>Polygon</td>
+
+</tr>
+
+<tr bgcolor="#D4E4F3">
+
+<td>SHAPE_Length</td>
+
+<td>179.045454</td>
+
+</tr>
+
+<tr>
+
+<td>SHAPE_Area</td>
+
+<td>967.995812</td>
+
+</tr>
+
+<tr bgcolor="#D4E4F3">
+
+<td>AreaNumber</td>
+
+<td>1</td>
+
+</tr>
+
+<tr>
+
+<td>Site</td>
+
+<td>1</td>
+
+</tr>
+
+<tr bgcolor="#D4E4F3">
+
+<td>Description</td>
+
+<td>Regrade the riverbed.  Deepen pool at select locations on the outer bend (near Large Woody Debris (LWD) structures).Excavate (shave down) inner bend for a distance of approx 10-15m from edge of water (red zone).</td>
+
+</tr>
+
+</table>
+
+</td>
+
+</tr>
+
+</table>
+
+</body>
+
+</html>
+
+]]></description>
+      <styleUrl>#PolyStyle00</styleUrl>
+      <MultiGeometry>
+        <Polygon>
+          <extrude>0</extrude><altitudeMode>absolute</altitudeMode>
+          <outerBoundaryIs><LinearRing><coordinates> -114.8866817189309,50.21050509779567,0 -114.8867066836611,50.2105039536786,0 -114.8866043774796,50.21040213702632,0 -114.8864749839898,50.21040977743252,0 -114.8862370584545,50.2105068308035,0 -114.8861280541413,50.21070761278311,0 -114.8861382106355,50.21088057750377,0 -114.8862333430335,50.21099368742757,0 -114.8863646927826,50.21094181663717,0 -114.8863575043463,50.21093536334981,0 -114.8863176078822,50.21089955023839,0 -114.8863151631933,50.21080383405473,0 -114.8863545654924,50.21066746996434,0 -114.8864614251565,50.21051519743553,0 -114.8866817189309,50.21050509779567,0</coordinates></LinearRing></outerBoundaryIs>
+        </Polygon>
+      </MultiGeometry>
+    </Placemark>
+    <Placemark id="ID_00003">
+      <name>NULL</name>
+      <Snippet></Snippet>
+      <description><![CDATA[<html xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:msxsl="urn:schemas-microsoft-com:xslt">
+
+<head>
+
+<META http-equiv="Content-Type" content="text/html">
+
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+</head>
+
+<body style="margin:0px 0px 0px 0px;overflow:auto;background:#FFFFFF;">
+
+<table style="font-family:Arial,Verdana,Times;font-size:12px;text-align:left;width:100%;border-collapse:collapse;padding:3px 3px 3px 3px">
+
+<tr style="text-align:center;font-weight:bold;background:#9CBCE2">
+
+<td></td>
+
+</tr>
+
+<tr>
+
+<td>
+
+<table style="font-family:Arial,Verdana,Times;font-size:12px;text-align:left;width:100%;border-spacing:0px; padding:3px 3px 3px 3px">
+
+<tr>
+
+<td>SHAPE</td>
+
+<td>Polygon</td>
+
+</tr>
+
+<tr bgcolor="#D4E4F3">
+
+<td>SHAPE_Length</td>
+
+<td>128.875561</td>
+
+</tr>
+
+<tr>
+
+<td>SHAPE_Area</td>
+
+<td>633.074775</td>
+
+</tr>
+
+<tr bgcolor="#D4E4F3">
+
+<td>AreaNumber</td>
+
+<td>1</td>
+
+</tr>
+
+<tr>
+
+<td>Site</td>
+
+<td>&lt;Null&gt;</td>
+
+</tr>
+
+<tr bgcolor="#D4E4F3">
+
+<td>Description</td>
+
+<td>&lt;Null&gt;</td>
+
+</tr>
+
+</table>
+
+</td>
+
+</tr>
+
+</table>
+
+</body>
+
+</html>
+
+]]></description>
+      <styleUrl>#PolyStyle00</styleUrl>
+      <MultiGeometry>
+        <Polygon>
+          <extrude>0</extrude><altitudeMode>absolute</altitudeMode>
+          <outerBoundaryIs><LinearRing><coordinates> -114.8865813484495,50.21063830084091,0 -114.8866416099105,50.21061700388992,0 -114.8867539752748,50.2105919174107,0 -114.8867712398782,50.21055367791861,0 -114.8867446068547,50.21050178786945,0 -114.8866787797811,50.21050899754093,0 -114.8866817189309,50.21050509779567,0 -114.8864614251565,50.21051519743553,0 -114.8863545654924,50.21066746996434,0 -114.8863151631933,50.21080383405473,0 -114.8863176078822,50.21089955023839,0 -114.8863370916574,50.21091703997791,0 -114.8863708485668,50.21091765432367,0 -114.8865813484495,50.21063830084091,0</coordinates></LinearRing></outerBoundaryIs>
+        </Polygon>
+      </MultiGeometry>
+    </Placemark>
+    <Placemark id="ID_00004">
+      <name>Reshape the riverbed by excavating a single thread channel in braided sections, to establish a suitable width-to-depth ratio.</name>
+      <Snippet></Snippet>
+      <description><![CDATA[<html xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:msxsl="urn:schemas-microsoft-com:xslt">
+
+<head>
+
+<META http-equiv="Content-Type" content="text/html">
+
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+</head>
+
+<body style="margin:0px 0px 0px 0px;overflow:auto;background:#FFFFFF;">
+
+<table style="font-family:Arial,Verdana,Times;font-size:12px;text-align:left;width:100%;border-collapse:collapse;padding:3px 3px 3px 3px">
+
+<tr style="text-align:center;font-weight:bold;background:#9CBCE2">
+
+<td>Reshape the riverbed by excavating a single thread channel in braided sections, to establish a suitable width-to-depth ratio.</td>
+
+</tr>
+
+<tr>
+
+<td>
+
+<table style="font-family:Arial,Verdana,Times;font-size:12px;text-align:left;width:100%;border-spacing:0px; padding:3px 3px 3px 3px">
+
+<tr>
+
+<td>SHAPE</td>
+
+<td>Polygon</td>
+
+</tr>
+
+<tr bgcolor="#D4E4F3">
+
+<td>SHAPE_Length</td>
+
+<td>310.461042</td>
+
+</tr>
+
+<tr>
+
+<td>SHAPE_Area</td>
+
+<td>3781.510368</td>
+
+</tr>
+
+<tr bgcolor="#D4E4F3">
+
+<td>AreaNumber</td>
+
+<td>1</td>
+
+</tr>
+
+<tr>
+
+<td>Site</td>
+
+<td>2</td>
+
+</tr>
+
+<tr bgcolor="#D4E4F3">
+
+<td>Description</td>
+
+<td>Reshape the riverbed by excavating a single thread channel in braided sections, to establish a suitable width-to-depth ratio.</td>
+
+</tr>
+
+</table>
+
+</td>
+
+</tr>
+
+</table>
+
+</body>
+
+</html>
+
+]]></description>
+      <styleUrl>#PolyStyle00</styleUrl>
+      <MultiGeometry>
+        <Polygon>
+          <extrude>0</extrude><altitudeMode>absolute</altitudeMode>
+          <outerBoundaryIs><LinearRing><coordinates> -114.8860048634804,50.20811224542837,0 -114.8856829166332,50.20776130159517,0 -114.8850785320103,50.20742425229492,0 -114.8847022501716,50.20729602489742,0 -114.8844393040638,50.20737215199323,0 -114.8846345768754,50.20756847992288,0 -114.8850927195239,50.20777435392688,0 -114.8854665095754,50.20804294849499,0 -114.8857254121706,50.20822615283002,0 -114.8860048634804,50.20811224542837,0</coordinates></LinearRing></outerBoundaryIs>
+        </Polygon>
+      </MultiGeometry>
+    </Placemark>
+    <Placemark id="ID_00005">
+      <name>Regrade riverbed to create point bar on the inner bend and deepen pools in areas adjacent to Large Woody Debris (LWD) deflectors.</name>
+      <Snippet></Snippet>
+      <description><![CDATA[<html xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:msxsl="urn:schemas-microsoft-com:xslt">
+
+<head>
+
+<META http-equiv="Content-Type" content="text/html">
+
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+</head>
+
+<body style="margin:0px 0px 0px 0px;overflow:auto;background:#FFFFFF;">
+
+<table style="font-family:Arial,Verdana,Times;font-size:12px;text-align:left;width:100%;border-collapse:collapse;padding:3px 3px 3px 3px">
+
+<tr style="text-align:center;font-weight:bold;background:#9CBCE2">
+
+<td>Regrade riverbed to create point bar on the inner bend and deepen pools in areas adjacent to Large Woody Debris (LWD) deflectors.</td>
+
+</tr>
+
+<tr>
+
+<td>
+
+<table style="font-family:Arial,Verdana,Times;font-size:12px;text-align:left;width:100%;border-spacing:0px; padding:3px 3px 3px 3px">
+
+<tr>
+
+<td>SHAPE</td>
+
+<td>Polygon</td>
+
+</tr>
+
+<tr bgcolor="#D4E4F3">
+
+<td>SHAPE_Length</td>
+
+<td>163.244109</td>
+
+</tr>
+
+<tr>
+
+<td>SHAPE_Area</td>
+
+<td>1247.342741</td>
+
+</tr>
+
+<tr bgcolor="#D4E4F3">
+
+<td>AreaNumber</td>
+
+<td>2</td>
+
+</tr>
+
+<tr>
+
+<td>Site</td>
+
+<td>2</td>
+
+</tr>
+
+<tr bgcolor="#D4E4F3">
+
+<td>Description</td>
+
+<td>Regrade riverbed to create point bar on the inner bend and deepen pools in areas adjacent to Large Woody Debris (LWD) deflectors.</td>
+
+</tr>
+
+</table>
+
+</td>
+
+</tr>
+
+</table>
+
+</body>
+
+</html>
+
+]]></description>
+      <styleUrl>#PolyStyle00</styleUrl>
+      <MultiGeometry>
+        <Polygon>
+          <extrude>0</extrude><altitudeMode>absolute</altitudeMode>
+          <outerBoundaryIs><LinearRing><coordinates> -114.8846818061751,50.20725519466589,0 -114.8845374620019,50.20708121388934,0 -114.8844955228961,50.2070233318482,0 -114.8845394909788,50.20678376465712,0 -114.8842357658108,50.20677585179882,0 -114.8842143674736,50.20709198663589,0 -114.8844226709525,50.20732901110132,0 -114.8846818061751,50.20725519466589,0</coordinates></LinearRing></outerBoundaryIs>
+        </Polygon>
+      </MultiGeometry>
+    </Placemark>
+    <Placemark id="ID_00006">
+      <name>Regrade riverbed and add Large Woody Debris (LWD) to remove bifurcation and direct all flow into a single thread channel.</name>
+      <Snippet></Snippet>
+      <description><![CDATA[<html xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:msxsl="urn:schemas-microsoft-com:xslt">
+
+<head>
+
+<META http-equiv="Content-Type" content="text/html">
+
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+</head>
+
+<body style="margin:0px 0px 0px 0px;overflow:auto;background:#FFFFFF;">
+
+<table style="font-family:Arial,Verdana,Times;font-size:12px;text-align:left;width:100%;border-collapse:collapse;padding:3px 3px 3px 3px">
+
+<tr style="text-align:center;font-weight:bold;background:#9CBCE2">
+
+<td>Regrade riverbed and add Large Woody Debris (LWD) to remove bifurcation and direct all flow into a single thread channel.</td>
+
+</tr>
+
+<tr>
+
+<td>
+
+<table style="font-family:Arial,Verdana,Times;font-size:12px;text-align:left;width:100%;border-spacing:0px; padding:3px 3px 3px 3px">
+
+<tr>
+
+<td>SHAPE</td>
+
+<td>Polygon</td>
+
+</tr>
+
+<tr bgcolor="#D4E4F3">
+
+<td>SHAPE_Length</td>
+
+<td>126.163096</td>
+
+</tr>
+
+<tr>
+
+<td>SHAPE_Area</td>
+
+<td>870.962457</td>
+
+</tr>
+
+<tr bgcolor="#D4E4F3">
+
+<td>AreaNumber</td>
+
+<td>3</td>
+
+</tr>
+
+<tr>
+
+<td>Site</td>
+
+<td>2</td>
+
+</tr>
+
+<tr bgcolor="#D4E4F3">
+
+<td>Description</td>
+
+<td>Regrade riverbed and add Large Woody Debris (LWD) to remove bifurcation and direct all flow into a single thread channel.</td>
+
+</tr>
+
+</table>
+
+</td>
+
+</tr>
+
+</table>
+
+</body>
+
+</html>
+
+]]></description>
+      <styleUrl>#PolyStyle00</styleUrl>
+      <MultiGeometry>
+        <Polygon>
+          <extrude>0</extrude><altitudeMode>absolute</altitudeMode>
+          <outerBoundaryIs><LinearRing><coordinates> -114.8848673440845,50.20641371331626,0 -114.8846107140283,50.20634716189176,0 -114.8843847685213,50.20659293528826,0 -114.8843322883473,50.20668955434751,0 -114.8844179536387,50.20676489142629,0 -114.8845713417439,50.20673436681719,0 -114.8848673440845,50.20641371331626,0</coordinates></LinearRing></outerBoundaryIs>
+        </Polygon>
+      </MultiGeometry>
+    </Placemark>
+    <Placemark id="ID_00007">
+      <name>Plug avulsion at upstream end to focus all flow into a single channel.</name>
+      <Snippet></Snippet>
+      <description><![CDATA[<html xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:msxsl="urn:schemas-microsoft-com:xslt">
+
+<head>
+
+<META http-equiv="Content-Type" content="text/html">
+
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+</head>
+
+<body style="margin:0px 0px 0px 0px;overflow:auto;background:#FFFFFF;">
+
+<table style="font-family:Arial,Verdana,Times;font-size:12px;text-align:left;width:100%;border-collapse:collapse;padding:3px 3px 3px 3px">
+
+<tr style="text-align:center;font-weight:bold;background:#9CBCE2">
+
+<td>Plug avulsion at upstream end to focus all flow into a single channel.</td>
+
+</tr>
+
+<tr>
+
+<td>
+
+<table style="font-family:Arial,Verdana,Times;font-size:12px;text-align:left;width:100%;border-spacing:0px; padding:3px 3px 3px 3px">
+
+<tr>
+
+<td>SHAPE</td>
+
+<td>Polygon</td>
+
+</tr>
+
+<tr bgcolor="#D4E4F3">
+
+<td>SHAPE_Length</td>
+
+<td>103.19492</td>
+
+</tr>
+
+<tr>
+
+<td>SHAPE_Area</td>
+
+<td>510.097132</td>
+
+</tr>
+
+<tr bgcolor="#D4E4F3">
+
+<td>AreaNumber</td>
+
+<td>1</td>
+
+</tr>
+
+<tr>
+
+<td>Site</td>
+
+<td>3</td>
+
+</tr>
+
+<tr bgcolor="#D4E4F3">
+
+<td>Description</td>
+
+<td>Plug avulsion at upstream end to focus all flow into a single channel.</td>
+
+</tr>
+
+</table>
+
+</td>
+
+</tr>
+
+</table>
+
+</body>
+
+</html>
+
+]]></description>
+      <styleUrl>#PolyStyle00</styleUrl>
+      <MultiGeometry>
+        <Polygon>
+          <extrude>0</extrude><altitudeMode>absolute</altitudeMode>
+          <outerBoundaryIs><LinearRing><coordinates> -114.8851361091786,50.20582839553368,0 -114.8851374508042,50.20554640305944,0 -114.8848975231776,50.20556345307796,0 -114.8849875067064,50.20591850527306,0 -114.8851361091786,50.20582839553368,0</coordinates></LinearRing></outerBoundaryIs>
+        </Polygon>
+      </MultiGeometry>
+    </Placemark>
+    <Placemark id="ID_00008">
+      <name>Regrade riverbed to create point bar on inner bend and deepen pools in areas adjacent to Large Woody Debris (LWD) deflectors.</name>
+      <Snippet></Snippet>
+      <description><![CDATA[<html xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:msxsl="urn:schemas-microsoft-com:xslt">
+
+<head>
+
+<META http-equiv="Content-Type" content="text/html">
+
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+</head>
+
+<body style="margin:0px 0px 0px 0px;overflow:auto;background:#FFFFFF;">
+
+<table style="font-family:Arial,Verdana,Times;font-size:12px;text-align:left;width:100%;border-collapse:collapse;padding:3px 3px 3px 3px">
+
+<tr style="text-align:center;font-weight:bold;background:#9CBCE2">
+
+<td>Regrade riverbed to create point bar on inner bend and deepen pools in areas adjacent to Large Woody Debris (LWD) deflectors.</td>
+
+</tr>
+
+<tr>
+
+<td>
+
+<table style="font-family:Arial,Verdana,Times;font-size:12px;text-align:left;width:100%;border-spacing:0px; padding:3px 3px 3px 3px">
+
+<tr>
+
+<td>SHAPE</td>
+
+<td>Polygon</td>
+
+</tr>
+
+<tr bgcolor="#D4E4F3">
+
+<td>SHAPE_Length</td>
+
+<td>211.727296</td>
+
+</tr>
+
+<tr>
+
+<td>SHAPE_Area</td>
+
+<td>1622.121435</td>
+
+</tr>
+
+<tr bgcolor="#D4E4F3">
+
+<td>AreaNumber</td>
+
+<td>2</td>
+
+</tr>
+
+<tr>
+
+<td>Site</td>
+
+<td>3</td>
+
+</tr>
+
+<tr bgcolor="#D4E4F3">
+
+<td>Description</td>
+
+<td>Regrade riverbed to create point bar on inner bend and deepen pools in areas adjacent to Large Woody Debris (LWD) deflectors.</td>
+
+</tr>
+
+</table>
+
+</td>
+
+</tr>
+
+</table>
+
+</body>
+
+</html>
+
+]]></description>
+      <styleUrl>#PolyStyle00</styleUrl>
+      <MultiGeometry>
+        <Polygon>
+          <extrude>0</extrude><altitudeMode>absolute</altitudeMode>
+          <outerBoundaryIs><LinearRing><coordinates> -114.8858272284819,50.20403464389021,0 -114.8855167545753,50.2038861975035,0 -114.8850351414209,50.20383458977382,0 -114.8845750082334,50.20392616528146,0 -114.8847290796691,50.20408961406233,0 -114.885050275449,50.2039955078094,0 -114.8853927936753,50.2040481529307,0 -114.885604021111,50.20417694340933,0 -114.8858272284819,50.20403464389021,0</coordinates></LinearRing></outerBoundaryIs>
+        </Polygon>
+      </MultiGeometry>
+    </Placemark>
+    <Placemark id="ID_00009">
+      <name>Reshape the riverbed by excavating a single thred channel in braided sections to establish a suitable width.</name>
+      <Snippet></Snippet>
+      <description><![CDATA[<html xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:msxsl="urn:schemas-microsoft-com:xslt">
+
+<head>
+
+<META http-equiv="Content-Type" content="text/html">
+
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+</head>
+
+<body style="margin:0px 0px 0px 0px;overflow:auto;background:#FFFFFF;">
+
+<table style="font-family:Arial,Verdana,Times;font-size:12px;text-align:left;width:100%;border-collapse:collapse;padding:3px 3px 3px 3px">
+
+<tr style="text-align:center;font-weight:bold;background:#9CBCE2">
+
+<td>Reshape the riverbed by excavating a single thred channel in braided sections to establish a suitable width.</td>
+
+</tr>
+
+<tr>
+
+<td>
+
+<table style="font-family:Arial,Verdana,Times;font-size:12px;text-align:left;width:100%;border-spacing:0px; padding:3px 3px 3px 3px">
+
+<tr>
+
+<td>SHAPE</td>
+
+<td>Polygon</td>
+
+</tr>
+
+<tr bgcolor="#D4E4F3">
+
+<td>SHAPE_Length</td>
+
+<td>232.444054</td>
+
+</tr>
+
+<tr>
+
+<td>SHAPE_Area</td>
+
+<td>2998.446966</td>
+
+</tr>
+
+<tr bgcolor="#D4E4F3">
+
+<td>AreaNumber</td>
+
+<td>3</td>
+
+</tr>
+
+<tr>
+
+<td>Site</td>
+
+<td>3</td>
+
+</tr>
+
+<tr bgcolor="#D4E4F3">
+
+<td>Description</td>
+
+<td>Reshape the riverbed by excavating a single thred channel in braided sections to establish a suitable width.</td>
+
+</tr>
+
+</table>
+
+</td>
+
+</tr>
+
+</table>
+
+</body>
+
+</html>
+
+]]></description>
+      <styleUrl>#PolyStyle00</styleUrl>
+      <MultiGeometry>
+        <Polygon>
+          <extrude>0</extrude><altitudeMode>absolute</altitudeMode>
+          <outerBoundaryIs><LinearRing><coordinates> -114.8838579995572,50.20416656005607,0 -114.8839938843529,50.20348362827393,0 -114.8833476384194,50.20350754948239,0 -114.8834005439027,50.20419749243405,0 -114.8838579995572,50.20416656005607,0</coordinates></LinearRing></outerBoundaryIs>
+        </Polygon>
+      </MultiGeometry>
+    </Placemark>
+    <Placemark id="ID_00010">
+      <name>Work is already planned for repair of riffles stone (bank erosion).</name>
+      <Snippet></Snippet>
+      <description><![CDATA[<html xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:msxsl="urn:schemas-microsoft-com:xslt">
+
+<head>
+
+<META http-equiv="Content-Type" content="text/html">
+
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+</head>
+
+<body style="margin:0px 0px 0px 0px;overflow:auto;background:#FFFFFF;">
+
+<table style="font-family:Arial,Verdana,Times;font-size:12px;text-align:left;width:100%;border-collapse:collapse;padding:3px 3px 3px 3px">
+
+<tr style="text-align:center;font-weight:bold;background:#9CBCE2">
+
+<td>Work is already planned for repair of riffles stone (bank erosion).</td>
+
+</tr>
+
+<tr>
+
+<td>
+
+<table style="font-family:Arial,Verdana,Times;font-size:12px;text-align:left;width:100%;border-spacing:0px; padding:3px 3px 3px 3px">
+
+<tr>
+
+<td>SHAPE</td>
+
+<td>Polygon</td>
+
+</tr>
+
+<tr bgcolor="#D4E4F3">
+
+<td>SHAPE_Length</td>
+
+<td>96.456733</td>
+
+</tr>
+
+<tr>
+
+<td>SHAPE_Area</td>
+
+<td>547.191218</td>
+
+</tr>
+
+<tr bgcolor="#D4E4F3">
+
+<td>AreaNumber</td>
+
+<td>0</td>
+
+</tr>
+
+<tr>
+
+<td>Site</td>
+
+<td>1</td>
+
+</tr>
+
+<tr bgcolor="#D4E4F3">
+
+<td>Description</td>
+
+<td>Work is already planned for repair of riffles stone (bank erosion).</td>
+
+</tr>
+
+</table>
+
+</td>
+
+</tr>
+
+</table>
+
+</body>
+
+</html>
+
+]]></description>
+      <styleUrl>#PolyStyle00</styleUrl>
+      <MultiGeometry>
+        <Polygon>
+          <extrude>0</extrude><altitudeMode>absolute</altitudeMode>
+          <outerBoundaryIs><LinearRing><coordinates> -114.886800896269,50.21114674730951,0 -114.8865566597758,50.21096362625672,0 -114.8862906628946,50.21107604208942,0 -114.8866312728018,50.2112441663506,0 -114.886800896269,50.21114674730951,0</coordinates></LinearRing></outerBoundaryIs>
+        </Polygon>
+      </MultiGeometry>
+    </Placemark>
+  </Folder>
+</Document>
+</kml>

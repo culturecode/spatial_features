@@ -9,6 +9,8 @@ class Feature < AbstractFeature
 
   validates_inclusion_of :feature_type, :in => FEATURE_TYPES
 
+  before_save :truncate_name
+
   after_save :refresh_aggregate, if: :automatically_refresh_aggregate?
 
   # Features are used for display so we also cache their KML representation
@@ -59,5 +61,13 @@ class Feature < AbstractFeature
     # how you assign a feature to a record, you may end up saving it before assigning it to a record, thereby leaving
     # this field blank.
     spatial_model_id? && automatically_refresh_aggregate && saved_change_to_geog?
+  end
+
+  private
+
+  def truncate_name
+    return unless name?
+    col_size = Feature.columns_hash["name"]&.limit || 255
+    self.name = name.to_s.truncate(col_size)
   end
 end
