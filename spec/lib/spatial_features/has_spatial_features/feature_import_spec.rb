@@ -154,6 +154,22 @@ describe SpatialFeatures::FeatureImport do
       expect(double.features.count).to eq(single.features.count * 2)
     end
 
+    it "truncates long feature names" do
+      subject = new_dummy_class do
+        has_spatial_features :import => { :test_kml => :KMLFile }
+
+        def test_kml
+          "#{__dir__}/../../../../spec/fixtures/long_placemark_name.kml"
+        end
+      end.new
+
+      subject.update_features!
+
+      features_with_short_names, features_with_long_names = subject.features.partition { |f| f.name.length <= NAME_COLUMN_LIMIT }
+      expect(features_with_short_names).not_to be_empty
+      expect(features_with_long_names).to be_empty
+    end
+
     it 'ignores empty source values' do
       subject = new_dummy_class do
         has_spatial_features :import => { :empty_string => :KMLFile }
