@@ -52,5 +52,14 @@ module SpatialFeatures
         object.unscope(:select).select(:id).to_sql
       end
     end
+
+    def select_db_value(query)
+      ActiveRecord::Base.connection.select_value(query)
+    end
+
+    # Convert a hash of GeoJSON data into a PostGIS geometry object
+    def geom_from_json(geometry)
+      select_db_value("SELECT ST_GeomFromGeoJSON('#{geometry.to_json}')")
+    end
   end
 end
