@@ -35,7 +35,7 @@ module SpatialFeatures
 
         # Do query in a new thread so we use a new connection (if the query fails it will poison the transaction of the current connection)
         Thread.new do
-          geom = ActiveRecord::Base.connection.select_value("SELECT ST_GeomFromKML(#{ActiveRecord::Base.connection.quote(kml.to_s)})")
+          geom = SpatialFeatures::Utils.select_db_value("SELECT ST_GeomFromKML(#{ActiveRecord::Base.connection.quote(kml.to_s)})")
         rescue ActiveRecord::StatementInvalid => e # Discard Invalid KML features
           geom = nil
         end.join
