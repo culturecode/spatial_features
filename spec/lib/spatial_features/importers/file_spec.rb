@@ -5,44 +5,46 @@ describe SpatialFeatures::Importers::File do
     subject { SpatialFeatures::Importers::File }
 
     shared_examples_for 'format detection' do
+      let(:options) { { :some => 'option' } }
+
       it 'detects kml file urls' do
-        expect(SpatialFeatures::Importers::KMLFile).to receive(:new).once
-        subject.new(kml_file.path)
+        expect(SpatialFeatures::Importers::KMLFile).to receive(:new).once.with(any_args, options)
+        subject.new(kml_file.path, options)
       end
 
       it 'detects kmz file urls' do
-        expect(SpatialFeatures::Importers::KMLFile).to receive(:new).once
-        subject.new(kmz_file.path)
+        expect(SpatialFeatures::Importers::KMLFile).to receive(:new).once.with(any_args, options)
+        subject.new(kmz_file.path, options)
       end
 
       it 'detects zipped shapefile file urls' do
-        expect(SpatialFeatures::Importers::Shapefile).to receive(:new).once
-        subject.new(shapefile.path)
+        expect(SpatialFeatures::Importers::Shapefile).to receive(:new).once.with(any_args, options)
+        subject.new(shapefile.path, options)
       end
 
       it 'detects kml files' do
-        expect(SpatialFeatures::Importers::KMLFile).to receive(:new).once
-        subject.new(kmz_file)
+        expect(SpatialFeatures::Importers::KMLFile).to receive(:new).once.with(any_args, options)
+        subject.new(kmz_file, options)
       end
 
       it 'detects kmz files' do
-        expect(SpatialFeatures::Importers::KMLFile).to receive(:new).once
-        subject.new(kmz_file)
+        expect(SpatialFeatures::Importers::KMLFile).to receive(:new).once.with(any_args, options)
+        subject.new(kmz_file, options)
       end
 
       it 'detects zipped shape files' do
-        expect(SpatialFeatures::Importers::Shapefile).to receive(:new).once
-        subject.new(shapefile)
+        expect(SpatialFeatures::Importers::Shapefile).to receive(:new).once.with(any_args, options)
+        subject.new(shapefile, options)
       end
 
       it 'detects zip archive with multiple shapefiles' do
-        expect(SpatialFeatures::Importers::Shapefile).to receive(:new).once
-        subject.new(archive_with_multiple_shps)
+        expect(SpatialFeatures::Importers::Shapefile).to receive(:new).once.with(any_args, options)
+        subject.new(archive_with_multiple_shps, options)
       end
 
       it 'detects zip archive with multiple kml files' do
-        expect(SpatialFeatures::Importers::KMLFile).to receive(:new).once
-        subject.new(archive_with_multiple_kmls)
+        expect(SpatialFeatures::Importers::KMLFile).to receive(:new).once.with(any_args, options)
+        subject.new(archive_with_multiple_kmls, options)
       end
     end
 

@@ -28,7 +28,7 @@ module SpatialFeatures
 
         case ::File.extname(current_file.path.downcase)
         when '.kml'
-          __setobj__(KMLFile.new(current_file, *args))
+          __setobj__(KMLFile.new(current_file, *args, **options))
         when '.shp'
           __setobj__(Shapefile.new(current_file, *args, **options))
         else
