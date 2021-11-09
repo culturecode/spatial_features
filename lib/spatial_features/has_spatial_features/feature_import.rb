@@ -8,7 +8,7 @@ module SpatialFeatures
     included do
       extend ActiveModel::Callbacks
       define_model_callbacks :update_features
-      spatial_features_options.reverse_merge!(:import => {}, spatial_cache: [])
+      spatial_features_options.reverse_merge!(:import => {}, :spatial_cache => [], :image_handlers => [])
     end
 
     module ClassMethods
@@ -78,13 +78,30 @@ module SpatialFeatures
       "SpatialFeatures::Importers::#{importer_name}".constantize
     end
 
+    def handle_images(feature)
+      return if feature.importable_image_paths.nil? || feature.importable_image_paths.empty?
+
+      Array(spatial_features_options[:image_handlers]).each do |image_handler|
+        image_handler_from_name(image_handler).call(feature, feature.importable_image_paths)
+      end
+    end
+
+    def image_handler_from_name(handler_name)
+      handler_name.to_s.constantize
+    end
+
     def import_features(imports, skip_invalid)
       features.delete_all
       valid, invalid = Feature.defer_aggregate_refresh do
         Feature.without_caching_derivatives do
           imports.flat_map(&:features).partition do |feature|
             feature.spatial_model = self
-            feature.save
+            if feature.save
+              handle_images(feature)
+              true
+            else
+              false
+            end
           end
         end
       end

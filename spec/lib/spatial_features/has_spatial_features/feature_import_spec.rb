@@ -235,5 +235,38 @@ describe SpatialFeatures::FeatureImport do
         expect { subject.update_features!(:queue_spatial_cache => false) }.not_to change { Delayed::Job.count }
       end
     end
+
+    describe 'importing images' do
+      class ImageHandlerMock
+        def self.call(feature, images); end
+      end
+
+      subject do
+        new_dummy_class(:parent => FeatureImportMock) do
+          has_spatial_features :import => { :test_kml => :KMLFile }, :image_handlers => [:ImageHandlerMock]
+
+          def test_kml
+            "#{__dir__}/../../../../spec/fixtures/kmz_with_images.kmz"
+          end
+        end.create
+      end
+
+      it 'calls the image handler with each image' do
+        allow(ImageHandlerMock).to receive(:call)
+        subject.update_features!
+        expect(ImageHandlerMock).to have_received(:call).with(Feature, [Pathname]).once
+        expect(ImageHandlerMock).to have_received(:call).with(Feature, [Pathname, Pathname]).once
+      end
+
+      let(:keys_to_remove) { SpatialFeatures::Importers::KML::IMAGE_METADATA_KEYS }
+      it 'removes image metadata keys from persisted feature metadata' do
+        subject.update_features!
+
+        expect(subject.features.count).to eq(3)
+        subject.features.each do |feature|
+          expect(feature.metadata.keys & keys_to_remove).to eq([])
+        end
+      end
+    end
   end
 end

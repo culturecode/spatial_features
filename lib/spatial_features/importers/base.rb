@@ -46,7 +46,8 @@ module SpatialFeatures
       end
 
       def build_feature(record)
-        Feature.new(:name => record.name, :metadata => record.metadata, :feature_type => record.feature_type, :geog => record.geog, :make_valid => @make_valid)
+        importable_image_paths = record.importable_image_paths if record.respond_to?(:importable_image_paths)
+        Feature.new(:name => record.name, :metadata => record.metadata, :feature_type => record.feature_type, :geog => record.geog, :importable_image_paths => importable_image_paths, :make_valid => @make_valid)
       end
     end
   end

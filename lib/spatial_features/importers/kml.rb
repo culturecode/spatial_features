@@ -3,6 +3,14 @@ require 'ostruct'
 module SpatialFeatures
   module Importers
     class KML < Base
+      # <SimpleData name> keys that may contain <img> tags
+      IMAGE_METADATA_KEYS = %w[pdfmaps_photos].freeze
+
+      def initialize(data, base_dir: nil, **args)
+        @base_dir = base_dir
+        super data, **args
+      end
+
       private
 
       def each_record(&block)
@@ -18,10 +26,11 @@ module SpatialFeatures
             next if blank_feature?(feature)
 
             geog = geom_from_kml(feature)
-
             next if geog.blank?
 
-            yield OpenStruct.new(:feature_type => sql_type, :geog => geog, :name => name, :metadata => metadata)
+            importable_image_paths = images_from_metadata(metadata)
+
+            yield OpenStruct.new(:feature_type => sql_type, :geog => geog, :name => name, :metadata => metadata, :importable_image_paths => importable_image_paths)
           end
         end
       end
@@ -41,6 +50,18 @@ module SpatialFeatures
         end.join
 
         return geom
+      end
+
+      def images_from_metadata(metadata)
+        IMAGE_METADATA_KEYS.flat_map do |key|
+          images = metadata.delete(key)
+          next unless images
+
+          Nokogiri::HTML.fragment(images).css("img").map do |img|
+            next unless (src = img["src"])
+            @base_dir.join(src.downcase)
+          end
+        end.compact
       end
 
       def extract_metadata(placemark)
