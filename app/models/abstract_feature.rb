@@ -49,8 +49,7 @@ class AbstractFeature < ActiveRecord::Base
     where(:feature_type => 'point')
   end
 
-  def self.within_distance(lat, lng, distance_in_meters)
-    # where("ST_DWithin(features.geog, ST_SetSRID( ST_Point( -71.104, 42.315), 4326)::geography, :distance)", :lat => lat, :lng => lng, :distance => distance_in_meters)
+  def self.within_distance_of_point(lat, lng, distance_in_meters)
     where("ST_DWithin(features.geog, ST_Point(:lng, :lat), :distance)", :lat => lat, :lng => lng, :distance => distance_in_meters)
   end
 
@@ -71,6 +70,10 @@ class AbstractFeature < ActiveRecord::Base
 
   def self.intersecting(other)
     join_other_features(other).where('ST_Intersects(features.geom_lowres, other_features.geom_lowres)').uniq
+  end
+
+  def self.within_distance(other, distance_in_meters)
+    join_other_features(other).where('ST_DWithin(features.geom_lowres, other_features.geom_lowres, ?)', distance_in_meters).uniq
   end
 
   def self.invalid(column = 'geog::geometry')
