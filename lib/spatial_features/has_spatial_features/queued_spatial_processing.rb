@@ -11,7 +11,22 @@ module SpatialFeatures
     end
 
     def updating_features?
-      running_feature_update_jobs.exists?
+      case spatial_processing_status(:update_features!)
+      when :queued, :processing
+        true
+      else
+        false
+      end
+    end
+
+    def updating_features_failed?
+      spatial_processing_status(:update_features!) == :failure
+    end
+
+    def spatial_processing_status(method_name)
+      if has_attribute?(:spatial_processing_status_cache)
+        spatial_processing_status_cache[method_name.to_s]&.to_sym
+      end
     end
 
     def feature_update_error
@@ -27,17 +42,58 @@ module SpatialFeatures
     end
 
     def spatial_processing_jobs(suffix = nil)
-      Delayed::Job.where('queue LIKE ?', "#{spatial_processing_queue_name}#{suffix}%")
+      Delayed::Job.where(:queue => "#{spatial_processing_queue_name}#{suffix}")
     end
 
     private
 
     def queue_spatial_task(method_name, *args)
-      delay(:queue => spatial_processing_queue_name + method_name).send(method_name, *args)
+      Delayed::Job.enqueue SpatialProcessingJob.new(self, method_name, *args), :queue => spatial_processing_queue_name + method_name
     end
 
     def spatial_processing_queue_name
-      "#{self.class}/#{self.id}/"
+      "#{model_name}/#{id}/"
+    end
+
+    # CLASSES
+
+    class SpatialProcessingJob
+      def initialize(record, method_name, *args)
+        @record = record
+        @method_name = method_name
+        @args = args
+      end
+
+      def enqueue(job)
+        update_cached_status(:queued)
+      end
+
+      def perform
+        update_cached_status(:processing)
+        @record.send(@method_name, *@args)
+      end
+
+      def success(job)
+        update_cached_status(:success)
+      end
+
+      def error(job)
+        update_cached_status(:failure)
+      end
+
+      def failure(job)
+        update_cached_status(:failure)
+      end
+
+      private
+
+      def update_cached_status(state)
+        if @record.has_attribute?(:spatial_processing_status_cache)
+          cache = @record.spatial_processing_status_cache || {}
+          cache[@method_name] = state
+          @record.update_column(:spatial_processing_status_cache, cache)
+        end
+      end
     end
   end
 end
