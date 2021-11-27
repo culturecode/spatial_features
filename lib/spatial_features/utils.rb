@@ -59,7 +59,7 @@ module SpatialFeatures
 
     # Convert a hash of GeoJSON data into a PostGIS geometry object
     def geom_from_json(geometry)
-      select_db_value("SELECT ST_GeomFromGeoJSON('#{geometry.to_json}')")
+      RGeo::GeoJSON.decode(geometry.to_json).as_text
     end
   end
 end
