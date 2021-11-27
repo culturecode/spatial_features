@@ -15,9 +15,9 @@ module SpatialFeatures
 
       def esri_json_to_geojson(url)
         if URI.parse(url).relative?
-          `ogr2ogr -f GeoJSON /dev/stdout "#{url}"` # It is a local file path
+          `ogr2ogr -t_srs EPSG:4326 -f GeoJSON /dev/stdout "#{url}"` # It is a local file path
         else
-          `ogr2ogr -f GeoJSON /dev/stdout "#{url}" OGRGeoJSON`
+          `ogr2ogr -t_srs EPSG:4326 -f GeoJSON /dev/stdout "#{url}" OGRGeoJSON`
         end
       end
     end
