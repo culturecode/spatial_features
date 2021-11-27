@@ -1,6 +1,7 @@
 # Gems
 require 'delayed_job_active_record'
 require 'rgeo/shapefile'
+require 'rgeo/geo_json'
 require 'nokogiri'
 require 'zip'
 
