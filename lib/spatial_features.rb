@@ -20,11 +20,10 @@ require 'spatial_features/has_spatial_features/feature_import'
 
 require 'spatial_features/importers/base'
 require 'spatial_features/importers/file'
-require 'spatial_features/importers/geojson'
+require 'spatial_features/importers/ogr'
 require 'spatial_features/importers/kml'
 require 'spatial_features/importers/kml_file'
 require 'spatial_features/importers/kml_file_arcgis'
-require 'spatial_features/importers/json_arcgis'
 require 'spatial_features/importers/geomark'
 require 'spatial_features/importers/shapefile'
 
