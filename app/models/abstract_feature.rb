@@ -125,7 +125,7 @@ class AbstractFeature < ActiveRecord::Base
     SQL
   end
 
-  def self.geojson(lowres: false, precision: 6, properties: true, srid: 4326, centroids: false) # default srid is 4326 so output is Google Maps compatible
+  def self.geojson(lowres: false, precision: 6, properties: true, srid: 4326, centroids: false, features_only: false, include_spatial_model: false) # default srid is 4326 so output is Google Maps compatible
     if centroids
       column = 'centroid'
     elsif lowres
@@ -134,20 +134,40 @@ class AbstractFeature < ActiveRecord::Base
       column = 'geog'
     end
 
-    properties_sql = <<~SQL if properties
-      , 'properties', hstore_to_json(metadata)
+    properties_sql = []
+
+    if include_spatial_model
+      properties_sql << "hstore(ARRAY['spatial_model_type', spatial_model_type::varchar, 'spatial_model_id', spatial_model_id::varchar])"
+    end
+
+    case properties
+    when true
+      properties_sql << "metadata"
+    when Hash
+      properties_sql << "metadata"
+      properties_sql << <<~SQL
+        hstore(ARRAY[#{properties.flatten.map {|e| "'#{e.to_s}'" }.join(',')}])
+      SQL
+    end
+
+    properties_sql = <<~SQL if properties_sql.present?
+      , 'properties', hstore_to_json(#{properties_sql.join(' || ')})
     SQL
 
     sql = <<~SQL
+      json_agg(
+        json_build_object(
+          'type', 'Feature',
+          'geometry', ST_AsGeoJSON(#{column}, #{precision})::json
+          #{properties_sql}
+        )
+      )
+    SQL
+
+    sql = <<~SQL unless features_only
       json_build_object(
         'type', 'FeatureCollection',
-        'features', json_agg(
-          json_build_object(
-            'type', 'Feature',
-            'geometry', ST_AsGeoJSON(#{column}, #{precision})::json
-            #{properties_sql}
-          )
-        )
+        'features', #{sql}
       )
     SQL
     SpatialFeatures::Utils.select_db_value(all.select(sql))
