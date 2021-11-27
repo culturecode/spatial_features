@@ -230,7 +230,7 @@ class AbstractFeature < ActiveRecord::Base
 
   def geometry_validation_message
     klass = self.class.base_class # Use the base class because we don't want to have to include a type column in our select
-    error = klass.connection.select_one(klass.unscoped.invalid.from("(SELECT '#{sanitize_input_for_sql(self.geog)}'::geometry AS geog) #{klass.table_name}"))
+    error = klass.connection.select_one(klass.unscoped.invalid.from("(SELECT '#{sanitize_input_for_sql(self.geog)}'::geography::geometry AS geog) #{klass.table_name}")) # Ensure we cast to geography because the geog attribute value may not have been coerced to geography yet, so we want it to apply the +-180/90 bounds to any odd geometry that will happen when we save to the database
     return error.fetch('invalid_geometry_message') if error
   end
 
