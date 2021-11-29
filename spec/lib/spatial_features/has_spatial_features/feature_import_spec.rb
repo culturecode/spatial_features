@@ -228,11 +228,11 @@ describe SpatialFeatures::FeatureImport do
       end
 
       it 'allows spatial caching to be run asynchronously at run time' do
-        expect { subject.update_features!(:queue_spatial_cache => true) }.to change { subject.spatial_processing_jobs.count }.by(1)
+        expect { subject.update_features!(:queue_spatial_cache => true) }.to change { subject.spatial_processing_jobs('update_spatial_cache').count }.by(1)
       end
 
       it 'allows spatial caching to be synchronously at run time' do
-        expect { subject.update_features!(:queue_spatial_cache => false) }.not_to change { subject.spatial_processing_jobs.count }
+        expect { subject.update_features!(:queue_spatial_cache => false) }.not_to change { Delayed::Job.count }
       end
     end
   end
