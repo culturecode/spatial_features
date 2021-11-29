@@ -30,6 +30,14 @@ def shapefile_without_projection
   open_fixture_file("shapefile_without_projection.zip")
 end
 
+def shapefile_with_macosx_resources
+  open_fixture_file("shapefile_with_macosx_resources.zip")
+end
+
+def shapefile_with_dot_prefix
+  open_fixture_file("shapefile_with_dot_prefix.zip")
+end
+
 def shapefile_with_upcase_shp
   open_fixture_file("shapefile_with_upcase_shp.zip")
 end
