@@ -78,6 +78,30 @@ describe SpatialFeatures::Importers::Shapefile do
           expect(subject.features).to be_present
         end
       end
+
+      context 'when the shapefile contains a __macosx folder' do
+        let(:subject) { SpatialFeatures::Importers::Shapefile.new(shapefile_with_macosx_resources) }
+
+        it_behaves_like "a well formed shapefile"
+
+        it 'does not return files inside the __macosx folder' do
+          possible_shp_files = subject.send(:possible_shp_files)
+          expect(possible_shp_files.select { |file| file.path.include?('__macosx') }).to be_empty
+          expect(possible_shp_files.length).to eq(1)
+        end
+      end
+
+      context 'when the shapefile contains files with dot prefixes' do
+        let(:subject) { SpatialFeatures::Importers::Shapefile.new(shapefile_with_dot_prefix) }
+
+        it_behaves_like "a well formed shapefile"
+
+        it 'does not return files prefixed by periods' do
+          possible_shp_files = subject.send(:possible_shp_files)
+          expect(possible_shp_files.select { |file| file.path.start_with?('.') }).to be_empty
+          expect(possible_shp_files.length).to eq(1)
+        end
+      end
     end
 
     describe '#cache_key' do
