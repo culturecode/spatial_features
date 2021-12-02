@@ -140,11 +140,14 @@ class AbstractFeature < ActiveRecord::Base
       properties_sql << "hstore(ARRAY['feature_name', name::varchar, 'feature_id', id::varchar, 'spatial_model_type', spatial_model_type::varchar, 'spatial_model_id', spatial_model_id::varchar])"
     end
 
-    case properties
-    when true
+    if properties
       properties_sql << "metadata"
-    when Hash
-      properties_sql << "metadata"
+      properties_sql << <<~SQL
+        hstore(ARRAY['feature_area', area::varchar])
+      SQL
+    end
+
+    if properties.is_a?(Hash)
       properties_sql << <<~SQL
         hstore(ARRAY[#{properties.flatten.map {|e| "'#{e.to_s}'" }.join(',')}])
       SQL
