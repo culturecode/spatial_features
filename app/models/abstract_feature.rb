@@ -125,7 +125,7 @@ class AbstractFeature < ActiveRecord::Base
     SQL
   end
 
-  def self.geojson(lowres: false, precision: 6, properties: true, srid: 4326, centroids: false, features_only: false, include_spatial_model: false) # default srid is 4326 so output is Google Maps compatible
+  def self.geojson(lowres: false, precision: 6, properties: true, srid: 4326, centroids: false, features_only: false, include_record_identifiers: false) # default srid is 4326 so output is Google Maps compatible
     if centroids
       column = 'centroid'
     elsif lowres
@@ -136,8 +136,8 @@ class AbstractFeature < ActiveRecord::Base
 
     properties_sql = []
 
-    if include_spatial_model
-      properties_sql << "hstore(ARRAY['spatial_model_type', spatial_model_type::varchar, 'spatial_model_id', spatial_model_id::varchar])"
+    if include_record_identifiers
+      properties_sql << "hstore(ARRAY['feature_name', name::varchar, 'feature_id', id::varchar, 'spatial_model_type', spatial_model_type::varchar, 'spatial_model_id', spatial_model_id::varchar])"
     end
 
     case properties
