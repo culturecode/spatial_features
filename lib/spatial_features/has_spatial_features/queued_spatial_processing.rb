@@ -77,7 +77,7 @@ module SpatialFeatures
         update_cached_status(:success)
       end
 
-      def error(job)
+      def error(job, exception)
         update_cached_status(:failure)
       end
 
