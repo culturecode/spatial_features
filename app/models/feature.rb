@@ -1,3 +1,5 @@
+require_dependency SpatialFeatures::Engine.root.join('app/models/abstract_feature')
+
 class Feature < AbstractFeature
   class_attribute :automatically_refresh_aggregate
   self.automatically_refresh_aggregate = true
