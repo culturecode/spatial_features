@@ -41,12 +41,18 @@ module SpatialFeatures
 
       def geom_from_kml(kml)
         geom = nil
+        conn = nil
 
         # Do query in a new thread so we use a new connection (if the query fails it will poison the transaction of the current connection)
+        #
+        # We manually checkout a new connection since Rails re-uses DB connections across threads.
         Thread.new do
-          geom = SpatialFeatures::Utils.select_db_value("SELECT ST_GeomFromKML(#{ActiveRecord::Base.connection.quote(kml.to_s)})")
+          conn = ActiveRecord::Base.connection_pool.checkout
+          geom = conn.select_value("SELECT ST_GeomFromKML(#{conn.quote(kml.to_s)})")
         rescue ActiveRecord::StatementInvalid => e # Discard Invalid KML features
           geom = nil
+        ensure
+          ActiveRecord::Base.connection_pool.checkin(conn) if conn
         end.join
 
         return geom
