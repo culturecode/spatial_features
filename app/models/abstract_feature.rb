@@ -125,6 +125,48 @@ class AbstractFeature < ActiveRecord::Base
     SQL
   end
 
+  def self.mvt(tile_x, tile_y, zoom, lowres: false, properties: true, centroids: false, metadata: {}, scope: nil)
+    if centroids
+      column = 'centroid::geometry'
+    elsif lowres
+      column = "geom_lowres"
+    else
+      column = 'geom'
+    end
+
+    # MVT works in SRID 3857
+    column = <<~SQL
+      ST_Transform(#{column}, 3857)
+    SQL
+
+    subquery = all
+    subquery = subquery
+                .select("ST_AsMVTGeom(#{column}, ST_TileEnvelope(#{zoom}, #{tile_x}, #{tile_y}), extent => 4096, buffer => 64) AS geom")
+                .select('id')
+                .where("#{column} && ST_TileEnvelope(#{zoom}, #{tile_x}, #{tile_y}, margin => (64.0 / 4096))")
+                .order(:id)
+
+    # Merge additional scopes in to allow joins and other columns to be included in the feature output
+    subquery = subquery.merge(scope) unless scope.nil?
+
+    # Add metadata
+    metadata.each do |column, value|
+      subquery = subquery.select("#{value} AS #{column}")
+    end
+
+    select_sql = <<~SQL
+      SELECT ST_AsMVT(mvtgeom.*, 'default', 4096, 'geom', 'id')
+      FROM (#{subquery.to_sql}) mvtgeom;
+    SQL
+
+    # Result is a hex string representing the desired binary output so we need to convert it to binary
+    result = SpatialFeatures::Utils.select_db_value(select_sql)
+    result.remove!(/^\\x/)
+    result = result.scan(/../).map(&:hex).pack('c*')
+
+    return result
+  end
+
   def self.geojson(lowres: false, precision: 6, properties: true, srid: 4326, centroids: false, features_only: false, include_record_identifiers: false) # default srid is 4326 so output is Google Maps compatible
     if centroids
       column = 'centroid'
