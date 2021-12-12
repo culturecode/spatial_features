@@ -54,8 +54,8 @@ class Feature < AbstractFeature
   end
 
   def refresh_aggregate
-    build_aggregate_feature unless aggregate_feature&.persisted?
-    aggregate_feature.refresh
+    aggregate_feature&.destroy # Destroy the existing aggregate feature to ensure its cache key changes when it is refreshed
+    create_aggregate_feature!
   end
 
   def automatically_refresh_aggregate?

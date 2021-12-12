@@ -4,7 +4,11 @@ class AggregateFeature < AbstractFeature
   has_many :features, lambda { |aggregate| where(:spatial_model_type => aggregate.spatial_model_type) }, :foreign_key => :spatial_model_id, :primary_key => :spatial_model_id
 
   # Aggregate the features for the spatial model into a single feature
-  def refresh
+  before_validation :set_geog, :on => :create, :unless => :geog?
+
+  private
+
+  def set_geog
     feature_array_sql = <<~SQL
       ARRAY[
         (#{features.select('ST_UNION(ST_CollectionExtract(geog::geometry, 1))').to_sql}),
@@ -19,6 +23,5 @@ class AggregateFeature < AbstractFeature
       FROM (SELECT unnest(#{feature_array_sql})) AS features
       WHERE NOT ST_IsEmpty(unnest)
     SQL
-    self.save!
   end
 end
