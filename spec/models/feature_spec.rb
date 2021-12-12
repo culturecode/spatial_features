@@ -89,13 +89,20 @@ describe Feature do
     end
   end
 
-  describe 'has_spatial_features' do
+  describe '::has_spatial_features' do
     it 'evaluates model without error when no database table exists' do
       eval("class NoTable < ActiveRecord::Base; end")
       klass = NoTable
 
       klass.table_name = "some_table_that_does_not_exist"
       expect(klass.has_spatial_features).to be_truthy
+    end
+  end
+
+  describe '#refresh_aggregate' do
+    it 'changes the cache key of the aggregate' do
+      create_polygon(Rectangle.new(1, 1), :spatial_model => house)
+      expect { house.features.first.refresh_aggregate }.to change { house.reload.aggregate_feature.cache_key }
     end
   end
 end
