@@ -176,8 +176,8 @@ class AbstractFeature < ActiveRecord::Base
     SpatialFeatures::Utils.select_db_value(all.select(sql))
   end
 
-  def feature_bounds
-    slice(:north, :east, :south, :west)
+  def bounds
+    slice(:north, :east, :south, :west).transform_values!(&:to_f)
   end
 
   def cache_derivatives(*args)

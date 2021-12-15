@@ -203,7 +203,7 @@ module SpatialFeatures
 
     def bounds
       if association(:aggregate_feature).loaded?
-        aggregate_feature&.feature_bounds
+        aggregate_feature&.bounds
       else
         result = aggregate_features.pluck(:north, :east, :south, :west).first
         [:north, :east, :south, :west].zip(result.map {|bound| BigDecimal(bound) }).to_h.with_indifferent_access if result
