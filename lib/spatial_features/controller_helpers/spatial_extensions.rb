@@ -12,11 +12,13 @@ module SpatialExtensions
     @nearby_records = scope_for_search(scope).within_buffer(target, distance, :distance => true, :intersection_area => true).order('distance_in_meters ASC, intersection_area_in_square_meters DESC, id ASC')
     @target = target
 
-    yield if block_given?
-
-    respond_to do |format|
-      format.html { render :template => 'shared/spatial/feature_proximity', :layout => false }
-      format.kml { render :template => 'shared/spatial/feature_proximity' }
+    if block_given?
+      block.call(@nearby_records)
+    else
+      respond_to do |format|
+        format.html { render :template => 'shared/spatial/feature_proximity', :layout => false }
+        format.kml { render :template => 'shared/spatial/feature_proximity' }
+      end
     end
   end
 
@@ -25,10 +27,12 @@ module SpatialExtensions
     @klass = klass_for_search(scope)
     @target = target
 
-    yield if block_given?
-
-    respond_to do |format|
-      format.kml { render :template => 'shared/spatial/feature_venn_polygons' }
+    if block_given?
+      block.call(@venn_polygons)
+    else
+      respond_to do |format|
+        format.kml { render :template => 'shared/spatial/feature_venn_polygons' }
+      end
     end
   end
 
