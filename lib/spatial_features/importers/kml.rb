@@ -3,6 +3,14 @@ require 'ostruct'
 module SpatialFeatures
   module Importers
     class KML < Base
+      # <SimpleData name> keys that may contain <img> tags
+      IMAGE_METADATA_KEYS = %w[pdfmaps_photos].freeze
+
+      def initialize(data, base_dir: nil, **args)
+        @base_dir = base_dir
+        super data, **args
+      end
+
       private
 
       def each_record(&block)
@@ -18,10 +26,11 @@ module SpatialFeatures
             next if blank_feature?(feature)
 
             geog = geom_from_kml(feature)
-
             next if geog.blank?
 
-            yield OpenStruct.new(:feature_type => sql_type, :geog => geog, :name => name, :metadata => metadata)
+            importable_image_paths = images_from_metadata(metadata)
+
+            yield OpenStruct.new(:feature_type => sql_type, :geog => geog, :name => name, :metadata => metadata, :importable_image_paths => importable_image_paths)
           end
         end
       end
@@ -32,15 +41,33 @@ module SpatialFeatures
 
       def geom_from_kml(kml)
         geom = nil
+        conn = nil
 
         # Do query in a new thread so we use a new connection (if the query fails it will poison the transaction of the current connection)
+        #
+        # We manually checkout a new connection since Rails re-uses DB connections across threads.
         Thread.new do
-          geom = SpatialFeatures::Utils.select_db_value("SELECT ST_GeomFromKML(#{ActiveRecord::Base.connection.quote(kml.to_s)})")
+          conn = ActiveRecord::Base.connection_pool.checkout
+          geom = conn.select_value("SELECT ST_GeomFromKML(#{conn.quote(kml.to_s)})")
         rescue ActiveRecord::StatementInvalid => e # Discard Invalid KML features
           geom = nil
+        ensure
+          ActiveRecord::Base.connection_pool.checkin(conn) if conn
         end.join
 
         return geom
+      end
+
+      def images_from_metadata(metadata)
+        IMAGE_METADATA_KEYS.flat_map do |key|
+          images = metadata.delete(key)
+          next unless images
+
+          Nokogiri::HTML.fragment(images).css("img").map do |img|
+            next unless (src = img["src"])
+            @base_dir.join(src.downcase)
+          end
+        end.compact
       end
 
       def extract_metadata(placemark)
