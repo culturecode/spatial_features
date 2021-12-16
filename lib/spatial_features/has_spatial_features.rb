@@ -68,6 +68,10 @@ module SpatialFeatures
       features.points
     end
 
+    def bounds
+      aggregate_features.bounds
+    end
+
     def features
       type = base_class.to_s # Rails stores polymorphic foreign keys as the base class
       if all == unscoped
@@ -205,8 +209,7 @@ module SpatialFeatures
       if association(:aggregate_feature).loaded?
         aggregate_feature&.bounds
       else
-        result = aggregate_features.pluck(:north, :east, :south, :west).first
-        [:north, :east, :south, :west].zip(result.map {|bound| BigDecimal(bound) }).to_h.with_indifferent_access if result
+        aggregate_features.bounds
       end
     end
 
