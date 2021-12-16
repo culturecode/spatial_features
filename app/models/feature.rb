@@ -15,6 +15,8 @@ class Feature < AbstractFeature
 
   after_save :refresh_aggregate, if: :automatically_refresh_aggregate?
 
+  attr_accessor :importable_image_paths # :nodoc:
+
   # Features are used for display so we also cache their KML representation
   def self.cache_derivatives(options = {})
     super
