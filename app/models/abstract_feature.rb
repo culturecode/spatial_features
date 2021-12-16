@@ -218,8 +218,13 @@ class AbstractFeature < ActiveRecord::Base
     SpatialFeatures::Utils.select_db_value(all.select(sql))
   end
 
+  def self.bounds
+    values = pluck('MAX(north) AS north, MAX(east) AS east, MIN(south) AS south, MIN(west) AS west').first
+    [:north, :east, :south, :west].zip(values).to_h.with_indifferent_access.transform_values!(&:to_f) if values&.compact.present?
+  end
+
   def bounds
-    slice(:north, :east, :south, :west).transform_values!(&:to_f)
+    slice(:north, :east, :south, :west).with_indifferent_access.transform_values!(&:to_f)
   end
 
   def cache_derivatives(*args)
