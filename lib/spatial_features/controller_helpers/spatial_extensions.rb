@@ -41,6 +41,12 @@ module SpatialExtensions
   end
 
   def scope_for_search(scope)
-    params.key?(:ids) ? scope.where(:id => params[:ids]) : scope
+    if params.key?(:ids)
+      ids = params[:ids]
+      ids = ids.split(/\D/) if ids.is_a?(String)
+      scope.where(:id => ids)
+    else
+      scope
+    end
   end
 end
