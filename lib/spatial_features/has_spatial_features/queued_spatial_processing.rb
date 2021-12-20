@@ -41,8 +41,8 @@ module SpatialFeatures
       spatial_processing_jobs('update_features!').where.not(failed_at: nil)
     end
 
-    def spatial_processing_jobs(suffix = nil)
-      Delayed::Job.where(:queue => "#{spatial_processing_queue_name}#{suffix}")
+    def spatial_processing_jobs(method_name = nil)
+      Delayed::Job.where('queue LIKE ?', "#{spatial_processing_queue_name}#{method_name}%")
     end
 
     private
