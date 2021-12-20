@@ -20,6 +20,7 @@ require 'spatial_features/has_spatial_features/feature_import'
 
 require 'spatial_features/importers/base'
 require 'spatial_features/importers/file'
+require 'spatial_features/importers/geo_json'
 require 'spatial_features/importers/ogr'
 require 'spatial_features/importers/kml'
 require 'spatial_features/importers/kml_file'
