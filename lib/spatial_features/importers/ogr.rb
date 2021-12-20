@@ -1,23 +1,12 @@
 require 'ostruct'
 require 'digest/md5'
+require 'spatial_features/importers/geo_json'
 
 module SpatialFeatures
   module Importers
-    class OGR < Base
-      def cache_key
-        @cache_key ||= Digest::MD5.hexdigest(geojson)
-      end
-
-      private
-
-      def each_record(&block)
-        JSON.parse(geojson)['features'].each do |record|
-          yield OpenStruct.new(
-            :feature_type => record['geometry']['type'],
-            :geog => SpatialFeatures::Utils.geom_from_json(record['geometry']),
-            :metadata => record['properties']
-          )
-        end
+    class OGR < GeoJSON
+      def parsed_geojson
+        @parsed_geojson ||= JSON.parse(geojson)
       end
 
       def geojson
