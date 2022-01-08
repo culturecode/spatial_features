@@ -44,7 +44,7 @@ module SpatialFeatures
       within_buffer(other, 0, options)
     end
 
-    def within_buffer(other, buffer_in_meters = 0, options = {})
+    def within_buffer(other, buffer_in_meters = 0, **options)
       return none if other.is_a?(ActiveRecord::Base) && other.new_record?
 
       # Cache only works on single records, not scopes.
@@ -108,17 +108,15 @@ module SpatialFeatures
 
     def cached_within_buffer_scope(other, buffer_in_meters, options)
       options = options.reverse_merge(:columns => "#{table_name}.*")
-
-      # Don't use the cache if it doesn't exist
-      unless other.class.unscoped { other.spatial_cache_for?(Utils.class_of(self), buffer_in_meters) } # Unscope so if we're checking for same class intersections the scope doesn't affect this lookup
-        return none.extending(UncachedResult)
-      end
-
       scope = cached_spatial_join(other)
       scope = scope.select(options[:columns])
       scope = scope.where("spatial_proximities.distance_in_meters <= ?", buffer_in_meters) if buffer_in_meters
       scope = scope.select("spatial_proximities.distance_in_meters") if options[:distance]
       scope = scope.select("spatial_proximities.intersection_area_in_square_meters") if options[:intersection_area]
+
+      # Don't use the cache if it doesn't exist, but make sure we keep the same select columns in case chained scopes reference them, e.g. order by
+      scope = scope.none.extending(UncachedResult) unless other.class.unscoped { other.spatial_cache_for?(Utils.class_of(self), buffer_in_meters) } # Unscope so if we're checking for same class intersections the scope doesn't affect this lookup
+
       return scope
     end
 
@@ -178,7 +176,7 @@ module SpatialFeatures
     end
 
     def features_cache_key
-      "#{self.class.name}/#{id}-#{has_spatial_features_hash? ? features_hash : aggregate_feature.cache_key}"
+      "#{self.class.name}/#{id}-#{has_spatial_features_hash? ? features_hash : (aggregate_feature || features).cache_key}"
     end
 
     def polygons?

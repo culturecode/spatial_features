@@ -11,17 +11,20 @@ module SpatialFeatures
       private
 
       def each_record(&block)
-        parsed_geojson['features'].each do |record|
+        parsed_geojson.fetch('features', []).each do |record|
+          metadata = record['properties'] || {}
+          name = metadata.delete('name')
           yield OpenStruct.new(
             :feature_type => record['geometry']['type'],
             :geog => SpatialFeatures::Utils.geom_from_json(record['geometry']),
-            :metadata => record['properties']
+            :name => name,
+            :metadata => metadata
           )
         end
       end
 
       def parsed_geojson
-        @parsed_geojson ||= @data.is_a?(String) ? JSON.parse(@data) : @data
+        @parsed_geojson ||= (@data.is_a?(String) ? JSON.parse(@data) : @data) || {}
       end
 
       def geojson
