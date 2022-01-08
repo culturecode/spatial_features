@@ -4,7 +4,7 @@ describe SpatialFeatures::Importers::GeoJSON do
   subject { SpatialFeatures::Importers::GeoJSON.new(data) }
 
   context 'when given a string of GeoJSON' do
-    let(:data) { JSON.parse(geojson_file.read) }
+    let(:data) { geojson_file.read }
 
     describe '#features' do
       it 'returns all records' do
