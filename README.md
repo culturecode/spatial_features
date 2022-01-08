@@ -30,10 +30,9 @@ Adds spatial methods to a model.
         name character varying(255),
         feature_type character varying(255),
         geog geography,
-        geom geometry(Geometry,3005),
-        geom_lowres geometry(Geometry,3005),
-        kml text,
-        kml_lowres text,
+        geom geometry(Geometry,4326),
+        geom_lowres geometry(Geometry,4326),
+        tilegeom geometry(Geometry,3857),
         metadata hstore,
         area double precision,
         north numeric(9,6),
@@ -41,7 +40,6 @@ Adds spatial methods to a model.
         south numeric(9,6),
         west numeric(9,6),
         centroid geography,
-        kml_centroid text
     );
 
     CREATE SEQUENCE features_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
@@ -53,6 +51,7 @@ Adds spatial methods to a model.
     CREATE INDEX index_features_on_spatial_model_id_and_spatial_model_type ON features USING btree (spatial_model_id, spatial_model_type);
     CREATE INDEX index_features_on_geom ON features USING gist (geom);
     CREATE INDEX index_features_on_geom_lowres ON features USING gist (geom_lowres);
+    CREATE INDEX index_features_on_tilegeom ON features USING gist (tilegeom);
 
     CREATE TABLE spatial_caches (
         id integer NOT NULL,
@@ -162,4 +161,23 @@ add_column :features, :type, :string
 Feature.reset_column_information
 AbstractFeature.update_all(:type => 'Feature')
 Feature.refresh_aggregates
+```
+
+## Upgrading From 2.8.x to 3.0
+Cached KML layers are no longer generated as Mapbox Vector Tile is the primary expected output. The columns can be left
+in place or you can remove the KML cache columns.
+
+```ruby
+remove_column :features, :kml
+remove_column :features, :kml_lowres
+remove_column :features, :kml_centroid
+```
+
+A new `tilegeom` column has been added to support MVT tile output, which is now the preferred map output format instead
+of GeoJSON or KML. It keeps memory usage low and is fast to generate.
+
+```ruby
+add_column :features, :tilegeom, :geometry
+add_index :features, :tilegeom, :using => :gist
+Feature.update_all('tilegeom = ST_Transform(geom, 3857)')
 ```

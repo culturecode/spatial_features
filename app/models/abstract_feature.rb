@@ -117,7 +117,8 @@ class AbstractFeature < ActiveRecord::Base
     SQL
 
     update_all <<-SQL.squish
-      geom_lowres  = ST_SimplifyPreserveTopology(geom, #{options.fetch(:lowres_simplification, lowres_simplification)})
+      geom_lowres  = ST_SimplifyPreserveTopology(geom, #{options.fetch(:lowres_simplification, lowres_simplification)}),
+      tilegeom     = ST_Transform(geom, 3857)
     SQL
 
     invalid('geom_lowres').update_all <<-SQL.squish
@@ -125,19 +126,12 @@ class AbstractFeature < ActiveRecord::Base
     SQL
   end
 
-  def self.mvt(tile_x, tile_y, zoom, lowres: false, properties: true, centroids: false, metadata: {}, scope: nil)
+  def self.mvt(tile_x, tile_y, zoom, properties: true, centroids: false, metadata: {}, scope: nil)
     if centroids
-      column = 'centroid::geometry'
-    elsif lowres
-      column = "geom_lowres"
+      column = 'ST_Transform(centroid::geometry, 3857)' # MVT works in SRID 3857
     else
-      column = 'geom'
+      column = 'tilegeom'
     end
-
-    # MVT works in SRID 3857
-    column = <<~SQL
-      ST_Transform(#{column}, 3857)
-    SQL
 
     subquery = all
     subquery = subquery
@@ -232,9 +226,8 @@ class AbstractFeature < ActiveRecord::Base
   end
 
   def kml(options = {})
-    geometry = options[:lowres] ? kml_lowres : super()
-    geometry = "<MultiGeometry>#{geometry}#{kml_centroid}</MultiGeometry>" if options[:centroid]
-    return geometry
+    column = options[:lowres] ? 'geom_lowres' : 'geog'
+    return SpatialFeatures::Utils.select_db_value(self.class.where(:id => id).select("ST_AsKML(#{column}, 6)"))
   end
 
   def geojson(*args)

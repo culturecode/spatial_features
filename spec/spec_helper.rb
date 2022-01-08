@@ -38,10 +38,8 @@ ActiveRecord::Schema.define(:version => 0) do
     t.column :geog, :geography
     t.column :geom, 'geometry(Geometry,26910)'
     t.column :geom_lowres, 'geometry(Geometry,26910)'
-    t.text :kml
-    t.text :kml_lowres
+    t.column :tilegeom, 'geometry(Geometry,3857)'
     t.column :centroid, :geography
-    t.text :kml_centroid
     t.decimal :north
     t.decimal :east
     t.decimal :south
