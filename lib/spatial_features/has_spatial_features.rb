@@ -204,6 +204,7 @@ module SpatialFeatures
     end
 
     def bounds
+      # Aggregate features can be very large and take a while to load. Avoid loading one just to load the bounds.
       if association(:aggregate_feature).loaded?
         aggregate_feature&.bounds
       else

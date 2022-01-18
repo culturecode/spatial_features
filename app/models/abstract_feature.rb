@@ -144,10 +144,7 @@ class AbstractFeature < ActiveRecord::Base
       column = 'tilegeom'
     end
 
-    subquery = all
-    subquery = subquery
-                .select("ST_AsMVTGeom(#{column}, ST_TileEnvelope(#{zoom}, #{tile_x}, #{tile_y}), extent => 4096, buffer => 64) AS geom")
-                .select('id')
+    subquery = select("id, ST_AsMVTGeom(#{column}, ST_TileEnvelope(#{zoom}, #{tile_x}, #{tile_y}), extent => 4096, buffer => 64) AS geom")
                 .where("#{column} && ST_TileEnvelope(#{zoom}, #{tile_x}, #{tile_y}, margin => (64.0 / 4096))")
                 .order(:id)
 
@@ -182,9 +179,6 @@ class AbstractFeature < ActiveRecord::Base
 
     if properties
       properties_sql << "metadata"
-      properties_sql << <<~SQL
-        hstore(ARRAY['feature_area', area::varchar])
-      SQL
     end
 
     if properties.is_a?(Hash)

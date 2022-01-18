@@ -117,7 +117,7 @@ def ImageImporter
 end
 
 class Location < ActiveRecord::Base
-  has_spatial_features :import => { :remote_kml_url => 'KMLFile', :file => 'File', :geojson => 'OGR' },
+  has_spatial_features :import => { :remote_kml_url => 'KMLFile', :file => 'File', :geojson => 'ESRIGeoJSON' },
                        :image_handlers => ['ImageImporter']
 
   def remote_kml_url

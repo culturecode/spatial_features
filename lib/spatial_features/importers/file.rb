@@ -34,7 +34,7 @@ module SpatialFeatures
         when '.shp'
           __setobj__(Shapefile.new(current_file, *args, **options))
         when '.json', '.geojson'
-          __setobj__(OGR.new(current_file.path, *args, **options))
+          __setobj__(ESRIGeoJSON.new(current_file.path, *args, **options))
         else
           raise ImportError, "Could not import file. " + SUPPORTED_FORMATS
         end
