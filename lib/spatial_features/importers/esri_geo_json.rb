@@ -4,7 +4,7 @@ require 'spatial_features/importers/geo_json'
 
 module SpatialFeatures
   module Importers
-    class OGR < GeoJSON
+    class ESRIGeoJSON < GeoJSON
       def parsed_geojson
         @parsed_geojson ||= JSON.parse(geojson)
       end
@@ -12,6 +12,8 @@ module SpatialFeatures
       def geojson
         @geojson ||= esri_json_to_geojson(@data)
       end
+
+      private
 
       def esri_json_to_geojson(url)
         if URI.parse(url).relative?
