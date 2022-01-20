@@ -210,6 +210,24 @@ describe SpatialFeatures::FeatureImport do
       expect { subject.update_features! }.not_to change { subject.class.count }
     end
 
+    it "wraps exceptions in SpatialFeatures::ImportError" do
+      subject = new_dummy_class(:parent => FeatureImportMock) do
+        has_spatial_features :import => { :test_kml => :KMLFile }
+      end.new
+
+      expect(subject).to receive(:import_features).once.and_raise(StandardError)
+      expect { subject.update_features! }.to raise_error(SpatialFeatures::ImportError)
+    end
+
+    it "swallows exceptions when skip_invalid is true" do
+      subject = new_dummy_class(:parent => FeatureImportMock) do
+        has_spatial_features :import => { :test_kml => :KMLFile }
+      end.new
+
+      expect(subject).to receive(:import_features).once.and_raise(StandardError)
+      expect(subject.update_features!(:skip_invalid => true)).to be_nil
+    end
+
     describe 'spatial caching' do
       let(:other_class) { new_dummy_class }
       subject do
