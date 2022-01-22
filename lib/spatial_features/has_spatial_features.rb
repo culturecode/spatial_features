@@ -15,6 +15,8 @@ module SpatialFeatures
 
         scope :with_features, lambda { joins(:features).uniq }
         scope :without_features, lambda { joins("LEFT OUTER JOIN features ON features.spatial_model_type = '#{Utils.base_class(name)}' AND features.spatial_model_id = #{table_name}.id").where("features.id IS NULL") }
+        scope :include_bounds, lambda { SQLHelpers.append_select(joins(:aggregate_feature), :north, :east, :south, :west) }
+        scope :include_area, lambda { SQLHelpers.append_select(joins(:aggregate_feature), :area) }
 
         scope :with_spatial_cache, lambda {|klass| joins(:spatial_caches).where(:spatial_caches => { :intersection_model_type =>  Utils.class_name_with_ancestors(klass) }).uniq }
         scope :without_spatial_cache, lambda {|klass| joins("LEFT OUTER JOIN #{SpatialCache.table_name} ON #{SpatialCache.table_name}.spatial_model_id = #{table_name}.id AND #{SpatialCache.table_name}.spatial_model_type = '#{Utils.base_class(name)}' and intersection_model_type IN ('#{Utils.class_name_with_ancestors(klass).join("','") }')").where("#{SpatialCache.table_name}.spatial_model_id IS NULL") }
@@ -28,6 +30,16 @@ module SpatialFeatures
       end
 
       self.spatial_features_options = self.spatial_features_options.merge(options)
+    end
+  end
+
+  module SQLHelpers
+    # Add select fields without replacing the implicit `table_name.*`
+    def self.append_select(scope, *fields)
+      if(!scope.select_values.any?)
+        fields.unshift(scope.arel_table[Arel.star])
+      end
+      scope.select(*fields)
     end
   end
 
@@ -204,12 +216,15 @@ module SpatialFeatures
     end
 
     def bounds
-      # Aggregate features can be very large and take a while to load. Avoid loading one just to load the bounds.
-      if association(:aggregate_feature).loaded?
-        aggregate_feature&.bounds
-      else
-        aggregate_features.bounds
-      end
+      @bounds ||=
+        if has_attribute?(:north) && has_attribute?(:east) && has_attribute?(:south) && has_attribute?(:west)
+          slice(:north, :east, :south, :west).with_indifferent_access.transform_values!(&:to_f)
+        elsif association(:aggregate_feature).loaded?
+          # Aggregate features can be very large and take a while to load. Avoid loading one just to load the bounds.
+          aggregate_feature&.bounds
+        else
+          aggregate_features.bounds
+        end
     end
 
     def total_intersection_area_percentage(klass)
@@ -219,11 +234,14 @@ module SpatialFeatures
     end
 
     def features_area_in_square_meters
-      if association(:aggregate_feature).loaded?
-        aggregate_feature&.area
-      else
-        aggregate_features.pluck(:area).first
-      end
+      @features_area_in_square_meters ||=
+        if has_attribute?(:area)
+          area
+        elsif association(:aggregate_feature).loaded?
+          aggregate_feature&.area
+        else
+          aggregate_features.pluck(:area).first
+        end
     end
 
     def total_intersection_area_in_square_meters(other)
