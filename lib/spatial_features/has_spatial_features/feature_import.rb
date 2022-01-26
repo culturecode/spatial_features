@@ -42,6 +42,13 @@ module SpatialFeatures
 
         return true
       end
+    rescue StandardError => e
+      if skip_invalid
+        Rails.logger.warn "Error updating #{self.class} #{self.id}. #{e.message}"
+        return nil
+      else
+        raise ImportError, e.message, e.backtrace
+      end
     end
 
     def update_features_cache_key(cache_key)
