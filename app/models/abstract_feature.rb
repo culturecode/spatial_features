@@ -144,7 +144,8 @@ class AbstractFeature < ActiveRecord::Base
       column = 'tilegeom'
     end
 
-    subquery = select("id, ST_AsMVTGeom(#{column}, ST_TileEnvelope(#{zoom}, #{tile_x}, #{tile_y}), extent => 4096, buffer => 64) AS geom")
+    subquery = select(:id)
+                .select("ST_AsMVTGeom(#{column}, ST_TileEnvelope(#{zoom}, #{tile_x}, #{tile_y}), extent => 4096, buffer => 64) AS geom")
                 .where("#{column} && ST_TileEnvelope(#{zoom}, #{tile_x}, #{tile_y}, margin => (64.0 / 4096))")
                 .order(:id)
 
