@@ -17,7 +17,7 @@ class Rectangle
     x_min = options[:x].to_f
     y_max = height + y_min
     x_max = width + x_min
-    @coordinates = "#{y_min} #{x_min}, #{y_max} #{x_min}, #{y_max} #{x_max}, #{y_min} #{x_max}, #{y_min} #{x_min}"
+    @coordinates = "#{x_min} #{y_min}, #{x_min} #{y_max}, #{x_max} #{y_max}, #{x_max} #{y_min}, #{x_min} #{y_min}"
   end
 
   def to_s
@@ -28,6 +28,7 @@ end
 def create_polygon(*args)
   polygon = build_polygon(*args)
   polygon.save!
+  polygon.reload
   return polygon
 end
 

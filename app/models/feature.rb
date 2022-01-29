@@ -17,16 +17,6 @@ class Feature < AbstractFeature
 
   attr_accessor :importable_image_paths # :nodoc:
 
-  # Features are used for display so we also cache their KML representation
-  def self.cache_derivatives(options = {})
-    super
-    update_all <<-SQL.squish
-      kml          = ST_AsKML(geog, 6),
-      kml_lowres   = ST_AsKML(geom_lowres, #{options.fetch(:lowres_precision, lowres_precision)}),
-      kml_centroid = ST_AsKML(centroid)
-    SQL
-  end
-
   def self.defer_aggregate_refresh(&block)
     start_at = Feature.maximum(:id).to_i + 1
     output = without_aggregate_refresh(&block)

@@ -5,15 +5,13 @@ module SpatialFeatures
   module Importers
     class GeoJSON < Base
       def cache_key
-        @cache_key ||= Digest::MD5.hexdigest(@data.to_json)
+        @cache_key ||= Digest::MD5.hexdigest(geojson)
       end
 
       private
 
       def each_record(&block)
-        return unless @data
-
-        @data.fetch('features', []).each do |record|
+        parsed_geojson.fetch('features', []).each do |record|
           metadata = record['properties'] || {}
           name = metadata.delete('name')
           yield OpenStruct.new(
@@ -23,6 +21,14 @@ module SpatialFeatures
             :metadata => metadata
           )
         end
+      end
+
+      def parsed_geojson
+        @parsed_geojson ||= (@data.is_a?(String) ? JSON.parse(@data) : @data) || {}
+      end
+
+      def geojson
+        @geojson ||= @data.is_a?(String) ? @data : @data.to_json
       end
     end
   end

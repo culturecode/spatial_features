@@ -117,7 +117,8 @@ class AbstractFeature < ActiveRecord::Base
     SQL
 
     update_all <<-SQL.squish
-      geom_lowres  = ST_SimplifyPreserveTopology(geom, #{options.fetch(:lowres_simplification, lowres_simplification)})
+      geom_lowres  = ST_SimplifyPreserveTopology(geom, #{options.fetch(:lowres_simplification, lowres_simplification)}),
+      tilegeom     = ST_Transform(geom, 3857)
     SQL
 
     invalid('geom_lowres').update_all <<-SQL.squish
@@ -125,7 +126,44 @@ class AbstractFeature < ActiveRecord::Base
     SQL
   end
 
-  def self.geojson(lowres: false, precision: 6, properties: true, srid: 4326, centroids: false) # default srid is 4326 so output is Google Maps compatible
+  def self.mvt(*args)
+    select_sql = mvt_sql(*args)
+
+    # Result is a hex string representing the desired binary output so we need to convert it to binary
+    result = SpatialFeatures::Utils.select_db_value(select_sql)
+    result.remove!(/^\\x/)
+    result = result.scan(/../).map(&:hex).pack('c*')
+
+    return result
+  end
+
+  def self.mvt_sql(tile_x, tile_y, zoom, properties: true, centroids: false, metadata: {}, scope: nil)
+    if centroids
+      column = 'ST_Transform(centroid::geometry, 3857)' # MVT works in SRID 3857
+    else
+      column = 'tilegeom'
+    end
+
+    subquery = select(:id)
+                .select("ST_AsMVTGeom(#{column}, ST_TileEnvelope(#{zoom}, #{tile_x}, #{tile_y}), extent => 4096, buffer => 64) AS geom")
+                .where("#{column} && ST_TileEnvelope(#{zoom}, #{tile_x}, #{tile_y}, margin => (64.0 / 4096))")
+                .order(:id)
+
+    # Merge additional scopes in to allow joins and other columns to be included in the feature output
+    subquery = subquery.merge(scope) unless scope.nil?
+
+    # Add metadata
+    metadata.each do |column, value|
+      subquery = subquery.select("#{value} AS #{column}")
+    end
+
+    select_sql = <<~SQL
+      SELECT ST_AsMVT(mvtgeom.*, 'default', 4096, 'geom', 'id') AS mvt
+      FROM (#{subquery.to_sql}) mvtgeom
+    SQL
+  end
+
+  def self.geojson(lowres: false, precision: 6, properties: true, srid: 4326, centroids: false, features_only: false, include_record_identifiers: false) # default srid is 4326 so output is Google Maps compatible
     if centroids
       column = 'centroid'
     elsif lowres
@@ -134,27 +172,52 @@ class AbstractFeature < ActiveRecord::Base
       column = 'geog'
     end
 
-    properties_sql = <<~SQL if properties
-      , 'properties', hstore_to_json(metadata)
+    properties_sql = []
+
+    if include_record_identifiers
+      properties_sql << "hstore(ARRAY['feature_name', name::varchar, 'feature_id', id::varchar, 'spatial_model_type', spatial_model_type::varchar, 'spatial_model_id', spatial_model_id::varchar])"
+    end
+
+    if properties
+      properties_sql << "metadata"
+    end
+
+    if properties.is_a?(Hash)
+      properties_sql << <<~SQL
+        hstore(ARRAY[#{properties.flatten.map {|e| "'#{e.to_s}'" }.join(',')}])
+      SQL
+    end
+
+    properties_sql = <<~SQL if properties_sql.present?
+      , 'properties', hstore_to_json(#{properties_sql.join(' || ')})
     SQL
 
     sql = <<~SQL
+      json_agg(
+        json_build_object(
+          'type', 'Feature',
+          'geometry', ST_AsGeoJSON(#{column}, #{precision})::json
+          #{properties_sql}
+        )
+      )
+    SQL
+
+    sql = <<~SQL unless features_only
       json_build_object(
         'type', 'FeatureCollection',
-        'features', json_agg(
-          json_build_object(
-            'type', 'Feature',
-            'geometry', ST_AsGeoJSON(#{column}, #{precision})::json
-            #{properties_sql}
-          )
-        )
+        'features', #{sql}
       )
     SQL
     SpatialFeatures::Utils.select_db_value(all.select(sql))
   end
 
-  def feature_bounds
-    slice(:north, :east, :south, :west)
+  def self.bounds
+    values = pluck('MAX(north) AS north, MAX(east) AS east, MIN(south) AS south, MIN(west) AS west').first
+    [:north, :east, :south, :west].zip(values).to_h.with_indifferent_access.transform_values!(&:to_f) if values&.compact.present?
+  end
+
+  def bounds
+    slice(:north, :east, :south, :west).with_indifferent_access.transform_values!(&:to_f)
   end
 
   def cache_derivatives(*args)
@@ -162,9 +225,8 @@ class AbstractFeature < ActiveRecord::Base
   end
 
   def kml(options = {})
-    geometry = options[:lowres] ? kml_lowres : super()
-    geometry = "<MultiGeometry>#{geometry}#{kml_centroid}</MultiGeometry>" if options[:centroid]
-    return geometry
+    column = options[:lowres] ? 'geom_lowres' : 'geog'
+    return SpatialFeatures::Utils.select_db_value(self.class.where(:id => id).select("ST_AsKML(#{column}, 6)"))
   end
 
   def geojson(*args)
@@ -210,7 +272,7 @@ class AbstractFeature < ActiveRecord::Base
 
   def geometry_validation_message
     klass = self.class.base_class # Use the base class because we don't want to have to include a type column in our select
-    error = klass.connection.select_one(klass.unscoped.invalid.from("(SELECT '#{sanitize_input_for_sql(self.geog)}'::geometry AS geog) #{klass.table_name}"))
+    error = klass.connection.select_one(klass.unscoped.invalid.from("(SELECT '#{sanitize_input_for_sql(self.geog)}'::geography::geometry AS geog) #{klass.table_name}")) # Ensure we cast to geography because the geog attribute value may not have been coerced to geography yet, so we want it to apply the +-180/90 bounds to any odd geometry that will happen when we save to the database
     return error.fetch('invalid_geometry_message') if error
   end
 
