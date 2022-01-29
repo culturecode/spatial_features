@@ -1,3 +1,3 @@
 module SpatialFeatures
-  VERSION = "2.20.0"
+  VERSION = "3.0.0"
 end
