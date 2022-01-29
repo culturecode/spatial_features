@@ -7,6 +7,24 @@ describe Feature do
   let(:house) { House.create }
   let(:disaster) { Disaster.create }
 
+  describe '::bounds' do
+    it 'returns the combined bounds of all features' do
+      poly1 = create_polygon(Rectangle.new(2, 1))
+      poly2 = create_polygon(Rectangle.new(1, 2))
+      poly3 = create_polygon(Rectangle.new(1, 1, :x => 1, :y => 1)) # We fill the corner space because due to translation between xy coords and our map coords, polygon is not necessarily oriented how we expect
+      poly4 = create_polygon(Rectangle.new(2, 2))
+      expect(Feature.where(:id => [poly1, poly2, poly3]).bounds).to eq(poly4.bounds)
+    end
+
+    it 'returns nil if there are no features in the scope' do
+      expect(Feature.none.bounds).to be_nil
+    end
+
+    it 'returns nil if there are no features in the subquery' do
+      expect(Feature.where(spatial_model_id: [-1]).bounds).to be_nil
+    end
+  end
+
   describe '::intersecting' do
     before do
       create_polygon(Rectangle.new(1, 1), :spatial_model => house)

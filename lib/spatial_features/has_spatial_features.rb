@@ -15,6 +15,8 @@ module SpatialFeatures
 
         scope :with_features, lambda { joins(:features).uniq }
         scope :without_features, lambda { joins("LEFT OUTER JOIN features ON features.spatial_model_type = '#{Utils.base_class(name)}' AND features.spatial_model_id = #{table_name}.id").where("features.id IS NULL") }
+        scope :include_bounds, lambda { SQLHelpers.append_select(joins(:aggregate_feature), :north, :east, :south, :west) }
+        scope :include_area, lambda { SQLHelpers.append_select(joins(:aggregate_feature), :area) }
 
         scope :with_spatial_cache, lambda {|klass| joins(:spatial_caches).where(:spatial_caches => { :intersection_model_type =>  Utils.class_name_with_ancestors(klass) }).uniq }
         scope :without_spatial_cache, lambda {|klass| joins("LEFT OUTER JOIN #{SpatialCache.table_name} ON #{SpatialCache.table_name}.spatial_model_id = #{table_name}.id AND #{SpatialCache.table_name}.spatial_model_type = '#{Utils.base_class(name)}' and intersection_model_type IN ('#{Utils.class_name_with_ancestors(klass).join("','") }')").where("#{SpatialCache.table_name}.spatial_model_id IS NULL") }
@@ -31,6 +33,16 @@ module SpatialFeatures
     end
   end
 
+  module SQLHelpers
+    # Add select fields without replacing the implicit `table_name.*`
+    def self.append_select(scope, *fields)
+      if(!scope.select_values.any?)
+        fields.unshift(scope.arel_table[Arel.star])
+      end
+      scope.select(*fields)
+    end
+  end
+
   module ClassMethods
     def acts_like_spatial_features?
       true
@@ -44,7 +56,7 @@ module SpatialFeatures
       within_buffer(other, 0, options)
     end
 
-    def within_buffer(other, buffer_in_meters = 0, options = {})
+    def within_buffer(other, buffer_in_meters = 0, **options)
       return none if other.is_a?(ActiveRecord::Base) && other.new_record?
 
       # Cache only works on single records, not scopes.
@@ -66,6 +78,10 @@ module SpatialFeatures
 
     def points
       features.points
+    end
+
+    def bounds
+      aggregate_features.bounds
     end
 
     def features
@@ -97,24 +113,22 @@ module SpatialFeatures
     end
 
     def area_in_square_meters
-      features.area
+      abstract_features.area
     end
 
     private
 
     def cached_within_buffer_scope(other, buffer_in_meters, options)
       options = options.reverse_merge(:columns => "#{table_name}.*")
-
-      # Don't use the cache if it doesn't exist
-      unless other.class.unscoped { other.spatial_cache_for?(Utils.class_of(self), buffer_in_meters) } # Unscope so if we're checking for same class intersections the scope doesn't affect this lookup
-        return none.extending(UncachedResult)
-      end
-
       scope = cached_spatial_join(other)
       scope = scope.select(options[:columns])
       scope = scope.where("spatial_proximities.distance_in_meters <= ?", buffer_in_meters) if buffer_in_meters
       scope = scope.select("spatial_proximities.distance_in_meters") if options[:distance]
       scope = scope.select("spatial_proximities.intersection_area_in_square_meters") if options[:intersection_area]
+
+      # Don't use the cache if it doesn't exist, but make sure we keep the same select columns in case chained scopes reference them, e.g. order by
+      scope = scope.none.extending(UncachedResult) unless other.class.unscoped { other.spatial_cache_for?(Utils.class_of(self), buffer_in_meters) } # Unscope so if we're checking for same class intersections the scope doesn't affect this lookup
+
       return scope
     end
 
@@ -174,7 +188,7 @@ module SpatialFeatures
     end
 
     def features_cache_key
-      "#{self.class.name}/#{id}-#{has_spatial_features_hash? ? features_hash : aggregate_feature.cache_key}"
+      "#{self.class.name}/#{id}-#{has_spatial_features_hash? ? features_hash : (aggregate_feature || features).cache_key}"
     end
 
     def polygons?
@@ -202,12 +216,15 @@ module SpatialFeatures
     end
 
     def bounds
-      if association(:aggregate_feature).loaded?
-        aggregate_feature&.feature_bounds
-      else
-        result = aggregate_features.pluck(:north, :east, :south, :west).first
-        [:north, :east, :south, :west].zip(result.map {|bound| BigDecimal(bound) }).to_h.with_indifferent_access if result
-      end
+      @bounds ||=
+        if has_attribute?(:north) && has_attribute?(:east) && has_attribute?(:south) && has_attribute?(:west)
+          slice(:north, :east, :south, :west).with_indifferent_access.transform_values!(&:to_f)
+        elsif association(:aggregate_feature).loaded?
+          # Aggregate features can be very large and take a while to load. Avoid loading one just to load the bounds.
+          aggregate_feature&.bounds
+        else
+          aggregate_features.bounds
+        end
     end
 
     def total_intersection_area_percentage(klass)
@@ -217,11 +234,14 @@ module SpatialFeatures
     end
 
     def features_area_in_square_meters
-      if association(:aggregate_feature).loaded?
-        aggregate_feature&.area
-      else
-        aggregate_features.pluck(:area).first
-      end
+      @features_area_in_square_meters ||=
+        if has_attribute?(:area)
+          area
+        elsif association(:aggregate_feature).loaded?
+          aggregate_feature&.area
+        else
+          aggregate_features.pluck(:area).first
+        end
     end
 
     def total_intersection_area_in_square_meters(other)
