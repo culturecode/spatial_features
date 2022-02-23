@@ -3,13 +3,6 @@ require 'open-uri'
 module SpatialFeatures
   module Download
     # file can be a url, path, or file, any of which can return be a zipped archive
-    def self.read(file, unzip: nil, **unzip_options)
-      file = Download.open_each(file, unzip: unzip, **unzip_options).first
-      path = ::File.path(file)
-      return ::File.read(path)
-    end
-
-    # file can be a url, path, or file, any of which can return be a zipped archive
     def self.open(file)
       file = Kernel.open(file)
       file = normalize_file(file) if file.is_a?(StringIO)

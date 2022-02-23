@@ -136,6 +136,21 @@ describe SpatialFeatures::FeatureImport do
       subject.update_features!
     end
 
+    it 'cleans up temporary files after importing' do
+      subject = new_dummy_class(:parent => FeatureImportMock) do
+        has_spatial_features :import => { :test_files => :File }
+
+        def test_files
+          [shapefile.path]
+        end
+      end.new
+
+      tmpdir = Dir.mktmpdir
+      expect(SpatialFeatures::Unzip).to receive(:extract).with(instance_of(File), :tmpdir => tmpdir, :downcase => true).and_call_original
+      expect(FileUtils).to receive(:remove_entry).with(tmpdir)
+      subject.update_features!(:tmpdir => tmpdir)
+    end
+
     it 'aggregates features if multiple sources are specified within a single importer' do
       single = new_dummy_class(:parent => FeatureImportMock) do
         has_spatial_features :import => { :test_kml => :KMLFile }
