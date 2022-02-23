@@ -1,4 +1,5 @@
 require 'digest/md5'
+require 'fileutils'
 
 module SpatialFeatures
   module FeatureImport
@@ -21,9 +22,10 @@ module SpatialFeatures
 
     def update_features!(skip_invalid: false, **options)
       options = options.reverse_merge(spatial_features_options)
+      tmpdir = options.fetch(:tmpdir) { Dir.mktmpdir("ruby_spatial_features") }
 
       ActiveRecord::Base.transaction do
-        imports = spatial_feature_imports(options[:import], options[:make_valid])
+        imports = spatial_feature_imports(options[:import], options[:make_valid], options[:tmpdir])
         cache_key = Digest::MD5.hexdigest(imports.collect(&:cache_key).join)
 
         return if features_cache_key_matches?(cache_key)
@@ -49,6 +51,8 @@ module SpatialFeatures
       else
         raise ImportError, e.message, e.backtrace
       end
+    ensure
+      FileUtils.remove_entry(tmpdir) if Dir.exist?(tmpdir)
     end
 
     def update_features_cache_key(cache_key)
@@ -73,10 +77,11 @@ module SpatialFeatures
 
     private
 
-    def spatial_feature_imports(import_options, make_valid)
+    def spatial_feature_imports(import_options, make_valid, tmpdir)
       import_options.flat_map do |data_method, importer_name|
         Array.wrap(send(data_method)).flat_map do |data|
-          spatial_importer_from_name(importer_name).create_all(data, :make_valid => make_valid) if data.present?
+          next unless data.present?
+          spatial_importer_from_name(importer_name).create_all(data, :make_valid => make_valid, :tmpdir => tmpdir)
         end
       end.compact
     end
