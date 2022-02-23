@@ -16,21 +16,19 @@ module SpatialFeatures
       return Array(paths)
     end
 
-    def self.extract(file_path, output_dir = Dir.mktmpdir, downcase: false)
+    def self.extract(file_path, tmpdir: nil, downcase: false)
+      tmpdir ||= Dir.mktmpdir
       [].tap do |paths|
         entries(file_path).each do |entry|
           next if entry.name =~ IGNORED_ENTRY_PATHS
           output_filename = entry.name
           output_filename = output_filename.downcase if downcase
-          path = "#{output_dir}/#{output_filename}"
+          path = "#{tmpdir}/#{output_filename}"
           FileUtils.mkdir_p(File.dirname(path))
           entry.extract(path)
           paths << path
         end
       end
-    rescue => e
-      FileUtils.remove_entry(output_dir)
-      raise(e)
     end
 
     def self.names(file_path)
