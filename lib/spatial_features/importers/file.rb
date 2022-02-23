@@ -8,7 +8,7 @@ module SpatialFeatures
 
       FILE_PATTERNS = [/\.kml$/, /\.shp$/, /\.json$/, /\.geojson$/]
       def self.create_all(data, **options)
-        Download.open_each(data, unzip: FILE_PATTERNS, downcase: true).map do |file|
+        Download.open_each(data, unzip: FILE_PATTERNS, downcase: true, tmpdir: options[:tmpdir]).map do |file|
           new(data, **options, current_file: file)
         end
       rescue Unzip::PathNotFound
@@ -23,7 +23,7 @@ module SpatialFeatures
       # If no `current_file` is passed then we just take the first valid file that we find.
       def initialize(data, *args, current_file: nil, **options)
         begin
-          current_file ||= Download.open_each(data, unzip: FILE_PATTERNS, downcase: true).first
+          current_file ||= Download.open_each(data, unzip: FILE_PATTERNS, downcase: true, tmpdir: options[:tmpdir]).first
         rescue Unzip::PathNotFound
           raise ImportError, INVALID_ARCHIVE
         end
