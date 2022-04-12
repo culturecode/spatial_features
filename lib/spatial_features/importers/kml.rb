@@ -15,7 +15,7 @@ module SpatialFeatures
 
       def each_record(&block)
         {'Polygon' => 'POLYGON', 'LineString' => 'LINE', 'Point' => 'POINT'}.each do |kml_type, sql_type|
-          Nokogiri::XML(@data).css(kml_type).each do |feature|
+          kml_document.css(kml_type).each do |feature|
             if placemark = feature.ancestors('Placemark').first
               name = placemark.css('name').text
               metadata = extract_metadata(placemark)
@@ -32,6 +32,14 @@ module SpatialFeatures
 
             yield OpenStruct.new(:feature_type => sql_type, :geog => geog, :name => name, :metadata => metadata, :importable_image_paths => importable_image_paths)
           end
+        end
+      end
+
+      def kml_document
+        @kml_document ||= begin
+          doc = Nokogiri::XML(@data)
+          raise ImportError, "Invalid KML document (root node was '#{doc.root&.name}')" unless doc.root&.name.to_s.casecmp?('kml')
+          doc
         end
       end
 

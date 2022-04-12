@@ -106,4 +106,24 @@ describe SpatialFeatures::Importers::KML do
       end
     end
   end
+
+  context 'when the input is xml but not kml' do
+    let(:data) { "<html><body>hi</body></html>" }
+
+    describe '#features' do
+      it 'raises an exception' do
+        expect { subject.features }.to raise_exception(SpatialFeatures::ImportError)
+      end
+    end
+  end
+
+  context 'when the input is invalid' do
+    let(:data) { "oops" }
+
+    describe '#features' do
+      it 'raises an exception' do
+        expect { subject.features }.to raise_exception(SpatialFeatures::ImportError)
+      end
+    end
+  end
 end
