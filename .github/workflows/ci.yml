@@ -11,11 +11,15 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        ruby-version: ["2.6", "2.7", "3.0"]
+        ruby-version: ["2.6", "2.7", "3.0", "3.1"]
         gemfile: ["rails_6_0", "rails_6_1", "rails_7_0"]
         exclude:
           - ruby-version: "2.6"
             gemfile: "rails_7_0"
+          - ruby-version: "3.1"
+            gemfile: "rails_6_0"
+          - ruby-version: "3.1"
+            gemfile: "rails_6_1"
       fail-fast: false
 
     env:
