@@ -11,8 +11,19 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        ruby-version: ["2.6", "2.7"]
+        ruby-version: ["2.6", "2.7", "3.0"]
+        gemfile: ["rails_6_0", "rails_6_1", "rails_7_0"]
+        exclude:
+          - ruby-version: "2.6"
+            gemfile: "rails_7_0"
       fail-fast: false
+
+    env:
+      BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/${{ matrix.gemfile }}.gemfile
+      BUNDLE_PATH_RELATIVE_TO_CWD: true
+      RAILS_ENV: test
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
 
     services:
       postgres:
@@ -49,8 +60,4 @@ jobs:
           cache-version: 3
 
       - name: Run tests
-        env:
-          RAILS_ENV: test
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
         run: bundle exec rspec
