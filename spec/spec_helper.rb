@@ -2,7 +2,7 @@
 require 'rails'
 require 'active_record'
 require 'spatial_features'
-require 'pry'
+require 'pry-byebug'
 
 Rails.logger = Logger.new(STDOUT)
 
