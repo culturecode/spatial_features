@@ -56,7 +56,7 @@ module SpatialFeatures
       within_buffer(other, 0, options)
     end
 
-    def within_buffer(other, buffer_in_meters = 0, **options)
+    def within_buffer(other, buffer_in_meters = 0, options = {})
       return none if other.is_a?(ActiveRecord::Base) && other.new_record?
 
       # Cache only works on single records, not scopes.

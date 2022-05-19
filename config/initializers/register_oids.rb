@@ -1,8 +1,12 @@
 module PostGISTypes
   def initialize_type_map(m = type_map)
     super
-    register_class_with_limit m, 'geometry', ActiveRecord::ConnectionAdapters::PostgreSQLAdapter::OID::SpecializedString
-    register_class_with_limit m, 'geography', ActiveRecord::ConnectionAdapters::PostgreSQLAdapter::OID::SpecializedString
+    %w[
+      geography
+      geometry
+    ].each do |geo_type|
+      m.register_type geo_type, ActiveRecord::ConnectionAdapters::PostgreSQLAdapter::OID::SpecializedString.new(geo_type.to_sym)
+    end
   end
 end
 

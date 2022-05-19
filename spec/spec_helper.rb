@@ -26,10 +26,8 @@ Dir["#{File.dirname(__FILE__)}/../config/initializers/**/*.rb"].each { |f| requi
 NAME_COLUMN_LIMIT = 100
 
 ActiveRecord::Schema.define(:version => 0) do
-  execute("
-    CREATE EXTENSION IF NOT EXISTS hstore SCHEMA public;
-    CREATE EXTENSION IF NOT EXISTS postgis SCHEMA public;
-  ")
+  enable_extension 'hstore'
+  enable_extension 'postgis'
 
   create_table :features, :force => true do |t|
     t.references :spatial_model, :polymorphic => true, :index => true
