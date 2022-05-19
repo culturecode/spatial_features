@@ -347,13 +347,13 @@ describe SpatialFeatures do
           house = House.create(:features => [create_polygon(Rectangle.new(1, 1))])
           allow_any_instance_of(SpatialCache).to receive(:stale?).and_return(true)
 
-          expect(House.within_buffer(house, options)).to be_a(SpatialFeatures::UncachedResult)
+          expect(House.within_buffer(house, 0, options)).to be_a(SpatialFeatures::UncachedResult)
         end
 
         it 'includes requested columns in uncached scope' do
           house = House.create(:features => [create_polygon(Rectangle.new(1, 1))])
           allow_any_instance_of(SpatialCache).to receive(:stale?).and_return(true)
-          scope = House.within_buffer(house, options)
+          scope = House.within_buffer(house, 0, options)
 
           if options[:distance]
             expect { scope.order_by(:distance_in_meters) }.not_to raise_exception
@@ -366,7 +366,7 @@ describe SpatialFeatures do
           house = House.create(:features => [create_polygon(Rectangle.new(1, 1))])
           house.spatial_caches.destroy_all
 
-          expect(House.within_buffer(house, options)).to be_a(SpatialFeatures::UncachedResult)
+          expect(House.within_buffer(house, 0, options)).to be_a(SpatialFeatures::UncachedResult)
         end
 
         it 'returns no results when uncached and used as a nested query' do
@@ -374,7 +374,7 @@ describe SpatialFeatures do
           house = House.create(:features => [create_polygon(Rectangle.new(1, 1))])
           house.spatial_caches.destroy_all
 
-          expect(House.where(:id => House.within_buffer(house, options).unscope(:select))).to be_empty
+          expect(House.where(:id => House.within_buffer(house, 0, options).unscope(:select))).to be_empty
         end
       end
     end
