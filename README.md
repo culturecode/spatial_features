@@ -181,3 +181,18 @@ add_column :features, :tilegeom, :geometry
 add_index :features, :tilegeom, :using => :gist
 Feature.update_all('tilegeom = ST_Transform(geom, 3857)')
 ```
+
+## Testing
+
+Create a postgres database:
+```bash
+createdb spatial_features_test
+```
+
+There are multiple gemfiles available for testing against different Rails versions.  Set `BUNDLE_GEMFILE` to target them, e.g.
+
+```bash
+bundle install
+BUNDLE_GEMFILE=gemfiles/rails_7_0.gemfile bundle install
+BUNDLE_GEMFILE=gemfiles/rails_7_0.gemfile bundle exec rspec
+```
