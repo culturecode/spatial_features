@@ -9,3 +9,4 @@ test/dummy/.sass-cache
 *.gem
 .DS_Store
 Gemfile.lock
+*.gemfile.lock
