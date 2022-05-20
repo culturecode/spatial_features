@@ -126,8 +126,8 @@ class AbstractFeature < ActiveRecord::Base
     SQL
   end
 
-  def self.mvt(*args)
-    select_sql = mvt_sql(*args)
+  def self.mvt(*args, **kwargs)
+    select_sql = mvt_sql(*args, **kwargs)
 
     # Result is a hex string representing the desired binary output so we need to convert it to binary
     result = SpatialFeatures::Utils.select_db_value(select_sql)
