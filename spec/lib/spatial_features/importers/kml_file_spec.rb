@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe SpatialFeatures::Importers::KML do
+describe SpatialFeatures::Importers::KMLFile do
   shared_examples_for 'kml importer' do |data|
     subject { SpatialFeatures::Importers::KMLFile.new(data) }
 

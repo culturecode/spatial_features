@@ -4,14 +4,14 @@ module SpatialFeatures
   module Download
     # file can be a url, path, or file, any of which can return be a zipped archive
     def self.open(file)
-      file = Kernel.open(file)
+      file = URI.open(file)
       file = normalize_file(file) if file.is_a?(StringIO)
       return file
     end
 
     # file can be a url, path, or file, any of which can return be a zipped archive
-    def self.open_each(file, unzip: nil, **unzip_options)
-      file = Download.open(file)
+    def self.open_each(path_or_url, unzip: nil, **unzip_options)
+      file = Download.open(path_or_url)
       files = if unzip && Unzip.is_zip?(file)
         find_in_zip(file, find: unzip, **unzip_options)
       else

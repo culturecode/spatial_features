@@ -1,8 +1,8 @@
 module SpatialFeatures
   module Importers
     class Geomark < KMLFile
-      def initialize(geomark, *args)
-        super geomark_url(geomark), *args
+      def initialize(geomark, **options)
+        super geomark_url(geomark), **options
       end
 
       private

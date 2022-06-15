@@ -118,6 +118,20 @@ describe SpatialFeatures::FeatureImport do
       subject.update_features!
     end
 
+    it 'imports arcgis urls' do
+      subject = new_dummy_class(:parent => FeatureImportMock) do
+        has_spatial_features :import => { :arcgis_kmz_url => 'KMLFileArcGIS' }
+
+        def arcgis_kmz_url
+          "http://jack:6080/arcgis"
+        end
+      end.new
+
+      allow(SpatialFeatures::Download).to receive(:open).and_return(Kernel.open(kmz_file))
+      expect(SpatialFeatures::Importers::KMLFileArcGIS).to receive(:new).once.and_call_original
+      subject.update_features!
+    end
+
     it 'unzips the shapefile and passes it to the shapefile importer' do
       subject = new_dummy_class(:parent => FeatureImportMock) do
         has_spatial_features :import => { :test_files => :File }

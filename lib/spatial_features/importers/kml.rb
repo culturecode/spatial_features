@@ -6,9 +6,9 @@ module SpatialFeatures
       # <SimpleData name> keys that may contain <img> tags
       IMAGE_METADATA_KEYS = %w[pdfmaps_photos].freeze
 
-      def initialize(data, base_dir: nil, **args)
+      def initialize(data, base_dir: nil, **options)
         @base_dir = base_dir
-        super data, **args
+        super data, **options
       end
 
       private

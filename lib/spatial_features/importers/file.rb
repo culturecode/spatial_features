@@ -21,7 +21,7 @@ module SpatialFeatures
       # processed.
       #
       # If no `current_file` is passed then we just take the first valid file that we find.
-      def initialize(data, *args, current_file: nil, **options)
+      def initialize(data, current_file: nil, **options)
         begin
           current_file ||= Download.open_each(data, unzip: FILE_PATTERNS, downcase: true, tmpdir: options[:tmpdir]).first
         rescue Unzip::PathNotFound
@@ -30,11 +30,11 @@ module SpatialFeatures
 
         case ::File.extname(current_file.path.downcase)
         when '.kml'
-          __setobj__(KMLFile.new(current_file, *args, **options))
+          __setobj__(KMLFile.new(current_file, **options))
         when '.shp'
-          __setobj__(Shapefile.new(current_file, *args, **options))
+          __setobj__(Shapefile.new(current_file, **options))
         when '.json', '.geojson'
-          __setobj__(ESRIGeoJSON.new(current_file.path, *args, **options))
+          __setobj__(ESRIGeoJSON.new(current_file.path, **options))
         else
           raise ImportError, "Could not import file. " + SUPPORTED_FORMATS
         end
