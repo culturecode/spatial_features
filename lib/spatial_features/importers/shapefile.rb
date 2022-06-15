@@ -6,7 +6,7 @@ module SpatialFeatures
     class Shapefile < Base
       class_attribute :default_proj4_projection
 
-      def initialize(data, *args, proj4: nil, **options)
+      def initialize(data, proj4: nil, **options)
         super(data, **options)
         @proj4 = proj4
       end
