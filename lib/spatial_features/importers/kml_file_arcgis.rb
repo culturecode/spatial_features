@@ -3,7 +3,7 @@ require 'ostruct'
 module SpatialFeatures
   module Importers
     class KMLFileArcGIS < KMLFile
-      def initialize(data, *args)
+      def initialize(data, **options)
         super
 
       rescue SocketError, Errno::ECONNREFUSED
