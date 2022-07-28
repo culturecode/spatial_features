@@ -69,11 +69,11 @@ class AbstractFeature < ActiveRecord::Base
   end
 
   def self.intersecting(other)
-    join_other_features(other).where('ST_Intersects(features.geom_lowres, other_features.geom_lowres)').uniq
+    join_other_features(other).where('ST_Intersects(features.geom_lowres, other_features.geom_lowres)').distinct
   end
 
   def self.within_distance(other, distance_in_meters)
-    join_other_features(other).where('ST_DWithin(features.geom_lowres, other_features.geom_lowres, ?)', distance_in_meters).uniq
+    join_other_features(other).where('ST_DWithin(features.geom_lowres, other_features.geom_lowres, ?)', distance_in_meters).distinct
   end
 
   def self.invalid(column = 'geog::geometry')
