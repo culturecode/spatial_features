@@ -56,7 +56,7 @@ module SpatialFeatures
     # Instantiate objects to hold the kml and records for each venn polygon
     polygons.group_by{|row| row['kml']}.collect do |kml, rows|
       # Uniq on row id in case a single record had self intersecting multi geometry, which would cause it to appear duplicated on a single venn polygon
-      records = rows.uniq{|row| row.values_at('id', 'type') }.collect{|row| eager_load_hash.fetch(row['type']).detect{|record| record.id == row['id'].to_i } }
+      records = rows.uniq {|row| row.values_at('id', 'type') }.collect{|row| eager_load_hash.fetch(row['type']).detect{|record| record.id == row['id'].to_i } }
       OpenStruct.new(:kml => kml, :records => records)
     end
   end
