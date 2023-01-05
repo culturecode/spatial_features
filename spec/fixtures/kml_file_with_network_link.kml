@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/kml/2.2 ogckml22.xsd">
+
+   <Folder>
+  <name>Traplines of British Columbia</name>
+  <open>1</open>
+  <description/>
+  <LookAt>
+   <longitude>-124.2007623466872</longitude>
+   <latitude>54.24685760366558</latitude>
+   <altitude>0</altitude>
+   <heading>0.7179969377242983</heading>
+   <tilt>0</tilt>
+   <range>1651407.948731373</range>
+   <gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+  </LookAt>
+  <Style>
+   <ListStyle>
+    <listItemType>check</listItemType>
+    <bgColor>00ffffff</bgColor>
+    <maxSnippetLines>2</maxSnippetLines>
+   </ListStyle>
+  </Style>
+    <NetworkLink>
+
+        <name>Trapline_Boundaries</name>
+            <LookAt>
+     <longitude>-124.2007623466872</longitude>
+     <latitude>54.24685760366558</latitude>
+     <altitude>0</altitude>
+     <heading>0.7179969377242983</heading>
+     <tilt>0</tilt>
+     <range>1651407.948731373</range>
+     <gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+    </LookAt>
+        <visibility>0</visibility>
+        <snippet></snippet>
+        <description><![CDATA[<img src='https://openmaps.gov.bc.ca/geo/pub/wms?service=wms&version=1.1.1&request=GetLegendGraphic&layer=pub:WHSE_WILDLIFE_MANAGEMENT.WAA_TRAPLINE_AREAS_SP&style=2983_2984&format=image/png'><br>
+    
+    ]]></description>
+
+           <styleUrl>#noDirections</styleUrl>
+        <Style>
+            <ListStyle>
+                <listItemType>check</listItemType>
+                <bgColor>00ffffff</bgColor>
+                <maxSnippetLines>2</maxSnippetLines>
+            </ListStyle>
+        </Style>
+        
+        <Link>
+            <href>https://openmaps.gov.bc.ca/geo/pub/wms?SERVICE=WMS&amp;VERSION=1.1.1&amp;REQUEST=GetMap&amp;SRS=EPSG:4326&amp;LAYERS=pub:WHSE_WILDLIFE_MANAGEMENT.WAA_TRAPLINE_AREAS_SP&amp;STYLES=2983_2984&amp;FORMAT=application/vnd.google-earth.kml+xml&amp;TRANSPARENT=TRUE&amp;maxFeatures=200&amp;format_options=KMATTR:true;KMSCORE:25;MODE:refresh;SUPEROVERLAY:false&amp;</href>
+            <viewRefreshMode>onStop</viewRefreshMode>
+            <viewRefreshTime>2</viewRefreshTime>
+            <viewFormat>bbox=[bboxWest],[bboxSouth],[bboxEast],[bboxNorth]&amp;WIDTH=[horizPixels]&amp;HEIGHT=[vertPixels]</viewFormat>
+        </Link>
+  
+      
+    </NetworkLink>
+    <NetworkLink>
+
+        <name>Trapline_Boundaries_Outlined</name>
+            <LookAt>
+     <longitude>-124.2007623466872</longitude>
+     <latitude>54.24685760366558</latitude>
+     <altitude>0</altitude>
+     <heading>0.7179969377242983</heading>
+     <tilt>0</tilt>
+     <range>1651407.948731373</range>
+     <gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+    </LookAt>
+        <visibility>0</visibility>
+        <snippet></snippet>
+        <description><![CDATA[<img src='https://openmaps.gov.bc.ca/geo/pub/wms?service=wms&version=1.1.1&request=GetLegendGraphic&layer=pub:WHSE_WILDLIFE_MANAGEMENT.WAA_TRAPLINE_AREAS_SP&style=2983&format=image/png'><br>
+    
+    ]]></description>
+
+           <styleUrl>#noDirections</styleUrl>
+        <Style>
+            <ListStyle>
+                <listItemType>check</listItemType>
+                <bgColor>00ffffff</bgColor>
+                <maxSnippetLines>2</maxSnippetLines>
+            </ListStyle>
+        </Style>
+        
+        <Link>
+            <href>https://openmaps.gov.bc.ca/geo/pub/wms?SERVICE=WMS&amp;VERSION=1.1.1&amp;REQUEST=GetMap&amp;SRS=EPSG:4326&amp;LAYERS=pub:WHSE_WILDLIFE_MANAGEMENT.WAA_TRAPLINE_AREAS_SP&amp;STYLES=2983&amp;FORMAT=application/vnd.google-earth.kml+xml&amp;TRANSPARENT=TRUE&amp;maxFeatures=200&amp;format_options=KMATTR:true;KMSCORE:25;MODE:refresh;SUPEROVERLAY:false&amp;</href>
+            <viewRefreshMode>onStop</viewRefreshMode>
+            <viewRefreshTime>2</viewRefreshTime>
+            <viewFormat>bbox=[bboxWest],[bboxSouth],[bboxEast],[bboxNorth]&amp;WIDTH=[horizPixels]&amp;HEIGHT=[vertPixels]</viewFormat>
+        </Link>
+  
+      
+    </NetworkLink>
+    <NetworkLink>
+
+        <name>Trapline_Boundaries_Colour_Filled</name>
+            <LookAt>
+     <longitude>-124.2007623466872</longitude>
+     <latitude>54.24685760366558</latitude>
+     <altitude>0</altitude>
+     <heading>0.7179969377242983</heading>
+     <tilt>0</tilt>
+     <range>1651407.948731373</range>
+     <gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+    </LookAt>
+        <visibility>0</visibility>
+        <snippet></snippet>
+        <description><![CDATA[<img src='https://openmaps.gov.bc.ca/geo/pub/wms?service=wms&version=1.1.1&request=GetLegendGraphic&layer=pub:WHSE_WILDLIFE_MANAGEMENT.WAA_TRAPLINE_AREAS_SP&style=2984&format=image/png'><br>
+    
+    ]]></description>
+
+           <styleUrl>#noDirections</styleUrl>
+        <Style>
+            <ListStyle>
+                <listItemType>check</listItemType>
+                <bgColor>00ffffff</bgColor>
+                <maxSnippetLines>2</maxSnippetLines>
+            </ListStyle>
+        </Style>
+        
+        <Link>
+            <href>https://openmaps.gov.bc.ca/geo/pub/wms?SERVICE=WMS&amp;VERSION=1.1.1&amp;REQUEST=GetMap&amp;SRS=EPSG:4326&amp;LAYERS=pub:WHSE_WILDLIFE_MANAGEMENT.WAA_TRAPLINE_AREAS_SP&amp;STYLES=2984&amp;FORMAT=application/vnd.google-earth.kml+xml&amp;TRANSPARENT=TRUE&amp;maxFeatures=200&amp;format_options=KMATTR:true;KMSCORE:25;MODE:refresh;SUPEROVERLAY:false&amp;</href>
+            <viewRefreshMode>onStop</viewRefreshMode>
+            <viewRefreshTime>2</viewRefreshTime>
+            <viewFormat>bbox=[bboxWest],[bboxSouth],[bboxEast],[bboxNorth]&amp;WIDTH=[horizPixels]&amp;HEIGHT=[vertPixels]</viewFormat>
+        </Link>
+  
+      
+    </NetworkLink>
+</Folder>
+</kml>
