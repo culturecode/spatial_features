@@ -39,6 +39,7 @@ module SpatialFeatures
         @kml_document ||= begin
           doc = Nokogiri::XML(@data)
           raise ImportError, "Invalid KML document (root node was '#{doc.root&.name}')" unless doc.root&.name.to_s.casecmp?('kml')
+          raise ImportError, "NetworkLink elements are not supported" unless doc.search('NetworkLink').empty?
           doc
         end
       end

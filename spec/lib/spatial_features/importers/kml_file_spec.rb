@@ -67,6 +67,15 @@ describe SpatialFeatures::Importers::KMLFile do
     end
   end
 
+  shared_examples_for 'kml importer with unimportable file' do |data|
+    subject { SpatialFeatures::Importers::KMLFile.new(data) }
+
+    describe '#features' do
+      it 'raises an exception' do
+        expect { subject.features }.to raise_exception(SpatialFeatures::ImportError)
+      end
+    end
+  end
 
   context 'when given a path to a KML file' do
     it_behaves_like 'kml importer', kml_file.path
@@ -86,5 +95,9 @@ describe SpatialFeatures::Importers::KMLFile do
 
   context 'when given KMZ file with an invalid placemark' do
     it_behaves_like 'kml importer with an invalid placemark', kml_file_with_invalid_placemark
+  end
+
+  context 'when given KML with a NetworkLink' do
+    it_behaves_like 'kml importer with unimportable file', kml_file_with_network_link
   end
 end
