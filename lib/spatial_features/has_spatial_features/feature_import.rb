@@ -41,9 +41,9 @@ module SpatialFeatures
             update_spatial_cache(options.slice(:spatial_cache))
           end
         end
-
-        return true
       end
+
+      return true
     rescue StandardError => e
       if skip_invalid
         Rails.logger.warn "Error updating #{self.class} #{self.id}. #{e.message}"
