@@ -20,7 +20,7 @@ module SpatialFeatures
 
         scope :with_spatial_cache, lambda {|klass| joins(:spatial_caches).where(:spatial_caches => { :intersection_model_type =>  Utils.class_name_with_ancestors(klass) }).distinct }
         scope :without_spatial_cache, lambda {|klass| joins("LEFT OUTER JOIN #{SpatialCache.table_name} ON #{SpatialCache.table_name}.spatial_model_id = #{table_name}.id AND #{SpatialCache.table_name}.spatial_model_type = '#{Utils.base_class(name)}' and intersection_model_type IN ('#{Utils.class_name_with_ancestors(klass).join("','") }')").where("#{SpatialCache.table_name}.spatial_model_id IS NULL") }
-        scope :with_stale_spatial_cache, lambda { joins(:spatial_caches).where("#{table_name}.features_hash != spatial_caches.features_hash").distinct } if has_spatial_features_hash?
+        scope :with_stale_spatial_cache, lambda { has_spatial_features_hash? ? joins(:spatial_caches).where("#{table_name}.features_hash != spatial_caches.features_hash").distinct : none }
 
         has_many :spatial_caches, :as => :spatial_model, :dependent => :delete_all, :class_name => 'SpatialCache'
         has_many :model_a_spatial_proximities, :as => :model_a, :class_name => 'SpatialProximity', :dependent => :delete_all
