@@ -228,9 +228,12 @@ module SpatialFeatures
     end
 
     def total_intersection_area_percentage(klass)
-      return 0.0 unless features_area_in_square_meters > 0
+      total_area = features_area_in_square_meters
 
-      ((total_intersection_area_in_square_meters(klass) / features_area_in_square_meters) * 100).round(1)
+      return if total_area.nil?
+      return 0.0 if total_area.zero?
+
+      ((total_intersection_area_in_square_meters(klass) / total_area) * 100).round(1)
     end
 
     def features_area_in_square_meters
