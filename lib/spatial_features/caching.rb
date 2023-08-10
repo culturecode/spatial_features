@@ -84,11 +84,13 @@ module SpatialFeatures
     results.each do |id, distance, area|
       klass_record.id = id
       SpatialProximity.create! do |proximity|
+        # Always make the spatial model earliest type and id be model a so we can optimize queries
+        data = [[Utils.base_class(record).to_s, record.id], [Utils.base_class(klass_record).to_s, klass_record.id]]
+        data.sort!
+
         # Set id and type instead of model to avoid autosaving the klass_record
-        proximity.model_a_id = record.id
-        proximity.model_a_type = Utils.base_class(record)
-        proximity.model_b_id = klass_record.id
-        proximity.model_b_type = Utils.base_class(klass_record)
+        proximity.model_a_type, proximity.model_a_id = data.first
+        proximity.model_b_type, proximity.model_b_id = data.second
         proximity.distance_in_meters = distance
         proximity.intersection_area_in_square_meters = area
       end
