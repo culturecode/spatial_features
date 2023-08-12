@@ -136,10 +136,8 @@ module SpatialFeatures
       other_class = Utils.base_class_of(other)
       self_class = Utils.base_class_of(self)
 
-      joins <<~SQL
-        INNER JOIN spatial_proximities
-        ON (spatial_proximities.model_a_type = '#{self_class}' AND spatial_proximities.model_a_id = #{table_name}.id AND spatial_proximities.model_b_type = '#{other_class}' AND spatial_proximities.model_b_id IN (#{Utils.id_sql(other)}))
-        OR (spatial_proximities.model_b_type = '#{self_class}' AND spatial_proximities.model_b_id = #{table_name}.id AND spatial_proximities.model_a_type = '#{other_class}' AND spatial_proximities.model_a_id IN (#{Utils.id_sql(other)}))
+      joins "INNER JOIN spatial_proximities ON " + SpatialProximity.condition_sql(self, other, <<~SQL.squish)
+        (spatial_proximities.model_a_type = '#{self_class}' AND spatial_proximities.model_a_id = #{table_name}.id AND spatial_proximities.model_b_type = '#{other_class}' AND spatial_proximities.model_b_id IN (#{Utils.id_sql(other)}))
       SQL
     end
 
