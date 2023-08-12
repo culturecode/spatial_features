@@ -182,6 +182,14 @@ add_index :features, :tilegeom, :using => :gist
 Feature.update_all('tilegeom = ST_Transform(geom, 3857)')
 ```
 
+## Upgrading From 3.0/3.1 to 3.2
+SpatialProximity now expects the `model_a` and `model_b` records to be decided based on the name of the record type so
+queries can be optimized. Migrate existing SpatialProximity rows to this new scheme by running the code below.
+
+```ruby
+SpatialProximity.normalize
+```
+
 ## Testing
 
 Create a postgres database:
