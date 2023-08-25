@@ -77,12 +77,26 @@ describe SpatialFeatures::Importers::KMLFile do
     end
   end
 
+  shared_examples_for 'kml importer without any features' do |data|
+    subject { SpatialFeatures::Importers::KMLFile.new(data) }
+
+    describe '#features' do
+      it 'has no valid records' do
+        expect(subject.features.count).to eq(0)
+      end
+    end
+  end
+
   context 'when given a path to a KML file' do
     it_behaves_like 'kml importer', kml_file.path
   end
 
   context 'when given KML file' do
     it_behaves_like 'kml importer', kml_file
+  end
+
+  context 'when given KML file without features' do
+    it_behaves_like 'kml importer without any features', kml_file_without_features
   end
 
   context 'when given KMZ file' do
