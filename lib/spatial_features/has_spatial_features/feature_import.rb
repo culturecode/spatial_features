@@ -13,14 +13,14 @@ module SpatialFeatures
     end
 
     module ClassMethods
-      def update_features!(skip_invalid: false, **options)
+      def update_features!(skip_invalid: false, allow_blank: false, **options)
         find_each do |record|
-          record.update_features!(skip_invalid: skip_invalid, **options)
+          record.update_features!(skip_invalid: skip_invalid, allow_blank: allow_blank, **options)
         end
       end
     end
 
-    def update_features!(skip_invalid: false, **options)
+    def update_features!(skip_invalid: false, allow_blank: false, **options)
       options = options.reverse_merge(spatial_features_options)
       tmpdir = options.fetch(:tmpdir) { Dir.mktmpdir("ruby_spatial_features") }
 
@@ -31,7 +31,7 @@ module SpatialFeatures
         return if features_cache_key_matches?(cache_key)
 
         run_callbacks :update_features do
-          import_features(imports, skip_invalid)
+          features = import_features(imports, skip_invalid)
           update_features_cache_key(cache_key)
           update_features_area
 
@@ -40,11 +40,17 @@ module SpatialFeatures
           else
             update_spatial_cache(options.slice(:spatial_cache))
           end
+
+          if imports.present? && features.compact_blank.empty? && !allow_blank
+            raise EmptyImportError, "No spatial features were found when updating"
+          end
         end
       end
 
       return true
     rescue StandardError => e
+      raise e if e.is_a?(EmptyImportError)
+
       if skip_invalid
         Rails.logger.warn "Error updating #{self.class} #{self.id}. #{e.message}"
         return nil
