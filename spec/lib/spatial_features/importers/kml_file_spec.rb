@@ -89,6 +89,10 @@ describe SpatialFeatures::Importers::KMLFile do
     it_behaves_like 'kml importer', kmz_file
   end
 
+  context 'when given KML file with invalid altitude' do
+    it_behaves_like 'kml importer', kml_file_with_invalid_altitude
+  end
+
   context 'when given KMZ file with features but no placemarks' do
     it_behaves_like 'kml importer without placemarks', kmz_file_features_without_placemarks
   end

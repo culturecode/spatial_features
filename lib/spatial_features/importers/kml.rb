@@ -6,6 +6,12 @@ module SpatialFeatures
       # <SimpleData name> keys that may contain <img> tags
       IMAGE_METADATA_KEYS = %w[pdfmaps_photos].freeze
 
+      # matches a coordinate pair with an optional altitude, including invalid altitudes like NaN
+      #   -118.1,50.9,NaN
+      #   -118.1,50.9,0
+      #   -118.1,50.9
+      COORDINATES_WITH_ALTITUDE = /((-?\d+\.\d+,-?\d+\.\d+)(,-?[a-zA-Z\d\.]+))/.freeze
+
       def initialize(data, base_dir: nil, **options)
         @base_dir = base_dir
         super data, **options
@@ -51,6 +57,8 @@ module SpatialFeatures
       def geom_from_kml(kml)
         geom = nil
         conn = nil
+
+        strip_altitude(kml)
 
         # Do query in a new thread so we use a new connection (if the query fails it will poison the transaction of the current connection)
         #
@@ -105,6 +113,13 @@ module SpatialFeatures
           end
         end
         return metadata
+      end
+
+      def strip_altitude(kml)
+        kml.css('coordinates').each do |coordinates|
+          next unless COORDINATES_WITH_ALTITUDE.match?(coordinates.content)
+          coordinates.content = coordinates.content.gsub(COORDINATES_WITH_ALTITUDE, '\2')
+        end
       end
     end
   end
