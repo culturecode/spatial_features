@@ -26,6 +26,10 @@ def kml_file_with_invalid_altitude
   open_fixture_file("kml_file_with_invalid_altitude.kml")
 end
 
+def kml_file_without_features
+  open_fixture_file("kml_file_without_features.kml")
+end
+
 def geojson_file
   open_fixture_file("geo.json")
 end
