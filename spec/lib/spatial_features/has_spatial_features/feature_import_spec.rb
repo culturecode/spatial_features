@@ -257,6 +257,32 @@ describe SpatialFeatures::FeatureImport do
       expect(subject.update_features!(:skip_invalid => true)).to be_nil
     end
 
+    context "when no valid features are found" do
+      it "raises an exception when allow_blank=false" do
+        subject = new_dummy_class(:parent => FeatureImportMock) do
+          has_spatial_features :import => { :test_kml => :KMLFile }
+
+          def test_kml
+            "#{__dir__}/../../../../spec/fixtures/kml_file_without_features.kml"
+          end
+        end.new
+
+        expect { subject.update_features!(:allow_blank => false) }.to raise_error(SpatialFeatures::EmptyImportError)
+      end
+
+      it "does not raise an exception when allow_blank=true" do
+        subject = new_dummy_class(:parent => FeatureImportMock) do
+          has_spatial_features :import => { :test_kml => :KMLFile }
+
+          def test_kml
+            "#{__dir__}/../../../../spec/fixtures/kml_file_without_features.kml"
+          end
+        end.new
+
+        expect(subject.update_features!(:allow_blank => true)).to be_truthy
+      end
+    end
+
     describe 'spatial caching' do
       let(:other_class) { new_dummy_class }
       subject do
