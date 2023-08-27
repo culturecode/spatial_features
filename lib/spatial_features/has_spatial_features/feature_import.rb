@@ -54,6 +54,10 @@ module SpatialFeatures
       if skip_invalid
         Rails.logger.warn "Error updating #{self.class} #{self.id}. #{e.message}"
         return nil
+      elsif ENCODING_ERROR.match?(e.message)
+        raise ImportEncodingError,
+              "One or more features you are trying to import has text encoded in an un-supported format (#{e.message})",
+              e.backtrace
       else
         raise ImportError, e.message, e.backtrace
       end
@@ -150,6 +154,8 @@ module SpatialFeatures
       has_spatial_features_hash? && cache_key == features_hash
     end
   end
+
+  ENCODING_ERROR = /invalid byte sequence/i.freeze
 
   class ImportError < StandardError; end
 end
