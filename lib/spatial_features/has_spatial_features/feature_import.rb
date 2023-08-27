@@ -143,7 +143,7 @@ module SpatialFeatures
         raise ImportError, "Error updating #{self.class} #{self.id}. #{errors.to_sentence}"
       end
 
-      return features
+      valid
     end
 
     def features_cache_key_matches?(cache_key)

@@ -1,3 +1,7 @@
+def fixture_file_path(path)
+  "#{SpatialFeatures::Engine.root}/spec/fixtures/#{path}"
+end
+
 def open_fixture_file(path)
   File.open("#{SpatialFeatures::Engine.root}/spec/fixtures/#{path}")
 end
