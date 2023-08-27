@@ -56,5 +56,5 @@ module SpatialFeatures
   # EXCEPTIONS
 
   class ImportError < StandardError; end
-  class EmptyImportError < StandardError; end
+  class EmptyImportError < ImportError; end
 end
