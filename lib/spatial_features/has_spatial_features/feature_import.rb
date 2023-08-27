@@ -156,6 +156,4 @@ module SpatialFeatures
   end
 
   ENCODING_ERROR = /invalid byte sequence/i.freeze
-
-  class ImportError < StandardError; end
 end
