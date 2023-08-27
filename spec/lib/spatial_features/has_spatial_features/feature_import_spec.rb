@@ -6,11 +6,11 @@ describe SpatialFeatures::FeatureImport do
     has_spatial_features
 
     def test_kml
-      "#{__dir__}/../../../../spec/fixtures/test.kml"
+      fixture_file_path("test.kml")
     end
 
     def test_kmz
-      "#{__dir__}/../../../../spec/fixtures/test.kmz"
+      fixture_file_path("test.kmz")
     end
   end
 
@@ -188,7 +188,7 @@ describe SpatialFeatures::FeatureImport do
         has_spatial_features :import => { :test_kml => :KMLFile }
 
         def test_kml
-          "#{__dir__}/../../../../spec/fixtures/long_placemark_name.kml"
+          fixture_file_path("long_placemark_name.kml")
         end
       end.new
 
@@ -263,7 +263,7 @@ describe SpatialFeatures::FeatureImport do
           has_spatial_features :import => { :test_kml => :KMLFile }
 
           def test_kml
-            "#{__dir__}/../../../../spec/fixtures/kml_file_without_features.kml"
+            fixture_file_path("kml_file_without_features.kml")
           end
         end.new
 
@@ -275,7 +275,7 @@ describe SpatialFeatures::FeatureImport do
           has_spatial_features :import => { :test_kml => :KMLFile }
 
           def test_kml
-            "#{__dir__}/../../../../spec/fixtures/kml_file_without_features.kml"
+            fixture_file_path("kml_file_without_features.kml")
           end
         end.new
 
@@ -319,7 +319,7 @@ describe SpatialFeatures::FeatureImport do
           has_spatial_features :import => { :test_kml => :KMLFile }, :image_handlers => [:ImageHandlerMock]
 
           def test_kml
-            "#{__dir__}/../../../../spec/fixtures/kmz_with_images.kmz"
+            fixture_file_path("kmz_with_images.kmz")
           end
         end.create
       end
