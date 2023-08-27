@@ -281,6 +281,20 @@ describe SpatialFeatures::FeatureImport do
 
         expect(subject.update_features!(:allow_blank => true)).to be_truthy
       end
+
+      it "does not raise an exception when already persisted and associations are reset during save" do
+        subject = new_dummy_class(:parent => FeatureImportMock) do
+          has_spatial_features :import => { :test_kml => :KMLFile }
+
+          attr_accessor :test_kml
+        end.create
+
+        expect(subject).to be_persisted
+
+        subject.test_kml = fixture_file_path("test.kml")
+        expect(subject.update_features!(:allow_blank => false)).to be_truthy
+        expect(subject.reload.features).not_to be_empty
+      end
     end
 
     describe 'spatial caching' do
