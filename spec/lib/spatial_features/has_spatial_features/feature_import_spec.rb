@@ -6,11 +6,11 @@ describe SpatialFeatures::FeatureImport do
     has_spatial_features
 
     def test_kml
-      "#{__dir__}/../../../../spec/fixtures/test.kml"
+      fixture_file_path("test.kml")
     end
 
     def test_kmz
-      "#{__dir__}/../../../../spec/fixtures/test.kmz"
+      fixture_file_path("test.kmz")
     end
   end
 
@@ -188,7 +188,7 @@ describe SpatialFeatures::FeatureImport do
         has_spatial_features :import => { :test_kml => :KMLFile }
 
         def test_kml
-          "#{__dir__}/../../../../spec/fixtures/long_placemark_name.kml"
+          fixture_file_path("long_placemark_name.kml")
         end
       end.new
 
@@ -263,7 +263,7 @@ describe SpatialFeatures::FeatureImport do
           has_spatial_features :import => { :test_kml => :KMLFile }
 
           def test_kml
-            "#{__dir__}/../../../../spec/fixtures/kml_file_without_features.kml"
+            fixture_file_path("kml_file_without_features.kml")
           end
         end.new
 
@@ -275,11 +275,25 @@ describe SpatialFeatures::FeatureImport do
           has_spatial_features :import => { :test_kml => :KMLFile }
 
           def test_kml
-            "#{__dir__}/../../../../spec/fixtures/kml_file_without_features.kml"
+            fixture_file_path("kml_file_without_features.kml")
           end
         end.new
 
         expect(subject.update_features!(:allow_blank => true)).to be_truthy
+      end
+
+      it "does not raise an exception when already persisted and associations are reset during save" do
+        subject = new_dummy_class(:parent => FeatureImportMock) do
+          has_spatial_features :import => { :test_kml => :KMLFile }
+
+          attr_accessor :test_kml
+        end.create
+
+        expect(subject).to be_persisted
+
+        subject.test_kml = fixture_file_path("test.kml")
+        expect(subject.update_features!(:allow_blank => false)).to be_truthy
+        expect(subject.reload.features).not_to be_empty
       end
     end
 
@@ -319,7 +333,7 @@ describe SpatialFeatures::FeatureImport do
           has_spatial_features :import => { :test_kml => :KMLFile }, :image_handlers => [:ImageHandlerMock]
 
           def test_kml
-            "#{__dir__}/../../../../spec/fixtures/kmz_with_images.kmz"
+            fixture_file_path("kmz_with_images.kmz")
           end
         end.create
       end
