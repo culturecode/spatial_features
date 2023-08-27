@@ -104,6 +104,20 @@ describe SpatialFeatures::FeatureImport do
       subject.update_features!
     end
 
+    it 're-raises encoding errors has ImportEncodingError' do
+      allow_any_instance_of(Feature).to receive(:save).and_raise(ArgumentError.new("invalid byte sequence in UTF-8"))
+
+      subject = new_dummy_class(:parent => FeatureImportMock) do
+        has_spatial_features :import => { :test_files => :Shapefile }
+
+        def test_files
+          [shapefile]
+        end
+      end.new
+
+      expect { subject.update_features! }.to raise_error(SpatialFeatures::ImportEncodingError)
+    end
+
     it 'passes multiple kmls from the zipped archive to the kml importer' do
       subject = new_dummy_class(:parent => FeatureImportMock) do
         has_spatial_features :import => { :test_files => :File }
