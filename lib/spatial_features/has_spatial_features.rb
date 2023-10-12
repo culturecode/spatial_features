@@ -236,8 +236,10 @@ module SpatialFeatures
 
     def features_area_in_square_meters
       @features_area_in_square_meters ||=
-        if has_attribute?(:area)
+        if has_attribute?(:area) # Calculated area column
           area
+        elsif has_attribute?(:features_area) # Cached area column
+          features_area
         elsif association(:aggregate_feature).loaded?
           aggregate_feature&.area
         else
