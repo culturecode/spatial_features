@@ -49,8 +49,14 @@ class AbstractFeature < ActiveRecord::Base
     where(:feature_type => 'point')
   end
 
-  def self.within_distance_of_point(lat, lng, distance_in_meters)
-    where("ST_DWithin(features.geog, ST_Point(:lng, :lat), :distance)", :lat => lat, :lng => lng, :distance => distance_in_meters)
+  def self.within_distance_of_point(lat, lng, distance_in_meters, geom = 'geom_lowres')
+    point_sql =
+      case geom.to_s
+      when 'geog' then 'ST_Point(:lng, :lat)'
+      else "ST_Transform(ST_SetSRID(ST_Point(:lng, :lat), 4326), #{detect_srid(geom)})"
+      end
+
+    where("ST_DWithin(features.#{geom}, #{point_sql}, :distance)", :lat => lat, :lng => lng, :distance => distance_in_meters)
   end
 
   def self.area_in_square_meters(geom = 'geom_lowres')
@@ -248,7 +254,7 @@ class AbstractFeature < ActiveRecord::Base
     self.geog = SpatialFeatures::Utils.select_db_value("SELECT ST_Force2D('#{geog}')")
   end
 
-  SRID_CACHE = {}
+  SRID_CACHE = HashWithIndifferentAccess.new
   def self.detect_srid(column_name)
     SRID_CACHE[column_name] ||= SpatialFeatures::Utils.select_db_value("SELECT Find_SRID('public', '#{table_name}', '#{column_name}')")
   end
