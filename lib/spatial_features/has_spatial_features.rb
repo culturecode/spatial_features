@@ -235,16 +235,10 @@ module SpatialFeatures
     end
 
     def features_area_in_square_meters
-      @features_area_in_square_meters ||=
-        if has_attribute?(:area) # Calculated area column
-          area
-        elsif has_attribute?(:features_area) # Cached area column
-          features_area
-        elsif association(:aggregate_feature).loaded?
-          aggregate_feature&.area
-        else
-          aggregate_features.pluck(:area).first
-        end
+      @features_area_in_square_meters ||= area if has_attribute?(:area) # Calculated area column
+      @features_area_in_square_meters ||= features_area if has_attribute?(:features_area) # Cached area column
+      @features_area_in_square_meters ||= aggregate_feature&.area if association(:aggregate_feature).loaded?
+      @features_area_in_square_meters ||= aggregate_features.pluck(:area).first
     end
 
     def total_intersection_area_in_square_meters(other)
