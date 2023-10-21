@@ -8,42 +8,42 @@ describe SpatialFeatures::Importers::File do
       let(:options) { { :some => 'option' } }
 
       it 'detects kml file urls' do
-        expect(SpatialFeatures::Importers::KMLFile).to receive(:new).once.with(any_args, **options)
+        expect(SpatialFeatures::Importers::KMLFile).to receive(:new).once.with(any_args, hash_including(options))
         subject.new(kml_file.path, **options)
       end
 
       it 'detects kmz file urls' do
-        expect(SpatialFeatures::Importers::KMLFile).to receive(:new).once.with(any_args, **options)
+        expect(SpatialFeatures::Importers::KMLFile).to receive(:new).once.with(any_args, hash_including(options))
         subject.new(kmz_file.path, **options)
       end
 
       it 'detects zipped shapefile file urls' do
-        expect(SpatialFeatures::Importers::Shapefile).to receive(:new).once.with(any_args, **options)
+        expect(SpatialFeatures::Importers::Shapefile).to receive(:new).once.with(any_args, hash_including(options))
         subject.new(shapefile.path, **options)
       end
 
       it 'detects kml files' do
-        expect(SpatialFeatures::Importers::KMLFile).to receive(:new).once.with(any_args, **options)
+        expect(SpatialFeatures::Importers::KMLFile).to receive(:new).once.with(any_args, hash_including(options))
         subject.new(kmz_file, **options)
       end
 
       it 'detects kmz files' do
-        expect(SpatialFeatures::Importers::KMLFile).to receive(:new).once.with(any_args, **options)
+        expect(SpatialFeatures::Importers::KMLFile).to receive(:new).once.with(any_args, hash_including(options))
         subject.new(kmz_file, **options)
       end
 
       it 'detects zipped shape files' do
-        expect(SpatialFeatures::Importers::Shapefile).to receive(:new).once.with(any_args, **options)
+        expect(SpatialFeatures::Importers::Shapefile).to receive(:new).once.with(any_args, hash_including(options))
         subject.new(shapefile, **options)
       end
 
       it 'detects zip archive with multiple shapefiles' do
-        expect(SpatialFeatures::Importers::Shapefile).to receive(:new).once.with(any_args, **options)
+        expect(SpatialFeatures::Importers::Shapefile).to receive(:new).once.with(any_args, hash_including(options))
         subject.new(archive_with_multiple_shps, **options)
       end
 
       it 'detects zip archive with multiple kml files' do
-        expect(SpatialFeatures::Importers::KMLFile).to receive(:new).once.with(any_args, **options)
+        expect(SpatialFeatures::Importers::KMLFile).to receive(:new).once.with(any_args, hash_including(options))
         subject.new(archive_with_multiple_kmls, **options)
       end
     end
@@ -73,28 +73,74 @@ describe SpatialFeatures::Importers::File do
         expect { subject.new(archive_without_any_known_file) }.to raise_exception(SpatialFeatures::ImportError)
       end
     end
+  end
 
-    describe '::create_all' do
-      subject { SpatialFeatures::Importers::File }
+  describe '::create_all' do
+    subject { SpatialFeatures::Importers::File }
 
-      it "handles kml file urls" do
+    context 'when given a kml file url' do
+      let(:url) { kml_file.path }
+
+      it "imports each file" do
         expect(SpatialFeatures::Importers::KMLFile).to receive(:new).once
-        subject.create_all(kml_file.path)
+        subject.create_all(url)
       end
 
-      it 'handles zipped shapefile file urls' do
+      it 'sets different source identifiers for features from each file' do
+        importers = subject.create_all(url)
+        expect(importers.flat_map(&:features).map(&:source_identifier).uniq)
+          .to contain_exactly('test.kml')
+      end
+    end
+
+    context 'when given a shapefile file url' do
+      let(:url) { shapefile.path }
+
+      it "imports each file" do
         expect(SpatialFeatures::Importers::Shapefile).to receive(:new).once
-        subject.create_all(shapefile.path)
+        subject.create_all(url)
       end
 
-      it "imports multiple shapefiles from a zipped archive" do
+      it 'sets different source identifiers for features from each file' do
+        importers = subject.create_all(url)
+        expect(importers.flat_map(&:features).map(&:source_identifier).uniq)
+          .to contain_exactly('shapefile.zip/firstnationreserves.shp')
+      end
+    end
+
+    context 'when given a zip archive with multiple shapefiles' do
+      let(:file) { archive_with_multiple_shps }
+
+      it "imports each file" do
         expect(SpatialFeatures::Importers::Shapefile).to receive(:new).twice
-        subject.create_all(archive_with_multiple_shps)
+        subject.create_all(file)
       end
 
-      it "imports multiple shapefiles from a zipped archive" do
+      it 'sets different source identifiers for features from each file' do
+        importers = subject.create_all(file)
+        expect(importers.flat_map(&:features).map(&:source_identifier).uniq)
+          .to contain_exactly(
+            'archive_with_multiple_shps.zip/crims_alcids_treatyareas.shp',
+            'archive_with_multiple_shps.zip/crims_bald_eagles_3n_24june2021.shp'
+          )
+      end
+    end
+
+    context 'when given a zip archive with multiple kml files' do
+      let(:file) { archive_with_multiple_kmls }
+
+      it "imports each file" do
         expect(SpatialFeatures::Importers::KMLFile).to receive(:new).twice
-        subject.create_all(archive_with_multiple_kmls)
+        subject.create_all(file)
+      end
+
+      it 'sets different source identifiers for features from each file' do
+        importers = subject.create_all(file)
+        expect(importers.flat_map(&:features).map(&:source_identifier).uniq)
+          .to contain_exactly(
+            'archive_with_multiple_kmls.zip/kml_sample_a.kml',
+            'archive_with_multiple_kmls.zip/kml_sample_b.kml'
+          )
       end
     end
   end
