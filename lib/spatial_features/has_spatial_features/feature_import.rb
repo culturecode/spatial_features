@@ -13,14 +13,14 @@ module SpatialFeatures
     end
 
     module ClassMethods
-      def update_features!(skip_invalid: false, allow_blank: false, **options)
+      def update_features!(**options)
         find_each do |record|
-          record.update_features!(skip_invalid: skip_invalid, allow_blank: allow_blank, **options)
+          record.update_features!(**options)
         end
       end
     end
 
-    def update_features!(skip_invalid: false, allow_blank: false, **options)
+    def update_features!(skip_invalid: false, allow_blank: false, force: false, **options)
       options = options.reverse_merge(spatial_features_options)
       tmpdir = options.fetch(:tmpdir) { Dir.mktmpdir("ruby_spatial_features") }
 
@@ -28,7 +28,7 @@ module SpatialFeatures
         imports = spatial_feature_imports(options[:import], options[:make_valid], options[:tmpdir])
         cache_key = Digest::MD5.hexdigest(imports.collect(&:cache_key).join)
 
-        return if features_cache_key_matches?(cache_key)
+        return if !force && features_cache_key_matches?(cache_key)
 
         run_callbacks :update_features do
           features = import_features(imports, skip_invalid)

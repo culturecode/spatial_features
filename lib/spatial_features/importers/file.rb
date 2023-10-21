@@ -23,21 +23,38 @@ module SpatialFeatures
       # If no `current_file` is passed then we just take the first valid file that we find.
       def initialize(data, current_file: nil, **options)
         begin
-          current_file ||= Download.open_each(data, unzip: FILE_PATTERNS, downcase: true, tmpdir: options[:tmpdir]).first
+          @current_file = current_file || Download.open_each(data, unzip: FILE_PATTERNS, downcase: true, tmpdir: options[:tmpdir]).first
         rescue Unzip::PathNotFound
           raise ImportError, INVALID_ARCHIVE
         end
 
-        case ::File.extname(current_file.path.downcase)
-        when '.kml'
-          __setobj__(KMLFile.new(current_file, **options))
-        when '.shp'
-          __setobj__(Shapefile.new(current_file, **options))
-        when '.json', '.geojson'
-          __setobj__(ESRIGeoJSON.new(current_file.path, **options))
+        case ::File.extname(data).downcase
+        when '.kmz' # KMZ always has a single kml in it, so no need to show mention it
+          options[:source_identifier] = ::File.basename(data)
         else
-          raise ImportError, "Could not import file. " + SUPPORTED_FORMATS
+          options[:source_identifier] = [::File.basename(data), ::File.basename(@current_file.path)].uniq.join('/')
         end
+
+        case ::File.extname(filename)
+        when '.kml'
+          __setobj__(KMLFile.new(@current_file, **options))
+        when '.shp'
+          __setobj__(Shapefile.new(@current_file, **options))
+        when '.json', '.geojson'
+          __setobj__(ESRIGeoJSON.new(@current_file.path, **options))
+        else
+          import_error
+        end
+      end
+
+      private
+
+      def import_error!
+        raise ImportError, "Could not import #{filename}. " + SUPPORTED_FORMATS
+      end
+
+      def filename
+        @filename ||= @current_file.path.downcase
       end
     end
   end

@@ -190,6 +190,16 @@ queries can be optimized. Migrate existing SpatialProximity rows to this new sch
 SpatialProximity.normalize
 ```
 
+## Upgrading From 3.2/3.3 to 3.4
+Features now record the source they were imported from in the new `source_identifier` column. This column is indexed and
+can be used filter features by source.
+
+```ruby
+add_column :features, :source_identifier, :string
+add_index :features, :source_identifier
+MyModel.update_features!(:force => true) # Force an `update_features!` will populate the source_identifier column.
+```
+
 ## Testing
 
 Create a postgres database:
