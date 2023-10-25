@@ -37,6 +37,10 @@ class AbstractFeature < ActiveRecord::Base
     end
   end
 
+  def self.metadata_keys
+    unscope(:select, :order, :includes).distinct.pluck('skeys(metadata)')
+  end
+
   def self.polygons
     where(:feature_type => 'polygon')
   end
