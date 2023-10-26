@@ -142,7 +142,7 @@ class AbstractFeature < ActiveRecord::Base
     # Result is a hex string representing the desired binary output so we need to convert it to binary
     result = SpatialFeatures::Utils.select_db_value(select_sql)
     result.remove!(/^\\x/)
-    result = result.scan(/../).map(&:hex).pack('c*')
+    result = [result].pack('H*')
 
     return result
   end
