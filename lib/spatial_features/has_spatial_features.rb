@@ -186,7 +186,16 @@ module SpatialFeatures
     end
 
     def features_cache_key
-      "#{self.class.name}/#{id}-#{has_spatial_features_hash? ? features_hash : (aggregate_feature || features).cache_key}"
+      fck =
+        if has_spatial_features_hash?
+          features_hash
+        elsif association(:aggregate_feature).loaded?
+          aggregate_feature.cache_key
+        else
+          aggregate_features.cache_key
+        end
+
+      "#{self.class.name}/#{id}-#{fck}"
     end
 
     def polygons?
