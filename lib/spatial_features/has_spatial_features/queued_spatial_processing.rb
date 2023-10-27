@@ -47,8 +47,8 @@ module SpatialFeatures
 
     private
 
-    def queue_spatial_task(method_name, *args)
-      Delayed::Job.enqueue SpatialProcessingJob.new(self, method_name, *args), :queue => spatial_processing_queue_name + method_name
+    def queue_spatial_task(method_name, *args, priority: 1, **kwargs)
+      Delayed::Job.enqueue SpatialProcessingJob.new(self, method_name, *args, **kwargs), :queue => spatial_processing_queue_name + method_name, :priority => priority
     end
 
     def spatial_processing_queue_name
