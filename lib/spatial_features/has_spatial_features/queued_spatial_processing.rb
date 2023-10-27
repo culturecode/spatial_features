@@ -70,7 +70,8 @@ module SpatialFeatures
 
       def perform
         update_cached_status(:processing)
-        @record.send(@method_name, *@args)
+        options = @args.extract_options!
+        @record.send(@method_name, *@args, **options)
       end
 
       def success(job)
