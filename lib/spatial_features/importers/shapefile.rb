@@ -6,6 +6,9 @@ module SpatialFeatures
     class Shapefile < Base
       class_attribute :default_proj4_projection
 
+      FEATURE_TYPE_FOR_DIMENSION = { 0 => 'point', 1 => 'line', 2 => 'polygon' }.freeze
+      PROJ4_4326 = '+proj=longlat +datum=WGS84 +no_defs'.freeze
+
       def initialize(data, proj4: nil, **options)
         super(data, **options)
         @proj4 = proj4
@@ -31,9 +34,11 @@ module SpatialFeatures
       end
 
       def each_record(&block)
-        RGeo::Shapefile::Reader.open(file.path) do |records|
+        RGeo::Shapefile::Reader.open(file_path) do |records|
+          proj4 = proj4_projection unless proj4_projection == PROJ4_4326
           records.each do |record|
-            yield OpenStruct.new data_from_wkt(record.geometry.as_text, proj4_projection).merge(:metadata => record.attributes) if record.geometry.present?
+            next unless record.geometry.present?
+            yield OpenStruct.new data_from_record(record, proj4)
           end
         end
       rescue Errno::ENOENT => e
@@ -45,26 +50,51 @@ module SpatialFeatures
         end
       end
 
+      def data_from_record(record, proj4 = nil)
+        geometry = record.geometry
+        wkt = geometry.as_text
+        data = { :metadata => record.attributes, feature_type: FEATURE_TYPE_FOR_DIMENSION.fetch(geometry.dimension) }
+
+        if proj4
+          data[:geog] = ActiveRecord::Base.connection.select_value <<-SQL
+            SELECT ST_Transform(ST_GeomFromText('#{wkt}'), '#{proj4}', 4326) AS geog
+          SQL
+        else
+          data[:geog] = wkt
+        end
+
+        return data
+      end
+
       def proj4_projection
-        @proj4 ||= proj4_from_file || default_proj4_projection || raise(IndeterminateShapefileProjection, 'Could not determine shapefile projection. Check that `gdalsrsinfo` is installed.')
+        @proj4 ||= proj4_from_file(file_path) || default_proj4_projection || raise(IndeterminateShapefileProjection, 'Could not determine shapefile projection. Check that `gdalsrsinfo` is installed.')
       end
 
-      def proj4_from_file
-        # Sanitize: "'+proj=utm +zone=11 +datum=NAD83 +units=m +no_defs '\n" and lately
-        #           "+proj=utm +zone=11 +datum=NAD83 +units=m +no_defs \n" to
-        #           "+proj=utm +zone=11 +datum=NAD83 +units=m +no_defs"
-        `gdalsrsinfo "#{file.path}" -o proj4`.strip.remove(/^'|'$/).presence
-      end
-
-      def data_from_wkt(wkt, proj4)
-        ActiveRecord::Base.connection.select_one <<-SQL
-          SELECT ST_Transform(ST_GeomFromText('#{wkt}'), '#{proj4}', 4326) AS geog, GeometryType(ST_GeomFromText('#{wkt}')) AS feature_type
-        SQL
+      def validate_shapefile!
+        Validation.validate_shapefile!(::File.open(file_path), default_proj4_projection: default_proj4_projection)
       end
 
       # the individual SHP file for processing (automatically extracted from a ZIP archive if necessary)
-      def file
-        @file ||= Unzip.is_zip?(archive) ? possible_shp_files.first : archive
+      def file_path
+        @file_path ||= begin
+          file = Unzip.is_zip?(archive) ? possible_shp_files.first : archive
+          project_to_4326(file.path) || file.path # Fall back to unprojected geometry if projection fails
+        end
+      end
+
+      # Use OGR2OGR to reproject into EPSG:4326 so we can skip the reprojection step per-feature
+      def project_to_4326(file_path)
+        output_path = Tempfile.create([::File.basename(file_path, '.shp') + '_epsg_4326_', '.shp']) { |file| file.path }
+        return unless (proj4 = proj4_from_file(file_path))
+        return unless system("ogr2ogr -s_srs '#{proj4}' -t_srs EPSG:4326 #{output_path} #{file_path}")
+        return output_path
+      end
+
+      def proj4_from_file(file_path)
+        # Sanitize: "'+proj=utm +zone=11 +datum=NAD83 +units=m +no_defs '\n" and lately
+        #           "+proj=utm +zone=11 +datum=NAD83 +units=m +no_defs \n" to
+        #           "+proj=utm +zone=11 +datum=NAD83 +units=m +no_defs"
+        `gdalsrsinfo "#{file_path}" -o proj4`.strip.remove(/^'|'$/).presence
       end
 
       # a zip archive may contain multiple SHP files
@@ -74,10 +104,6 @@ module SpatialFeatures
         rescue Unzip::PathNotFound
           raise ::SpatialFeatures::Importers::IncompleteShapefileArchive, "Shapefile archive is missing a SHP file"
         end
-      end
-
-      def validate_shapefile!
-        Validation.validate_shapefile!(file, default_proj4_projection: default_proj4_projection)
       end
 
       def archive

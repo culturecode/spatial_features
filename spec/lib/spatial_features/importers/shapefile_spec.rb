@@ -52,8 +52,8 @@ describe SpatialFeatures::Importers::Shapefile do
       context 'when the shapefile is missing a DBF file' do
         let(:subject) { SpatialFeatures::Importers::Shapefile.new(shapefile_with_missing_dbf_file) }
 
-        it 'raises an exception' do
-          expect { subject.features }.to raise_exception(SpatialFeatures::Importers::IncompleteShapefileArchive, /FirstNationReserves\.dbf/i)
+        it 'does not raise an exception' do # OGR2OGR should build missing file this if it is able to process the shapefile
+          expect { subject.features }.not_to raise_exception
         end
       end
 
@@ -73,7 +73,7 @@ describe SpatialFeatures::Importers::Shapefile do
           expect { subject.features }.to raise_exception(SpatialFeatures::Importers::IndeterminateShapefileProjection, /FirstNationReserves\.prj/i)
         end
 
-        it 'is uses the `default_proj4_projection` when no projection can be determined from the shapefile' do
+        it 'uses the `default_proj4_projection` when no projection can be determined from the shapefile' do
           allow(SpatialFeatures::Importers::Shapefile).to receive(:default_proj4_projection).and_return("+proj=utm +zone=11 +datum=NAD83 +units=m +no_defs")
           expect(subject.features).to be_present
         end
