@@ -19,14 +19,14 @@ class AbstractFeature < ActiveRecord::Base
   before_save :sanitize, if: :will_save_change_to_geog?
   after_save :cache_derivatives, :if => [:automatically_cache_derivatives?, :saved_change_to_geog?]
 
-  # for Rails >= 5 ActiveRecord collections we override the collection_cache_key
-  # to prevent Rails doing its default query on `updated_at`
-  def self.collection_cache_key(_collection, _timestamp_column)
-    self.cache_key
+  def self.cache_key
+    collection_cache_key
   end
 
-  def self.cache_key
-    "#{maximum(:id)}-#{count}"
+  # for Rails >= 5 ActiveRecord collections we override the collection_cache_key
+  # to prevent Rails doing its default query on `updated_at`
+  def self.collection_cache_key(collection = all, *)
+    "#{collection.maximum(:id)}-#{collection.count}"
   end
 
   def self.with_metadata(k, v)
