@@ -95,8 +95,9 @@ describe Feature do
 
   describe '#cache_key' do
     it 'generates a cache_key with max and count' do
-      House.create(:features => [create_polygon(Rectangle.new(1, 1))])
-      expected = "#{Feature.maximum(:id)}-#{Feature.count}"
+      feature = create_polygon(Rectangle.new(1, 1))
+      house.features = [feature]
+      expected = "#{feature.id}-#{1}"
       expect(house.features.cache_key).to match(expected)
     end
   end
