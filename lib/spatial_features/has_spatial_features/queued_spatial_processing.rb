@@ -2,6 +2,15 @@ module SpatialFeatures
   module QueuedSpatialProcessing
     extend ActiveSupport::Concern
 
+    def self.update_cached_status(record, method_name, state)
+      return unless record.has_attribute?(:spatial_processing_status_cache)
+
+      cache = record.spatial_processing_status_cache || {}
+      cache[method_name] = state
+      record.spatial_processing_status_cache = cache
+      record.update_column(:spatial_processing_status_cache, cache) if record.will_save_change_to_spatial_processing_status_cache?
+    end
+
     def queue_update_spatial_cache(*args)
       queue_spatial_task('update_spatial_cache', *args)
     end
@@ -23,6 +32,20 @@ module SpatialFeatures
       spatial_processing_status(:update_features!) == :failure
     end
 
+    def update_spatial_processing_status(method_name)
+      latest_job = spatial_processing_jobs(method_name).last
+
+      if !latest_job
+        SpatialFeatures::QueuedSpatialProcessing.update_cached_status(self, method_name, nil)
+      elsif latest_job.failed_at?
+        SpatialFeatures::QueuedSpatialProcessing.update_cached_status(self, method_name, :failure)
+      elsif latest_job.locked_at?
+        SpatialFeatures::QueuedSpatialProcessing.update_cached_status(self, method_name, :processing)
+      else
+        SpatialFeatures::QueuedSpatialProcessing.update_cached_status(self, method_name, :queued)
+      end
+    end
+
     def spatial_processing_status(method_name)
       if has_attribute?(:spatial_processing_status_cache)
         spatial_processing_status_cache[method_name.to_s]&.to_sym
@@ -34,7 +57,11 @@ module SpatialFeatures
     end
 
     def running_feature_update_jobs
-      spatial_processing_jobs('update_features!').where(failed_at: nil)
+      spatial_processing_jobs('update_features!').where(failed_at: nil).where.not(locked_at: nil)
+    end
+
+    def queued_feature_update_jobs
+      spatial_processing_jobs('update_features!').where(failed_at: nil, locked_at: nil)
     end
 
     def failed_feature_update_jobs
@@ -89,11 +116,7 @@ module SpatialFeatures
       private
 
       def update_cached_status(state)
-        if @record.has_attribute?(:spatial_processing_status_cache)
-          cache = @record.spatial_processing_status_cache || {}
-          cache[@method_name] = state
-          @record.update_column(:spatial_processing_status_cache, cache)
-        end
+        SpatialFeatures::QueuedSpatialProcessing.update_cached_status(@record, @method_name, state)
       end
     end
   end
