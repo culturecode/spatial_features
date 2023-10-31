@@ -89,7 +89,7 @@ module SpatialFeatures
       def project_to_4326(file_path)
         output_path = Tempfile.create([::File.basename(file_path, '.shp') + '_epsg_4326_', '.shp']) { |file| file.path }
         return unless (proj4 = proj4_from_file(file_path))
-        return unless system("ogr2ogr -s_srs '#{proj4}' -t_srs EPSG:4326 #{output_path} #{file_path}")
+        return unless system("ogr2ogr -s_srs '#{proj4}' -t_srs EPSG:4326 '#{output_path}' '#{file_path}'")
         return ::File.open(output_path)
       end
 
