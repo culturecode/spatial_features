@@ -28,17 +28,10 @@ module SpatialFeatures
 
       private
 
-      def build_features
-        validate_shapefile!
-        super
-      end
-
-      def each_record(&block)
-        RGeo::Shapefile::Reader.open(file_path) do |records|
-          proj4 = proj4_projection unless proj4_projection == PROJ4_4326
+      def each_record
+        open_shapefile(archive) do |records, proj4|
           records.each do |record|
-            next unless record.geometry.present?
-            yield OpenStruct.new data_from_record(record, proj4)
+            yield OpenStruct.new data_from_record(record, proj4) if record.geometry.present?
           end
         end
       rescue Errno::ENOENT => e
@@ -55,31 +48,41 @@ module SpatialFeatures
         wkt = geometry.as_text
         data = { :metadata => record.attributes, feature_type: FEATURE_TYPE_FOR_DIMENSION.fetch(geometry.dimension) }
 
-        if proj4
+        if proj4 == PROJ4_4326
+          data[:geog] = wkt
+        else
           data[:geog] = ActiveRecord::Base.connection.select_value <<-SQL
             SELECT ST_Transform(ST_GeomFromText('#{wkt}'), '#{proj4}', 4326) AS geog
           SQL
-        else
-          data[:geog] = wkt
         end
 
         return data
       end
 
-      def proj4_projection
-        @proj4 ||= proj4_from_file(file_path) || default_proj4_projection || raise(IndeterminateShapefileProjection, 'Could not determine shapefile projection. Check that `gdalsrsinfo` is installed.')
-      end
+      def open_shapefile(file, &block)
+        # the individual SHP file for processing (automatically extracted from a ZIP archive if necessary)
+        file = possible_shp_files.first if Unzip.is_zip?(file)
+        projected_file = project_to_4326(file.path)
+        file = projected_file || file
+        validate_shapefile!(file.path)
+        proj4 = proj4_projection(file.path)
 
-      def validate_shapefile!
-        Validation.validate_shapefile!(::File.open(file_path), default_proj4_projection: default_proj4_projection)
-      end
-
-      # the individual SHP file for processing (automatically extracted from a ZIP archive if necessary)
-      def file_path
-        @file_path ||= begin
-          file = Unzip.is_zip?(archive) ? possible_shp_files.first : archive
-          project_to_4326(file.path) || file.path # Fall back to unprojected geometry if projection fails
+        RGeo::Shapefile::Reader.open(file.path) do |records| # Fall back to unprojected geometry if projection fails
+          block.call records, proj4
         end
+      ensure
+        if projected_file
+          projected_file.close
+          ::File.delete(projected_file)
+        end
+      end
+
+      def proj4_projection(file_path)
+        proj4_from_file(file_path) || default_proj4_projection || raise(IndeterminateShapefileProjection, 'Could not determine shapefile projection. Check that `gdalsrsinfo` is installed.')
+      end
+
+      def validate_shapefile!(file_path)
+        Validation.validate_shapefile!(::File.open(file_path), default_proj4_projection: default_proj4_projection)
       end
 
       # Use OGR2OGR to reproject into EPSG:4326 so we can skip the reprojection step per-feature
@@ -87,7 +90,7 @@ module SpatialFeatures
         output_path = Tempfile.create([::File.basename(file_path, '.shp') + '_epsg_4326_', '.shp']) { |file| file.path }
         return unless (proj4 = proj4_from_file(file_path))
         return unless system("ogr2ogr -s_srs '#{proj4}' -t_srs EPSG:4326 #{output_path} #{file_path}")
-        return output_path
+        return ::File.open(output_path)
       end
 
       def proj4_from_file(file_path)
