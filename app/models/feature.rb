@@ -9,6 +9,8 @@ class Feature < AbstractFeature
 
   has_one :aggregate_feature, lambda { |feature| where(:spatial_model_type => feature.spatial_model_type) }, :foreign_key => :spatial_model_id, :primary_key => :spatial_model_id
 
+  scope :source_identifier, lambda {|source_identifier| where(:source_identifier => source_identifier) if source_identifier.present? }
+
   validates_inclusion_of :feature_type, :in => FEATURE_TYPES
 
   before_save :truncate_name
