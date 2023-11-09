@@ -1,10 +1,10 @@
 module SpatialExtensions
   private
 
-  def abstract_refresh_geometry_action(models)
+  def abstract_refresh_geometry_action(models, **update_options)
     Array.wrap(models).each do |model|
       model.failed_feature_update_jobs.destroy_all
-      model.delay_update_features!
+      model.delay_update_features!(**update_options)
     end
   end
 

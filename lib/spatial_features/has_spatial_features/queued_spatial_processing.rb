@@ -11,16 +11,16 @@ module SpatialFeatures
       record.update_column(:spatial_processing_status_cache, cache) if record.will_save_change_to_spatial_processing_status_cache?
     end
 
-    def queue_update_spatial_cache(*args)
-      queue_spatial_task('update_spatial_cache', *args)
+    def queue_update_spatial_cache(*args, **kwargs)
+      queue_spatial_task('update_spatial_cache', *args, **kwargs)
     end
 
-    def delay_update_features!(*args)
-      queue_spatial_task('update_features!', *args)
+    def delay_update_features!(*args, **kwargs)
+      queue_spatial_task('update_features!', *args, **kwargs)
     end
 
-    def updating_features?
-      case spatial_processing_status(:update_features!)
+    def updating_features?(**options)
+      case spatial_processing_status(:update_features!, **options)
       when :queued, :processing
         true
       else
@@ -30,6 +30,13 @@ module SpatialFeatures
 
     def updating_features_failed?
       spatial_processing_status(:update_features!) == :failure
+    end
+
+    def spatial_processing_status(method_name, use_cache: true)
+      if has_attribute?(:spatial_processing_status_cache)
+        update_spatial_processing_status(method_name) unless use_cache
+        spatial_processing_status_cache[method_name.to_s]&.to_sym
+      end
     end
 
     def update_spatial_processing_status(method_name)
@@ -43,12 +50,6 @@ module SpatialFeatures
         SpatialFeatures::QueuedSpatialProcessing.update_cached_status(self, method_name, :processing)
       else
         SpatialFeatures::QueuedSpatialProcessing.update_cached_status(self, method_name, :queued)
-      end
-    end
-
-    def spatial_processing_status(method_name)
-      if has_attribute?(:spatial_processing_status_cache)
-        spatial_processing_status_cache[method_name.to_s]&.to_sym
       end
     end
 
@@ -75,7 +76,8 @@ module SpatialFeatures
     private
 
     def queue_spatial_task(method_name, *args, priority: 1, **kwargs)
-      Delayed::Job.enqueue SpatialProcessingJob.new(self, method_name, *args, **kwargs), :queue => spatial_processing_queue_name + method_name, :priority => priority
+      # NOTE: We pass kwargs as an arg because Delayed::Job does not support separation of positional and keyword arguments in Ruby 3.0. Instead we perform manual extraction in `perform`.
+      Delayed::Job.enqueue SpatialProcessingJob.new(self, method_name, *args, kwargs), :queue => spatial_processing_queue_name + method_name, :priority => priority
     end
 
     def spatial_processing_queue_name
