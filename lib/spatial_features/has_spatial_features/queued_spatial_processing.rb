@@ -97,6 +97,11 @@ module SpatialFeatures
         update_cached_status(:queued)
       end
 
+      def before(job)
+        ids = running_jobs.where.not(:id => job.id).pluck(:id)
+        raise "Already processing delayed jobs in this spatial queue: Delayed::Job #{ids.to_sentence}." if ids.present?
+      end
+
       def perform
         update_cached_status(:processing)
         options = @args.extract_options!
@@ -119,6 +124,12 @@ module SpatialFeatures
 
       def update_cached_status(state)
         SpatialFeatures::QueuedSpatialProcessing.update_cached_status(@record, @method_name, state)
+      end
+
+      def running_jobs
+        @record.spatial_processing_jobs
+          .where(:locked_at => Delayed::Worker.max_run_time.ago..Time.current)
+          .where(:failed_at => nil)
       end
     end
   end
