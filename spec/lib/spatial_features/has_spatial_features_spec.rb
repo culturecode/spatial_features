@@ -1,6 +1,19 @@
 require 'spec_helper'
 
 describe SpatialFeatures do
+  describe '::has_spatial_features' do
+    it 'merges spatial_features_options on subsequent calls' do
+      klass = new_dummy_class do
+        has_spatial_features(:import => { :test_kml => :KMLFile })
+        has_spatial_features(:import => { :spatial_drawing => :GeoJSON })
+        has_spatial_features(:import => { :spatial_drawing => :GeoJSON })
+      end
+
+      expect(klass.spatial_features_options[:make_valid]).to eq(true)
+      expect(klass.spatial_features_options[:import]).to eq({ :test_kml => :KMLFile, :spatial_drawing => :GeoJSON })
+    end
+  end
+
   describe '::features' do
     it 'returns the features of a class'
     it 'returns the features of a scope'
