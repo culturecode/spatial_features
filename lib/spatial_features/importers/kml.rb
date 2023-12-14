@@ -36,7 +36,7 @@ module SpatialFeatures
 
             importable_image_paths = images_from_metadata(metadata)
 
-            yield OpenStruct.new(:feature_type => sql_type, :geog => geog, :name => name, :metadata => metadata, :importable_image_paths => importable_image_paths)
+            yield OpenStruct.new(:geog => geog, :name => name, :metadata => metadata, :importable_image_paths => importable_image_paths)
           end
         end
       end

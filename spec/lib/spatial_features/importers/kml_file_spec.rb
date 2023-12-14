@@ -13,10 +13,6 @@ describe SpatialFeatures::Importers::KMLFile do
         expect(subject.features).to all(have_attributes :name => be_present)
       end
 
-      it 'sets the feature type' do
-        expect(subject.features).to all(have_attributes :feature_type => be_present)
-      end
-
       it 'sets the feature metadata' do
         expect(subject.features).to all(have_attributes :metadata => be_present)
       end
@@ -35,10 +31,6 @@ describe SpatialFeatures::Importers::KMLFile do
         expect(subject.features).to all(have_attributes :name => be_blank)
       end
 
-      it 'sets the feature type' do
-        expect(subject.features).to all(have_attributes :feature_type => be_present)
-      end
-
       it 'does not set the feature metadata' do
         expect(subject.features).to all(have_attributes :metadata => {})
       end
@@ -55,10 +47,6 @@ describe SpatialFeatures::Importers::KMLFile do
 
       it 'sets the feature name' do
         expect(subject.features).to all(have_attributes :name => be_present)
-      end
-
-      it 'sets the feature type' do
-        expect(subject.features).to all(have_attributes :feature_type => be_present)
       end
 
       it 'sets the feature metadata' do

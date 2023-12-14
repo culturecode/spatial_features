@@ -30,23 +30,26 @@ ActiveRecord::Schema.define(:version => 0) do
   enable_extension 'postgis'
 
   create_table :features, :force => true do |t|
-    t.references :spatial_model, :polymorphic => true, :index => true
+    t.references :spatial_model, :polymorphic => true, :index => false
     t.string :name, :limit => NAME_COLUMN_LIMIT
-    t.string :feature_type
     t.hstore :metadata
-    t.decimal :area
-    t.column :geog, :geography
-    t.column :geom, 'geometry(Geometry,26910)'
-    t.column :geom_lowres, 'geometry(Geometry,26910)'
-    t.column :tilegeom, 'geometry(Geometry,3857)'
-    t.column :centroid, :geography
-    t.decimal :north
-    t.decimal :east
-    t.decimal :south
-    t.decimal :west
-    t.string :type
-    t.string :source_identifier
+    t.column :geog, :geography, :index => { :using => :gist }
+    t.column :geom, 'geometry(Geometry,26910)', :index => { :using => :gist }
+    t.column :geom_lowres, 'geometry(Geometry,26910)', :index => { :using => :gist }
+    t.virtual :tilegeom, :type => 'geometry(Geometry,3857)', as: "ST_Transform(geom, 3857)", stored: true, :index => { :using => :gist }
+    t.virtual :feature_type, :type => :string, as: "CASE GeometryType(geog) WHEN 'POLYGON' THEN 'polygon' WHEN 'MULTIPOLYGON' THEN 'polygon' WHEN 'GEOMETRYCOLLECTION' THEN 'polygon' WHEN 'LINESTRING' THEN 'line' WHEN 'MULTILINESTRING' THEN 'line' WHEN 'POINT' THEN 'point' WHEN 'MULTIPOINT' THEN 'point' END", stored: true, :index => true
+    t.virtual :centroid, :type => :geography, as: "ST_PointOnSurface(geog::geometry)", stored: true
+    t.virtual :area, :type => :decimal, as: "ST_Area(geog)", stored: true
+    t.virtual :north, :type => :decimal, as: "ST_YMax(geog::geometry)", stored: true
+    t.virtual :east, :type => :decimal, as: "ST_XMax(geog::geometry)", stored: true
+    t.virtual :south, :type => :decimal, as: "ST_YMin(geog::geometry)", stored: true
+    t.virtual :west, :type => :decimal, as: "ST_XMin(geog::geometry)", stored: true
+    t.string :type, :index => true
+    t.string :source_identifier, :index => true
   end
+
+  add_index :features, :spatial_model_type
+  add_index :features, [:spatial_model_id, :spatial_model_type]
 
   create_table :spatial_caches, :force => true do |t|
     t.references :spatial_model, :polymorphic => true, :index => true

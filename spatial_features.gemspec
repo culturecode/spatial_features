@@ -19,11 +19,12 @@ Gem::Specification.new do |s|
 
   s.add_runtime_dependency "rails", '>= 6', '< 8'
   s.add_runtime_dependency "delayed_job_active_record", '~> 4.1'
-  s.add_runtime_dependency "rgeo-shapefile", '~> 3.0'
+  s.add_runtime_dependency "rgeo-shapefile", '~> 3.1'
   s.add_runtime_dependency "rgeo-geojson", '~> 2.1.1'
   s.add_runtime_dependency "rubyzip", '>= 1.0.0'
   s.add_runtime_dependency "nokogiri"
 
+  s.add_development_dependency "rails", '>= 7', '< 8'
   s.add_development_dependency "pg", '~> 1'
   s.add_development_dependency "rspec", '~> 3.5'
   s.add_development_dependency 'pry-byebug'

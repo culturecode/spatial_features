@@ -13,7 +13,6 @@ class AbstractFeature < ActiveRecord::Base
 
   FEATURE_TYPES = %w(polygon point line)
 
-  before_validation :sanitize_feature_type
   validates_presence_of :geog
   validate :validate_geometry, if: :will_save_change_to_geog?
   before_save :sanitize, if: :will_save_change_to_geog?
@@ -113,13 +112,7 @@ class AbstractFeature < ActiveRecord::Base
 
   def self.cache_derivatives(options = {})
     update_all <<-SQL.squish
-      geom         = ST_Transform(geog::geometry, #{detect_srid('geom')}),
-      north        = ST_YMax(geog::geometry),
-      east         = ST_XMax(geog::geometry),
-      south        = ST_YMin(geog::geometry),
-      west         = ST_XMin(geog::geometry),
-      area         = ST_Area(geog),
-      centroid     = ST_PointOnSurface(geog::geometry)
+      geom         = ST_Transform(geog::geometry, #{detect_srid('geom')})
     SQL
 
     invalid('geom').update_all <<-SQL.squish
@@ -127,8 +120,7 @@ class AbstractFeature < ActiveRecord::Base
     SQL
 
     update_all <<-SQL.squish
-      geom_lowres  = ST_SimplifyPreserveTopology(geom, #{options.fetch(:lowres_simplification, lowres_simplification)}),
-      tilegeom     = ST_Transform(geom, 3857)
+      geom_lowres  = ST_SimplifyPreserveTopology(geom, #{options.fetch(:lowres_simplification, lowres_simplification)})
     SQL
 
     invalid('geom_lowres').update_all <<-SQL.squish
@@ -284,10 +276,6 @@ class AbstractFeature < ActiveRecord::Base
     klass = self.class.base_class # Use the base class because we don't want to have to include a type column in our select
     error = klass.connection.select_one(klass.unscoped.invalid.from("(SELECT '#{sanitize_input_for_sql(self.geog)}'::geography::geometry AS geog) #{klass.table_name}")) # Ensure we cast to geography because the geog attribute value may not have been coerced to geography yet, so we want it to apply the +-180/90 bounds to any odd geometry that will happen when we save to the database
     return error.fetch('invalid_geometry_message') if error
-  end
-
-  def sanitize_feature_type
-    self.feature_type = FEATURE_TYPES.find {|type| self.feature_type.to_s.strip.downcase.include?(type) }
   end
 
   def sanitize_input_for_sql(input)
