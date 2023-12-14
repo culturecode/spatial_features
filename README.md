@@ -200,6 +200,23 @@ add_index :features, :source_identifier
 MyModel.update_features!(:force => true) # Force an `update_features!` will populate the source_identifier column.
 ```
 
+## Upgrading From 3.4 to 3.5
+The gem now relies on virtual columns to set a number of derived column values.
+```ruby
+  change_table :features do |t|
+    t.remove :tilegeom, :feature_type, :centroid, :area, :north, :east, :south, :west
+
+    t.virtual :tilegeom, :type => 'geometry(Geometry,3857)', as: "ST_Transform(geom, 3857)", stored: true, :index => { :using => :gist }
+    t.virtual :feature_type, :type => :string, as: "CASE GeometryType(geog) WHEN 'POLYGON' THEN 'polygon' WHEN 'MULTIPOLYGON' THEN 'polygon' WHEN 'GEOMETRYCOLLECTION' THEN 'polygon' WHEN 'LINESTRING' THEN 'line' WHEN 'MULTILINESTRING' THEN 'line' WHEN 'POINT' THEN 'point' WHEN 'MULTIPOINT' THEN 'point' END", stored: true, :index => true
+    t.virtual :centroid, :type => :geography, as: "ST_PointOnSurface(geog::geometry)", stored: true
+    t.virtual :area, :type => :decimal, as: "ST_Area(geog)", stored: true
+    t.virtual :north, :type => :decimal, as: "ST_YMax(geog::geometry)", stored: true
+    t.virtual :east, :type => :decimal, as: "ST_XMax(geog::geometry)", stored: true
+    t.virtual :south, :type => :decimal, as: "ST_YMin(geog::geometry)", stored: true
+    t.virtual :west, :type => :decimal, as: "ST_XMin(geog::geometry)", stored: true
+  end
+```
+
 ## Testing
 
 Create a postgres database:

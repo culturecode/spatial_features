@@ -15,10 +15,6 @@ describe SpatialFeatures::Importers::Shapefile do
         it 'sets the feature metadata' do
           expect(subject.features).to all(have_attributes :metadata => be_present)
         end
-
-        it 'sets the feature_type' do
-          expect(subject.features).to all(have_attributes :feature_type => be_present)
-        end
       end
 
       context 'when the shapefile has all downcased filenames' do

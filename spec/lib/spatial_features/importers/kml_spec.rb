@@ -15,10 +15,6 @@ describe SpatialFeatures::Importers::KML do
         expect(subject.features).to all(have_attributes :name => be_present)
       end
 
-      it 'sets the feature type' do
-        expect(subject.features).to all(have_attributes :feature_type => be_present)
-      end
-
       it 'sets the feature metadata' do
         expect(subject.features).to all(have_attributes :metadata => be_present)
       end

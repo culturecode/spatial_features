@@ -6,7 +6,6 @@ module SpatialFeatures
     class Shapefile < Base
       class_attribute :default_proj4_projection
 
-      FEATURE_TYPE_FOR_DIMENSION = { 0 => 'point', 1 => 'line', 2 => 'polygon' }.freeze
       PROJ4_4326 = '+proj=longlat +datum=WGS84 +no_defs'.freeze
 
       def initialize(data, proj4: nil, **options)
@@ -46,7 +45,7 @@ module SpatialFeatures
       def data_from_record(record, proj4 = nil)
         geometry = record.geometry
         wkt = geometry.as_text
-        data = { :metadata => record.attributes, feature_type: FEATURE_TYPE_FOR_DIMENSION.fetch(geometry.dimension) }
+        data = { :metadata => record.attributes }
 
         if proj4 == PROJ4_4326
           data[:geog] = wkt
