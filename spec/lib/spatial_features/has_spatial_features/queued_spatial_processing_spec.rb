@@ -5,6 +5,15 @@ describe SpatialFeatures::QueuedSpatialProcessing do
 
   subject(:record) { klass.create }
 
+  describe '#delay_update_features!', delayed_job: false do
+    it 'queues with a priority that puts it before a queued update_spatial_cache job' do
+      record.delay_update_features!
+      expect { record.queue_update_spatial_cache }
+        .to change { Delayed::Job.last.priority }
+        .by_at_least 1 # Higher priority value runs with lower priority (go figure)
+    end
+  end
+
   describe '#invoke_job' do
     it 'allows a feature update to run when no other job is running for the same record' do
       record.delay_update_features!

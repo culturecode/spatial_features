@@ -1,6 +1,7 @@
 module SpatialFeatures
   module QueuedSpatialProcessing
     extend ActiveSupport::Concern
+    mattr_accessor :priority_offset, default: 0 # Offsets the queued priority of spatial tasks. Lower numbers run with higher priority
 
     def self.update_cached_status(record, method_name, state)
       return unless record.has_attribute?(:spatial_processing_status_cache)
@@ -11,12 +12,12 @@ module SpatialFeatures
       record.update_column(:spatial_processing_status_cache, cache) if record.will_save_change_to_spatial_processing_status_cache?
     end
 
-    def queue_update_spatial_cache(*args, **kwargs)
-      queue_spatial_task('update_spatial_cache', *args, **kwargs)
+    def queue_update_spatial_cache(*args, priority: priority_offset + 1, **kwargs)
+      queue_spatial_task('update_spatial_cache', *args, priority:, **kwargs)
     end
 
-    def delay_update_features!(*args, **kwargs)
-      queue_spatial_task('update_features!', *args, **kwargs)
+    def delay_update_features!(*args, priority: priority_offset + 0, **kwargs)
+      queue_spatial_task('update_features!', *args, priority:, **kwargs)
     end
 
     def updating_features?(**options)
@@ -77,7 +78,7 @@ module SpatialFeatures
 
     def queue_spatial_task(method_name, *args, priority: 1, **kwargs)
       # NOTE: We pass kwargs as an arg because Delayed::Job does not support separation of positional and keyword arguments in Ruby 3.0. Instead we perform manual extraction in `perform`.
-      Delayed::Job.enqueue SpatialProcessingJob.new(self, method_name, *args, kwargs), :queue => spatial_processing_queue_name + method_name, :priority => priority
+      Delayed::Job.enqueue SpatialProcessingJob.new(self, method_name, *args, kwargs), :queue => spatial_processing_queue_name + method_name, priority:
     end
 
     def spatial_processing_queue_name
