@@ -88,10 +88,20 @@ module SpatialFeatures
     private
 
     def spatial_feature_imports(import_options, make_valid, tmpdir)
-      import_options.flat_map do |data_method, importer_name|
+      import_options.flat_map do |data_method, configuration|
+        case configuration
+        when Hash
+          importer_name = configuration.fetch(:name)
+          options = configuration.except(:name)
+        else
+          importer_name = configuration
+          options = {}
+        end
+
         Array.wrap(send(data_method)).flat_map do |data|
           next unless data.present?
-          spatial_importer_from_name(importer_name).create_all(data, :make_valid => make_valid, :tmpdir => tmpdir)
+
+          spatial_importer_from_name(importer_name).create_all(data, **options, :make_valid => make_valid, :tmpdir => tmpdir)
         end
       end.compact
     end

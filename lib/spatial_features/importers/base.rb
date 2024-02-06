@@ -6,12 +6,13 @@ module SpatialFeatures
       attr_reader :errors
       attr_accessor :source_identifier # An identifier for the source of the features. Used to differentiate groups of features on the spatial model.
 
-      def initialize(data, make_valid: false, tmpdir: nil, source_identifier: nil)
+      def initialize(data, make_valid: false, tmpdir: nil, source_identifier: nil, feature_name: ->(record) { record.name })
         @make_valid = make_valid
         @data = data
         @errors = []
         @tmpdir = tmpdir
         @source_identifier = source_identifier
+        @feature_name = feature_name
       end
 
       def features
@@ -51,13 +52,12 @@ module SpatialFeatures
       def build_feature(record)
         importable_image_paths = record.importable_image_paths if record.respond_to?(:importable_image_paths)
         Feature.new do |feature|
-          feature.name = record.name
           feature.metadata = record.metadata
-          feature.feature_type = record.feature_type
           feature.geog = record.geog
           feature.importable_image_paths = importable_image_paths
           feature.make_valid = @make_valid
           feature.source_identifier = source_identifier
+          feature.name = @feature_name.is_a?(Proc) ? @feature_name.call(record) : @feature_name
         end
       end
     end

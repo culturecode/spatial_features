@@ -22,9 +22,9 @@ module SpatialFeatures
       def each_record(&block)
         {'Polygon' => 'POLYGON', 'LineString' => 'LINE', 'Point' => 'POINT'}.each do |kml_type, sql_type|
           kml_document.css(kml_type).each do |feature|
-            if placemark = feature.ancestors('Placemark').first
-              name = placemark.css('name').text
+            if (placemark = feature.ancestors('Placemark').first)
               metadata = extract_metadata(placemark)
+              name = placemark.css('name').text
             else
               metadata = {}
             end
