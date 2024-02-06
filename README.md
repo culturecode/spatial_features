@@ -106,7 +106,8 @@ Person.new(:features => [Feature.new(:geog => 'some binary PostGIS Geography str
 ### Import
 
 You can specify multiple import sources for geometry. Each key is a method that returns the data for the Importer, and
-each value is the Importer to use to parse the data. See each Importer for more details.
+each value is the Importer to use to parse the data. Options can be passed in place of the Importer name, but must still
+include a `name` key with the name of the importer. See each Importer for more details.
 ```ruby
 def ImageImporter
   def self.call(feature, image_paths)
@@ -117,8 +118,11 @@ def ImageImporter
 end
 
 class Location < ActiveRecord::Base
-  has_spatial_features :import => { :remote_kml_url => 'KMLFile', :file => 'File', :geojson => 'ESRIGeoJSON' },
-                       :image_handlers => ['ImageImporter']
+  has_spatial_features :image_handlers => ['ImageImporter'],
+                       :import => {
+                         :remote_kml_url => { :name => 'KMLFile', :feature_name => lambda {|source_feature| source_feature.metadata['shapeID'] },
+                         :file => 'File', :geojson => 'ESRIGeoJSON' }
+                       }
 
   def remote_kml_url
     "www.test.com/kml/#{id}.kml"

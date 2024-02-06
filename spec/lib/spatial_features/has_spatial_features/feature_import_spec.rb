@@ -62,6 +62,25 @@ describe SpatialFeatures::FeatureImport do
       subject.update_features!
     end
 
+    it 'accepts configuration options for each importer' do
+      subject = new_dummy_class(:parent => FeatureImportMock) do
+        has_spatial_features :import => { :test_kml => { :name => :KMLFile, :feature_name => 'some feature' } }
+      end.new
+
+      expect(SpatialFeatures::Importers::KMLFile).to receive(:new).with(subject.test_kml, include(:feature_name => 'some feature')).and_call_original
+      subject.update_features!
+    end
+
+    it 'accepts a proc for the `feature_name` option' do
+      subject = new_dummy_class(:parent => FeatureImportMock) do
+        has_spatial_features :import => { :test_kml => { :name => :KMLFile, :feature_name => lambda {|f| f.name } } }
+      end.new
+
+      subject.update_features!
+
+      expect(subject.features.map(&:name)).to contain_exactly('Poly 1', 'Poly 2')
+    end
+
     it 'passes individual shapefile from the zipped archive to the Shapefile importer' do
       subject = new_dummy_class(:parent => FeatureImportMock) do
         has_spatial_features :import => { :test_files => :File }
