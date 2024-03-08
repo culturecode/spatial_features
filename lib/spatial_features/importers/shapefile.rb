@@ -66,7 +66,7 @@ module SpatialFeatures
         validate_shapefile!(file.path)
         proj4 = proj4_projection(file.path)
 
-        RGeo::Shapefile::Reader.open(file.path) do |records| # Fall back to unprojected geometry if projection fails
+        RGeo::Shapefile::Reader.open(file.path, :allow_unsafe => true) do |records| # Fall back to unprojected geometry if projection fails
           block.call records, proj4
         end
       ensure
