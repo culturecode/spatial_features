@@ -10,7 +10,7 @@ module SpatialFeatures
       #   -118.1,50.9,NaN
       #   -118.1,50.9,0
       #   -118.1,50.9
-      COORDINATES_WITH_ALTITUDE = /((-?\d+\.\d+,-?\d+\.\d+)(,-?[a-zA-Z\d\.]+))/.freeze
+      COORDINATES_WITH_ALTITUDE = /(?<lng>\S+),(?<lat>\S+),(?<alt>\S+)/.freeze
 
       def initialize(data, base_dir: nil, **options)
         @base_dir = base_dir
@@ -117,8 +117,7 @@ module SpatialFeatures
 
       def strip_altitude(kml)
         kml.css('coordinates').each do |coordinates|
-          next unless COORDINATES_WITH_ALTITUDE.match?(coordinates.content)
-          coordinates.content = coordinates.content.gsub(COORDINATES_WITH_ALTITUDE, '\2')
+          coordinates.content = coordinates.content.gsub(COORDINATES_WITH_ALTITUDE, '\k<lng>,\k<lat>')
         end
       end
     end
