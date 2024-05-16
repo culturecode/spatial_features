@@ -29,6 +29,12 @@ module SpatialFeatures
       end
     end
 
+    def clear_feature_update_error_status
+      with_lock do
+        SpatialFeatures::QueuedSpatialProcessing.update_cached_status(self, :update_features!, nil) if updating_features_failed?
+      end
+    end
+
     def updating_features_failed?
       spatial_processing_status(:update_features!) == :failure
     end
