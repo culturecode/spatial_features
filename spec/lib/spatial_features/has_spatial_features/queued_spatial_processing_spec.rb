@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe SpatialFeatures::QueuedSpatialProcessing do
-  let(:klass) { new_dummy_class { has_spatial_features } }
+  let(:klass) { new_dummy_class }
 
   subject(:record) { klass.create }
 
@@ -40,6 +40,25 @@ describe SpatialFeatures::QueuedSpatialProcessing do
       record.delay_update_features!
       Delayed::Job.first.update(:locked_at => Time.current, :locked_by => 'me')
       expect { Delayed::Job.last.invoke_job }.to raise_exception(/already processing/i)
+    end
+  end
+
+  describe '#clear_feature_update_error_status' do
+    let(:klass) { new_dummy_class(:spatial_processing_status_cache => :jsonb) }
+
+    it 'clears the cached failure status of a record' do
+      SpatialFeatures::QueuedSpatialProcessing.update_cached_status(record, :update_features!, :failure)
+      expect { record.clear_feature_update_error_status }
+        .to change { record.updating_features_failed? }
+        .to false
+    end
+
+    it 'does not clear the cached status of a record that has not failed' do
+      SpatialFeatures::QueuedSpatialProcessing.update_cached_status(record, :update_features!, :processing)
+
+      expect { record.clear_feature_update_error_status }
+        .not_to change { record.updating_features? }
+        .from true
     end
   end
 end

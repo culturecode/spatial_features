@@ -8,6 +8,12 @@ module SpatialExtensions
     end
   end
 
+  def abstract_clear_feature_update_errors(models)
+    Array.wrap(models).each do |model|
+      model.clear_feature_update_error_status
+    end
+  end
+
   def abstract_proximity_action(scope, target, distance, &block)
     @nearby_records = scope_for_search(scope).within_buffer(target, distance, :distance => true, :intersection_area => true).order('distance_in_meters ASC, intersection_area_in_square_meters DESC, id ASC')
     @target = target
