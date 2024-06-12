@@ -6,10 +6,16 @@ module SpatialFeatures
     def self.update_cached_status(record, method_name, state)
       return unless record.has_attribute?(:spatial_processing_status_cache)
 
-      cache = record.spatial_processing_status_cache || {}
+      cache = record.spatial_processing_status_cache
       cache[method_name] = state
       record.spatial_processing_status_cache = cache
       record.update_column(:spatial_processing_status_cache, cache) if record.will_save_change_to_spatial_processing_status_cache?
+    end
+
+    def spatial_processing_status_cache
+      value = super
+      return {} unless value.is_a?(Hash)
+      return value
     end
 
     def queue_update_spatial_cache(*args, priority: priority_offset + 1, **kwargs)
