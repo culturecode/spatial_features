@@ -93,6 +93,32 @@ describe Feature do
     end
   end
 
+  describe '::within_distance_of_point' do
+    it 'returns features overlapping the point' do
+      polygon = create_polygon(Rectangle.new(10, 10))
+      lat, lng = create_point(5, 0).bounds.values_at(:north, :west)
+      expect(described_class.within_distance_of_point(lat, lng, 0)).to include(polygon)
+    end
+
+    it 'returns features within the distance of the point' do
+      polygon = create_polygon(Rectangle.new(4, 4))
+      lat, lng = create_point(5, 0).bounds.values_at(:north, :west)
+      expect(described_class.within_distance_of_point(lat, lng, 1)).to include(polygon)
+    end
+
+    it 'does not return features beyond the distance of the point' do
+      polygon = create_polygon(Rectangle.new(4, 4))
+      lat, lng = create_point(5, 0).bounds.values_at(:north, :west)
+      expect(described_class.within_distance_of_point(lat, lng, 0.99)).not_to include(polygon)
+    end
+
+    it 'does not return features outside of the point' do
+      polygon = create_polygon(Rectangle.new(4, 4))
+      lat, lng = create_point(5, 0).bounds.values_at(:north, :west)
+      expect(described_class.within_distance_of_point(lat, lng, 0)).not_to include(polygon)
+    end
+  end
+
   describe '#cache_key' do
     it 'generates a cache_key with max and count' do
       feature = create_polygon(Rectangle.new(1, 1))

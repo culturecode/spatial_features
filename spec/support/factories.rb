@@ -70,8 +70,8 @@ def create_record_with_point(klass, *coordinates)
 end
 
 class Point
-  def initialize(y, x)
-    @coordinates = "#{y} #{x}"
+  def initialize(x, y)
+    @coordinates = "#{x} #{y}"
   end
 
   def to_s
@@ -79,8 +79,8 @@ class Point
   end
 end
 
-def create_point(*args)
-  point = build_point(*args)
+def create_point(x, y)
+  point = build_point("#{x} #{y}")
   point.save!
   return point
 end

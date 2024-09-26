@@ -59,7 +59,41 @@ class AbstractFeature < ActiveRecord::Base
       else "ST_Transform(ST_SetSRID(ST_Point(:lng, :lat), 4326), #{detect_srid(geom)})"
       end
 
-    where("ST_DWithin(features.#{geom}, #{point_sql}, :distance)", :lat => lat, :lng => lng, :distance => distance_in_meters)
+    binds = { :lng => lng.to_d, :lat => lat.to_d }
+
+    within_distance_of_sql(point_sql, distance_in_meters, geom, **binds)
+  end
+
+  def self.within_distance_of_line(points, distance_in_meters, geom = 'geom_lowres')
+    point_sql =
+      case geom.to_s
+      when 'geog' then ':points'
+      else "ST_Transform(ST_SetSRID(:points::geometry, 4326), #{detect_srid(geom)})"
+      end
+
+    binds = { :points => "LINESTRING(#{points.map {|coords| coords.join(' ') }.join(', ')})" }
+
+    within_distance_of_sql(point_sql, distance_in_meters, geom, **binds)
+  end
+
+  def self.within_distance_of_polygon(points, distance_in_meters, geom = 'geom_lowres')
+    point_sql =
+      case geom.to_s
+      when 'geog' then "ST_Polygon(:points::geometry)"
+      else "ST_Transform(ST_Polygon(:points::geometry, 4326), #{detect_srid(geom)})"
+      end
+
+    binds = { :points => "LINESTRING(#{points.map {|coords| coords.join(' ') }.join(', ')})" }
+
+    within_distance_of_sql(point_sql, distance_in_meters, geom, **binds)
+  end
+
+  def self.within_distance_of_sql(geometry_sql, distance_in_meters, features_column = 'geom_lowres', **binds)
+    if distance_in_meters.to_f > 0
+      where("ST_DWithin(features.#{features_column}, #{geometry_sql}, :distance)", **binds, :distance => distance_in_meters)
+    else
+      where("ST_Intersects(features.#{features_column}, #{geometry_sql})", **binds)
+    end
   end
 
   def self.area_in_square_meters(geom = 'geom_lowres')
