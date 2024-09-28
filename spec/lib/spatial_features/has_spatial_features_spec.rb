@@ -74,13 +74,12 @@ describe SpatialFeatures do
     new_dummy_class(:name => 'House')
     new_dummy_class(:name => 'Disaster')
 
-    subject { create_record_with_polygon(House, Rectangle.new(1, 1)) }
+    subject { create_record_with_polygon(House, Rectangle.new(10, 10)) }
 
     it 'can intersect a single record' do
-      flood = create_record_with_polygon(Disaster, Rectangle.new(1, 0.5))
-
+      flood = create_record_with_polygon(Disaster, Rectangle.new(10, 5))
       expect(subject.total_intersection_area_in_square_meters(flood))
-        .to be_within(tolerance).of(0.5)
+        .to be_within(tolerance).of(50)
     end
   end
 
@@ -89,13 +88,13 @@ describe SpatialFeatures do
     new_dummy_class(:name => 'House')
     new_dummy_class(:name => 'Disaster')
 
-    subject { create_record_with_polygon(House, Rectangle.new(1, 1)) }
+    subject { create_record_with_polygon(House, Rectangle.new(10, 10)) }
 
     it 'can intersect a single record' do
-      flood = create_record_with_polygon(Disaster, Rectangle.new(1, 0.5))
+      flood = create_record_with_polygon(Disaster, Rectangle.new(10, 5))
 
       expect(subject.total_intersection_area_in_square_meters(flood))
-        .to be_within(tolerance).of(0.5)
+        .to be_within(tolerance).of(50)
     end
   end
 
