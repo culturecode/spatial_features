@@ -39,7 +39,7 @@ Adds spatial methods to a model.
         east numeric(9,6),
         south numeric(9,6),
         west numeric(9,6),
-        centroid geography,
+        centroid geography
     );
 
     CREATE SEQUENCE features_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
