@@ -24,22 +24,33 @@ Adds spatial methods to a model.
 
     CREATE TABLE features (
         id integer NOT NULL,
-        type character varying(255),
         spatial_model_type character varying(255),
         spatial_model_id integer,
         name character varying(255),
-        feature_type character varying(255),
-        geog geography,
-        geom geometry(Geometry,4326),
-        geom_lowres geometry(Geometry,4326),
-        tilegeom geometry(Geometry,3857),
-        metadata hstore,
-        area double precision,
-        north numeric(9,6),
-        east numeric(9,6),
-        south numeric(9,6),
-        west numeric(9,6),
-        centroid geography
+        geog public.geography,
+        metadata public.hstore DEFAULT ''::public.hstore NOT NULL,
+        geom public.geometry(Geometry,3005),
+        geom_lowres public.geometry(Geometry,3005),
+        type character varying,
+        source_identifier character varying,
+        tilegeom public.geometry(Geometry,3857) GENERATED ALWAYS AS (public.st_transform(geom, 3857)) STORED,
+        feature_type character varying GENERATED ALWAYS AS (
+    CASE public.geometrytype(geog)
+        WHEN 'POLYGON'::text THEN 'polygon'::text
+        WHEN 'MULTIPOLYGON'::text THEN 'polygon'::text
+        WHEN 'GEOMETRYCOLLECTION'::text THEN 'polygon'::text
+        WHEN 'LINESTRING'::text THEN 'line'::text
+        WHEN 'MULTILINESTRING'::text THEN 'line'::text
+        WHEN 'POINT'::text THEN 'point'::text
+        WHEN 'MULTIPOINT'::text THEN 'point'::text
+        ELSE NULL::text
+    END) STORED,
+        centroid public.geography GENERATED ALWAYS AS (public.st_pointonsurface((geog)::public.geometry)) STORED,
+        area numeric GENERATED ALWAYS AS (public.st_area(geog)) STORED,
+        north numeric GENERATED ALWAYS AS (public.st_ymax(((geog)::public.geometry)::public.box3d)) STORED,
+        east numeric GENERATED ALWAYS AS (public.st_xmax(((geog)::public.geometry)::public.box3d)) STORED,
+        south numeric GENERATED ALWAYS AS (public.st_ymin(((geog)::public.geometry)::public.box3d)) STORED,
+        west numeric GENERATED ALWAYS AS (public.st_xmin(((geog)::public.geometry)::public.box3d)) STORED
     );
 
     CREATE SEQUENCE features_id_seq START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
