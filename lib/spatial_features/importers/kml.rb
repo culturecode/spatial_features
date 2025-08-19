@@ -44,6 +44,7 @@ module SpatialFeatures
       def kml_document
         @kml_document ||= begin
           doc = Nokogiri::XML(@data)
+          doc.remove_namespaces! # We don't care about namespaces since the document is going to be filled with placemark geometry and we want it all without needing to deal with namespaces
           raise ImportError, "Invalid KML document (root node was '#{doc.root&.name}')" unless doc.root&.name.to_s.casecmp?('kml')
           raise ImportError, "NetworkLink elements are not supported" unless doc.search('NetworkLink').empty?
           doc
