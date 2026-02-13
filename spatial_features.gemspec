@@ -21,7 +21,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "delayed_job_active_record", '~> 4.1'
   s.add_runtime_dependency "rgeo-shapefile", '~> 3.1'
   s.add_runtime_dependency "rgeo-geojson", '~> 2.1.1'
-  s.add_runtime_dependency "rubyzip", '>= 1.0.0'
+  s.add_runtime_dependency "rubyzip", '2.4.1' # FIXME: v3 doesn't support the non-block form of Zip::File.open, which is used in Unzip.entries
   s.add_runtime_dependency "nokogiri"
 
   s.add_development_dependency "rails", '>= 7', '< 8'
