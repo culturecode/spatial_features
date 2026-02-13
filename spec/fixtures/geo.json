@@ -72,6 +72,14 @@
                ]
             ]
          }
+      },
+      {
+         "type":"Feature",
+         "properties":{
+            "name":"Feature C",
+            "prop0": "value"
+         },
+         "geometry": null
       }
    ]
 }
