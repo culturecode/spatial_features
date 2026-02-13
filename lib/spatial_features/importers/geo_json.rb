@@ -12,6 +12,8 @@ module SpatialFeatures
 
       def each_record(&block)
         parsed_geojson.fetch('features', []).each do |record|
+          next if record['geometry'].nil? # Skip features without geometry
+
           metadata = record['properties'] || {}
           name = metadata.delete('name')
           yield OpenStruct.new(
