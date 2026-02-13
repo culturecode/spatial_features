@@ -45,9 +45,8 @@ jobs:
       # bundle cache in `ruby/setup-ruby` so that the gems are re-compiled
       - name: Install GEOS
         run: |
-          sudo add-apt-repository ppa:ubuntugis/ppa
           sudo apt-get update
-          sudo apt-get install libpq-dev libgeos-dev libgeos3.10.2 libproj-dev gdal-bin -y
+          sudo apt-get install libgeos-dev libgeos-c1v5 libproj-dev gdal-bin -y
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
