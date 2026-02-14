@@ -21,11 +21,17 @@ module SpatialFeatures
       [].tap do |paths|
         entries(file_path).each do |entry|
           next if entry.name =~ IGNORED_ENTRY_PATHS
+
           output_filename = entry.name
           output_filename = output_filename.downcase if downcase
+
           path = "#{tmpdir}/#{output_filename}"
-          FileUtils.mkdir_p(File.dirname(path))
-          entry.extract(path)
+          directory = File.dirname(path)
+          basename = File.basename(path)
+
+          FileUtils.mkdir_p(directory)
+          entry.extract(basename, destination_directory: directory)
+
           paths << path
         end
       end
