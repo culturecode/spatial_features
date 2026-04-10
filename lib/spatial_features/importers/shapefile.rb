@@ -1,3 +1,4 @@
+require 'ostruct'
 require 'digest/md5'
 
 module SpatialFeatures
@@ -29,10 +30,7 @@ module SpatialFeatures
       def each_record
         open_shapefile(archive) do |records, proj4|
           records.each do |record|
-            if record.geometry.present?
-              data = data_from_record(record, proj4)
-              yield Struct.new(:geog, :metadata).new(data[:geog], data[:metadata])
-            end
+            yield OpenStruct.new(**data_from_record(record, proj4)) if record.geometry.present?
           end
         end
       rescue Errno::ENOENT => e
