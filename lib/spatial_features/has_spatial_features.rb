@@ -4,29 +4,29 @@ module SpatialFeatures
     def has_spatial_features(options = {})
       unless acts_like?(:spatial_features)
         class_attribute :spatial_features_options
-        self.spatial_features_options = {:make_valid => true}
+        self.spatial_features_options = {make_valid: true}
 
         extend ClassMethods
         include InstanceMethods
         include FeatureImport
 
-        has_many :features, lambda { extending FeaturesAssociationExtensions }, :as => :spatial_model, :dependent => :delete_all
-        has_one :aggregate_feature, lambda { extending FeaturesAssociationExtensions }, :as => :spatial_model, :dependent => :delete
+        has_many :features, lambda { extending FeaturesAssociationExtensions }, as: :spatial_model, dependent: :delete_all
+        has_one :aggregate_feature, lambda { extending FeaturesAssociationExtensions }, as: :spatial_model, dependent: :delete
 
         scope :with_features, lambda { joins(:features).distinct }
         scope :without_features, lambda { joins("LEFT OUTER JOIN features ON features.spatial_model_type = '#{Utils.base_class(name)}' AND features.spatial_model_id = #{table_name}.id").where("features.id IS NULL") }
         scope :include_bounds, lambda { SQLHelpers.append_select(joins(:aggregate_feature), :north, :east, :south, :west) }
         scope :include_area, lambda { SQLHelpers.append_select(joins(:aggregate_feature), :area) }
 
-        scope :with_spatial_cache, lambda {|klass| joins(:spatial_caches).where(:spatial_caches => { :intersection_model_type =>  Utils.class_name_with_ancestors(klass) }).distinct }
+        scope :with_spatial_cache, lambda {|klass| joins(:spatial_caches).where(spatial_caches: { intersection_model_type:  Utils.class_name_with_ancestors(klass) }).distinct }
         scope :without_spatial_cache, lambda {|klass| joins("LEFT OUTER JOIN #{SpatialCache.table_name} ON #{SpatialCache.table_name}.spatial_model_id = #{table_name}.id AND #{SpatialCache.table_name}.spatial_model_type = '#{Utils.base_class(name)}' and intersection_model_type IN ('#{Utils.class_name_with_ancestors(klass).join("','") }')").where("#{SpatialCache.table_name}.spatial_model_id IS NULL") }
         scope :with_stale_spatial_cache, lambda { has_spatial_features_hash? ? joins(:spatial_caches).where("#{table_name}.features_hash != spatial_caches.features_hash").distinct : none }
 
-        has_many :spatial_caches, :as => :spatial_model, :dependent => :delete_all, :class_name => 'SpatialCache'
-        has_many :model_a_spatial_proximities, :as => :model_a, :class_name => 'SpatialProximity', :dependent => :delete_all
-        has_many :model_b_spatial_proximities, :as => :model_b, :class_name => 'SpatialProximity', :dependent => :delete_all
+        has_many :spatial_caches, as: :spatial_model, dependent: :delete_all, class_name: 'SpatialCache'
+        has_many :model_a_spatial_proximities, as: :model_a, class_name: 'SpatialProximity', dependent: :delete_all
+        has_many :model_b_spatial_proximities, as: :model_b, class_name: 'SpatialProximity', dependent: :delete_all
 
-        delegate :has_spatial_features_hash?, :has_features_area?, :to => self
+        delegate :has_spatial_features_hash?, :has_features_area?, to: self
       end
 
       self.spatial_features_options = self.spatial_features_options.deep_merge(options)
@@ -87,18 +87,18 @@ module SpatialFeatures
     def features
       type = base_class.to_s # Rails stores polymorphic foreign keys as the base class
       if all == unscoped
-        Feature.where(:spatial_model_type => type)
+        Feature.where(spatial_model_type: type)
       else
-        Feature.where(:spatial_model_type => type, :spatial_model_id => all.unscope(:select))
+        Feature.where(spatial_model_type: type, spatial_model_id: all.unscope(:select))
       end
     end
 
     def aggregate_features
       type = base_class.to_s # Rails stores polymorphic foreign keys as the base class
       if all == unscoped
-        AggregateFeature.where(:spatial_model_type => type)
+        AggregateFeature.where(spatial_model_type: type)
       else
-        AggregateFeature.where(:spatial_model_type => type, :spatial_model_id => all.unscope(:select))
+        AggregateFeature.where(spatial_model_type: type, spatial_model_id: all.unscope(:select))
       end
     end
 
@@ -119,7 +119,7 @@ module SpatialFeatures
     private
 
     def cached_within_buffer_scope(other, buffer_in_meters, options)
-      options = options.reverse_merge(:columns => "#{table_name}.*")
+      options = options.reverse_merge(columns: "#{table_name}.*")
       scope = cached_spatial_join(other)
       scope = scope.select(options[:columns])
       scope = scope.where("spatial_proximities.distance_in_meters <= ?", buffer_in_meters) if buffer_in_meters
@@ -142,7 +142,7 @@ module SpatialFeatures
     end
 
     def uncached_within_buffer_scope(other, buffer_in_meters, options)
-      options = options.reverse_merge(:columns => "#{table_name}.*")
+      options = options.reverse_merge(columns: "#{table_name}.*")
 
       scope = spatial_join(other, buffer_in_meters)
       scope = scope.select(options[:columns])
@@ -168,8 +168,8 @@ module SpatialFeatures
 
     def features_scope(other)
       scope = AggregateFeature
-      scope = scope.where(:spatial_model_type => Utils.base_class_of(other).to_s)
-      scope = scope.where(:spatial_model_id => other) unless Utils.class_of(other) == other
+      scope = scope.where(spatial_model_type: Utils.base_class_of(other).to_s)
+      scope = scope.where(spatial_model_id: other) unless Utils.class_of(other) == other
       return scope
     end
 

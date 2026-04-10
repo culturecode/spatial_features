@@ -45,7 +45,7 @@ module SpatialFeatures
       def data_from_record(record, proj4 = nil)
         geometry = record.geometry
         wkt = geometry.as_text
-        data = { :metadata => record.attributes }
+        data = { metadata: record.attributes }
 
         if proj4 == PROJ4_4326
           data[:geog] = wkt
@@ -66,7 +66,7 @@ module SpatialFeatures
         validate_shapefile!(file.path)
         proj4 = proj4_projection(file.path)
 
-        RGeo::Shapefile::Reader.open(file.path, :allow_unsafe => true) do |records| # Fall back to unprojected geometry if projection fails
+        RGeo::Shapefile::Reader.open(file.path, allow_unsafe: true) do |records| # Fall back to unprojected geometry if projection fails
           block.call records, proj4
         end
       ensure

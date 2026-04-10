@@ -90,7 +90,7 @@ module SpatialFeatures
 
     def queue_spatial_task(method_name, *args, priority: 1, **kwargs)
       # NOTE: We pass kwargs as an arg because Delayed::Job does not support separation of positional and keyword arguments in Ruby 3.0. Instead we perform manual extraction in `perform`.
-      Delayed::Job.enqueue SpatialProcessingJob.new(self, method_name, *args, kwargs), :queue => spatial_processing_queue_name + method_name, priority:
+      Delayed::Job.enqueue SpatialProcessingJob.new(self, method_name, *args, kwargs), queue: spatial_processing_queue_name + method_name, priority:
     end
 
     def spatial_processing_queue_name
@@ -111,7 +111,7 @@ module SpatialFeatures
       end
 
       def before(job)
-        ids = running_jobs.where.not(:id => job.id).pluck(:id)
+        ids = running_jobs.where.not(id: job.id).pluck(:id)
         raise "Already processing delayed jobs in this spatial queue: Delayed::Job #{ids.to_sentence}." if ids.present?
       end
 
@@ -141,8 +141,8 @@ module SpatialFeatures
 
       def running_jobs
         @record.spatial_processing_jobs
-          .where(:locked_at => Delayed::Worker.max_run_time.ago..Time.current)
-          .where(:failed_at => nil)
+          .where(locked_at: Delayed::Worker.max_run_time.ago..Time.current)
+          .where(failed_at: nil)
       end
     end
   end

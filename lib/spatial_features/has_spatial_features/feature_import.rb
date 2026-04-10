@@ -9,7 +9,7 @@ module SpatialFeatures
     included do
       extend ActiveModel::Callbacks
       define_model_callbacks :update_features
-      spatial_features_options.reverse_merge!(:import => {}, :spatial_cache => [], :image_handlers => [])
+      spatial_features_options.reverse_merge!(import: {}, spatial_cache: [], image_handlers: [])
     end
 
     module ClassMethods
@@ -73,7 +73,7 @@ module SpatialFeatures
 
     def update_features_area
       return unless has_attribute?(:features_area)
-      self.features_area = features.area(:cache => false)
+      self.features_area = features.area(cache: false)
       update_column :features_area, features_area unless new_record?
     end
 
@@ -101,7 +101,7 @@ module SpatialFeatures
         Array.wrap(send(data_method)).flat_map do |data|
           next unless data.present?
 
-          spatial_importer_from_name(importer_name).create_all(data, **options, :make_valid => make_valid, :tmpdir => tmpdir)
+          spatial_importer_from_name(importer_name).create_all(data, **options, make_valid: make_valid, tmpdir: tmpdir)
         end
       end.compact
     end
