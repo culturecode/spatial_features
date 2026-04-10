@@ -1,3 +1,4 @@
+require 'ostruct'
 
 module SpatialFeatures
   module Importers
@@ -35,7 +36,7 @@ module SpatialFeatures
 
             importable_image_paths = images_from_metadata(metadata)
 
-            yield Struct.new(:geog, :name, :metadata, :importable_image_paths).new(geog, name, metadata, importable_image_paths)
+            yield OpenStruct.new(geog: geog, name: name, metadata: metadata, importable_image_paths: importable_image_paths)
           end
         end
       end
