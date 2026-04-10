@@ -11,8 +11,13 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        ruby-version: ["3.2"]
-        gemfile: ["rails_7_0"]
+        ruby-version: ["3.2", "4.0"]
+        gemfile: ["rails_7_0", "rails_8_0"]
+        exclude:
+          - ruby-version: "4.0"
+            gemfile: "rails_7_0"
+          - ruby-version: "3.2"
+            gemfile: "rails_8_0"
       fail-fast: false
 
     env:
@@ -38,7 +43,7 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v5
 
       # libgeos and gdal are required and must be installed before `bundle install`
       # NB: if you add libs here that are required for Gem native extensions be sure to clear the

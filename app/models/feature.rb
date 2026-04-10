@@ -7,9 +7,9 @@ class Feature < AbstractFeature
   class_attribute :lowres_precision
   self.lowres_precision = 5
 
-  has_one :aggregate_feature, lambda { |feature| where(:spatial_model_type => feature.spatial_model_type) }, :foreign_key => :spatial_model_id, :primary_key => :spatial_model_id
+  has_one :aggregate_feature, lambda { |feature| where(spatial_model_type: feature.spatial_model_type) }, foreign_key: :spatial_model_id, primary_key: :spatial_model_id
 
-  scope :source_identifier, lambda {|source_identifier| where(:source_identifier => source_identifier) if source_identifier.present? }
+  scope :source_identifier, lambda {|source_identifier| where(source_identifier: source_identifier) if source_identifier.present? }
 
   before_save :truncate_name
 
@@ -21,7 +21,7 @@ class Feature < AbstractFeature
     start_at = Feature.maximum(:id).to_i + 1
     output = without_aggregate_refresh(&block)
 
-    where(:id => start_at..Float::INFINITY).refresh_aggregates
+    where(id: start_at..Float::INFINITY).refresh_aggregates
 
     return output
   end
@@ -36,13 +36,13 @@ class Feature < AbstractFeature
 
   def self.refresh_aggregates
     # Find one feature from each spatial model and trigger the aggregate feature refresh
-    ids = where.not(:spatial_model_type => nil)
-            .where.not(:spatial_model_id => nil)
+    ids = where.not(spatial_model_type: nil)
+            .where.not(spatial_model_id: nil)
             .group('spatial_model_type, spatial_model_id')
             .pluck('MAX(id)')
 
     # Unscope so that newly built AggregateFeatures get their type column set correctly
-    AbstractFeature.unscoped { where(:id => ids).find_each(&:refresh_aggregate) }
+    AbstractFeature.unscoped { where(id: ids).find_each(&:refresh_aggregate) }
   end
 
   def refresh_aggregate
