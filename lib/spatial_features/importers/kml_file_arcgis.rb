@@ -1,4 +1,3 @@
-require 'ostruct'
 
 module SpatialFeatures
   module Importers
