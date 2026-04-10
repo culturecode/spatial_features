@@ -7,7 +7,7 @@ class AbstractFeature < ActiveRecord::Base
   class_attribute :lowres_simplification
   self.lowres_simplification = 2 # Threshold in meters
 
-  belongs_to :spatial_model, :polymorphic => :true, :autosave => false
+  belongs_to :spatial_model, polymorphic: :true, autosave: false
 
   attr_writer :make_valid
 
@@ -16,7 +16,7 @@ class AbstractFeature < ActiveRecord::Base
   validates_presence_of :geog
   validate :validate_geometry, if: :will_save_change_to_geog?
   before_save :sanitize, if: :will_save_change_to_geog?
-  after_save :cache_derivatives, :if => [:automatically_cache_derivatives?, :saved_change_to_geog?]
+  after_save :cache_derivatives, if: [:automatically_cache_derivatives?, :saved_change_to_geog?]
 
   def self.cache_key
     collection_cache_key
@@ -41,15 +41,15 @@ class AbstractFeature < ActiveRecord::Base
   end
 
   def self.polygons
-    where(:feature_type => 'polygon')
+    where(feature_type: 'polygon')
   end
 
   def self.lines
-    where(:feature_type => 'line')
+    where(feature_type: 'line')
   end
 
   def self.points
-    where(:feature_type => 'point')
+    where(feature_type: 'point')
   end
 
   def self.within_distance_of_point(lat, lng, distance_in_meters, geom = 'geom_lowres')
@@ -59,7 +59,7 @@ class AbstractFeature < ActiveRecord::Base
       else "ST_Transform(ST_SetSRID(ST_Point(:lng, :lat), 4326), #{detect_srid(geom)})"
       end
 
-    binds = { :lng => lng.to_d, :lat => lat.to_d }
+    binds = { lng: lng.to_d, lat: lat.to_d }
 
     within_distance_of_sql(point_sql, distance_in_meters, geom, **binds)
   end
@@ -71,7 +71,7 @@ class AbstractFeature < ActiveRecord::Base
       else "ST_Transform(ST_SetSRID(:points::geometry, 4326), #{detect_srid(geom)})"
       end
 
-    binds = { :points => "LINESTRING(#{points.map {|coords| coords.join(' ') }.join(', ')})" }
+    binds = { points: "LINESTRING(#{points.map {|coords| coords.join(' ') }.join(', ')})" }
 
     within_distance_of_sql(point_sql, distance_in_meters, geom, **binds)
   end
@@ -83,14 +83,14 @@ class AbstractFeature < ActiveRecord::Base
       else "ST_Transform(ST_Polygon(:points::geometry, 4326), #{detect_srid(geom)})"
       end
 
-    binds = { :points => "LINESTRING(#{points.map {|coords| coords.join(' ') }.join(', ')})" }
+    binds = { points: "LINESTRING(#{points.map {|coords| coords.join(' ') }.join(', ')})" }
 
     within_distance_of_sql(point_sql, distance_in_meters, geom, **binds)
   end
 
   def self.within_distance_of_sql(geometry_sql, distance_in_meters, features_column = 'geom_lowres', **binds)
     if distance_in_meters.to_f > 0
-      where("ST_DWithin(features.#{features_column}, #{geometry_sql}, :distance)", **binds, :distance => distance_in_meters)
+      where("ST_DWithin(features.#{features_column}, #{geometry_sql}, :distance)", **binds, distance: distance_in_meters)
     else
       where("ST_Intersects(features.#{features_column}, #{geometry_sql})", **binds)
     end
@@ -128,7 +128,7 @@ class AbstractFeature < ActiveRecord::Base
   end
 
   def envelope(buffer_in_meters = 0)
-    envelope_json = JSON.parse(self.class.select("ST_AsGeoJSON(ST_Envelope(ST_Buffer(features.geog, #{buffer_in_meters})::geometry)) AS result").where(:id => id).first.result)
+    envelope_json = JSON.parse(self.class.select("ST_AsGeoJSON(ST_Envelope(ST_Buffer(features.geog, #{buffer_in_meters})::geometry)) AS result").where(id: id).first.result)
     envelope_json = envelope_json["coordinates"].first
 
     raise "Can't calculate envelope for Feature #{self.id}" if envelope_json.blank?
@@ -257,12 +257,12 @@ class AbstractFeature < ActiveRecord::Base
   end
 
   def cache_derivatives(*args)
-    self.class.default_scoped.where(:id => self.id).cache_derivatives(*args)
+    self.class.default_scoped.where(id: self.id).cache_derivatives(*args)
   end
 
   def kml(options = {})
     column = options[:lowres] ? 'geom_lowres' : 'geog'
-    return SpatialFeatures::Utils.select_db_value(self.class.where(:id => id).select("ST_AsKML(#{column}, 6)"))
+    return SpatialFeatures::Utils.select_db_value(self.class.where(id: id).select("ST_AsKML(#{column}, 6)"))
   end
 
   def geojson(*args)
@@ -290,7 +290,7 @@ class AbstractFeature < ActiveRecord::Base
   end
 
   def self.join_other_features(other)
-    joins('INNER JOIN features AS other_features ON true').where(:other_features => {:id => other})
+    joins('INNER JOIN features AS other_features ON true').where(other_features: {id: other})
   end
 
   def validate_geometry

@@ -92,7 +92,7 @@ module SpatialFeatures
         metadata = {}
         metadata.merge! extract_table(placemark)
         metadata.merge! extract_extended_data(placemark)
-        metadata.merge! :description => placemark.css('description').text if metadata.empty?
+        metadata.merge! description: placemark.css('description').text if metadata.empty?
         metadata.delete_if {|key, value| value.blank? }
 
         return metadata
