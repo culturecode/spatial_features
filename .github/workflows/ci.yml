@@ -13,6 +13,11 @@ jobs:
       matrix:
         ruby-version: ["3.2", "4.0"]
         gemfile: ["rails_7_0", "rails_8_0"]
+        exclude:
+          - ruby-version: "4.0"
+            gemfile: "rails_7_0"
+          - ruby-version: "3.2"
+            gemfile: "rails_8_0"
       fail-fast: false
 
     env:
