@@ -17,14 +17,14 @@ Gem::Specification.new do |s|
   s.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md"]
   s.test_files = Dir["test/**/*"]
 
-  s.add_runtime_dependency "rails", '>= 6', '< 8'
+  s.add_runtime_dependency "rails", '>= 6', '< 9'
   s.add_runtime_dependency "delayed_job_active_record", '~> 4.1'
   s.add_runtime_dependency "rgeo-shapefile", '~> 3.1'
   s.add_runtime_dependency "rgeo-geojson", '~> 2.1.1'
   s.add_runtime_dependency "rubyzip", "~> 3.0"
   s.add_runtime_dependency "nokogiri"
 
-  s.add_development_dependency "rails", '>= 7', '< 8'
+  s.add_development_dependency "rails", '>= 7', '< 9'
   s.add_development_dependency "pg", '~> 1'
   s.add_development_dependency "rspec", '~> 3.5'
   s.add_development_dependency 'pry-byebug'
