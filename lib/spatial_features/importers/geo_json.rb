@@ -17,10 +17,10 @@ module SpatialFeatures
           metadata = record['properties'] || {}
           name = metadata.delete('name')
           yield OpenStruct.new(
-            :feature_type => record['geometry']['type'],
-            :geog => SpatialFeatures::Utils.geom_from_json(record['geometry']),
-            :name => name,
-            :metadata => metadata
+            feature_type: record['geometry']['type'],
+            geog: SpatialFeatures::Utils.geom_from_json(record['geometry']),
+            name: name,
+            metadata: metadata
           )
         end
       end

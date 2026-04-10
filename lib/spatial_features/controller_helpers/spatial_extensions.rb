@@ -15,21 +15,21 @@ module SpatialExtensions
   end
 
   def abstract_proximity_action(scope, target, distance, &block)
-    @nearby_records = scope_for_search(scope).within_buffer(target, distance, :distance => true, :intersection_area => true).order('distance_in_meters ASC, intersection_area_in_square_meters DESC, id ASC')
+    @nearby_records = scope_for_search(scope).within_buffer(target, distance, distance: true, intersection_area: true).order('distance_in_meters ASC, intersection_area_in_square_meters DESC, id ASC')
     @target = target
 
     if block_given?
       block.call(@nearby_records)
     else
       respond_to do |format|
-        format.html { render :template => 'shared/spatial/feature_proximity', :layout => false }
-        format.kml { render :template => 'shared/spatial/feature_proximity' }
+        format.html { render template: 'shared/spatial/feature_proximity', layout: false }
+        format.kml { render template: 'shared/spatial/feature_proximity' }
       end
     end
   end
 
   def abstract_venn_polygons_action(scope, target, &block)
-    @venn_polygons = SpatialFeatures.venn_polygons(scope_for_search(scope).intersecting(target), target.class.where(:id => target), :target => target)
+    @venn_polygons = SpatialFeatures.venn_polygons(scope_for_search(scope).intersecting(target), target.class.where(id: target), target: target)
     @klass = klass_for_search(scope)
     @target = target
 
@@ -37,7 +37,7 @@ module SpatialExtensions
       block.call(@venn_polygons)
     else
       respond_to do |format|
-        format.kml { render :template => 'shared/spatial/feature_venn_polygons' }
+        format.kml { render template: 'shared/spatial/feature_venn_polygons' }
       end
     end
   end
@@ -50,7 +50,7 @@ module SpatialExtensions
     if params.key?(:ids)
       ids = params[:ids]
       ids = ids.split(/\D/) if ids.is_a?(String)
-      scope.where(:id => ids)
+      scope.where(id: ids)
     else
       scope
     end

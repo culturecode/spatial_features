@@ -36,7 +36,7 @@ module SpatialFeatures
 
             importable_image_paths = images_from_metadata(metadata)
 
-            yield OpenStruct.new(:geog => geog, :name => name, :metadata => metadata, :importable_image_paths => importable_image_paths)
+            yield OpenStruct.new(geog: geog, name: name, metadata: metadata, importable_image_paths: importable_image_paths)
           end
         end
       end
@@ -92,7 +92,7 @@ module SpatialFeatures
         metadata = {}
         metadata.merge! extract_table(placemark)
         metadata.merge! extract_extended_data(placemark)
-        metadata.merge! :description => placemark.css('description').text if metadata.empty?
+        metadata.merge! description: placemark.css('description').text if metadata.empty?
         metadata.delete_if {|key, value| value.blank? }
 
         return metadata

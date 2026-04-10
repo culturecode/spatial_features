@@ -36,7 +36,7 @@ module SpatialFeatures
     end
 
     def self.find_in_zip(file, find:, **unzip_options)
-      Unzip.paths(file, :find => find, **unzip_options)
+      Unzip.paths(file, find: find, **unzip_options)
     end
   end
 end
