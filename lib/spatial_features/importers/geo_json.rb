@@ -1,4 +1,3 @@
-require 'ostruct'
 require 'digest/md5'
 
 module SpatialFeatures
@@ -16,11 +15,11 @@ module SpatialFeatures
 
           metadata = record['properties'] || {}
           name = metadata.delete('name')
-          yield OpenStruct.new(
-            :feature_type => record['geometry']['type'],
-            :geog => SpatialFeatures::Utils.geom_from_json(record['geometry']),
-            :name => name,
-            :metadata => metadata
+          yield Struct.new(:feature_type, :geog, :name, :metadata).new(
+            record['geometry']['type'],
+            SpatialFeatures::Utils.geom_from_json(record['geometry']),
+            name,
+            metadata
           )
         end
       end
