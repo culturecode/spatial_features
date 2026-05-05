@@ -56,24 +56,23 @@ module SpatialFeatures
       end
 
       def geom_from_kml(kml)
-        geom = nil
-        conn = nil
-
         strip_altitude(kml)
 
-        # Do query in a new thread so we use a new connection (if the query fails it will poison the transaction of the current connection)
-        #
-        # We manually checkout a new connection since Rails re-uses DB connections across threads.
-        Thread.new do
-          conn = ActiveRecord::Base.connection_pool.checkout
-          geom = conn.select_value("SELECT ST_GeomFromKML(#{conn.quote(kml.to_s)})")
-        rescue ActiveRecord::StatementInvalid => e # Discard Invalid KML features
-          geom = nil
-        ensure
-          ActiveRecord::Base.connection_pool.checkin(conn) if conn
-        end.join
-
-        return geom
+        # Run the parse inside a SAVEPOINT so a `ST_GeomFromKML` failure on a single
+        # invalid feature rolls back only that savepoint, not the surrounding
+        # transaction. The previous implementation spawned a thread and checked out
+        # a fresh connection for the same isolation reason, but on Rails 8 that
+        # pattern deadlocks under `use_transactional_fixtures` — the test pins its
+        # connection, the spawned thread blocks indefinitely waiting on
+        # `ActiveRecord::Base.connection_pool.checkout`. A nested transaction
+        # (`requires_new: true`) gives identical fault containment without crossing
+        # thread boundaries.
+        ActiveRecord::Base.transaction(requires_new: true) do
+          conn = ActiveRecord::Base.connection
+          conn.select_value("SELECT ST_GeomFromKML(#{conn.quote(kml.to_s)})")
+        end
+      rescue ActiveRecord::StatementInvalid # Discard invalid KML features
+        nil
       end
 
       def images_from_metadata(metadata)
