@@ -35,10 +35,51 @@ module SpatialFeatures
       def with_downloaded_file(url)
         Tempfile.create(['esri_geojson', '.json']) do |tempfile|
           tempfile.binmode
-          URI.open(url) { |io| IO.copy_stream(io, tempfile) }
+          download_paginated(url, tempfile)
           tempfile.close
           return yield(tempfile.path)
         end
+      end
+
+      # ArcGIS query endpoints cap each response at the service's maxRecordCount
+      # (commonly 1000 or 2000 features) and signal exceededTransferLimit when
+      # more results are available. Walk the pages with resultOffset and merge
+      # them into a single FeatureCollection before handing to ogr2ogr.
+      def download_paginated(url, io)
+        combined = nil
+        offset = 0
+
+        loop do
+          page = JSON.parse(URI.open(paginated_url(url, offset)).read)
+          page_features = page['features'] || []
+
+          if combined.nil?
+            combined = page
+          else
+            combined['features'].concat(page_features)
+          end
+
+          break if page_features.empty? || !exceeded_transfer_limit?(page)
+          offset += page_features.length
+        end
+
+        combined&.delete('exceededTransferLimit')
+        combined&.fetch('properties', {})&.delete('exceededTransferLimit')
+        io.write(JSON.dump(combined)) if combined
+      end
+
+      def exceeded_transfer_limit?(page)
+        page['exceededTransferLimit'] || page.dig('properties', 'exceededTransferLimit')
+      end
+
+      def paginated_url(url, offset)
+        return url if offset.zero?
+        uri = URI.parse(url)
+        params = URI.decode_www_form(uri.query || '')
+        params.reject! { |k, _| k == 'resultOffset' }
+        params << ['resultOffset', offset.to_s]
+        uri.query = URI.encode_www_form(params)
+        uri.to_s
       end
     end
   end
