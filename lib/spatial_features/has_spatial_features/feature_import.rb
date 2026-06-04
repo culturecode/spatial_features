@@ -41,8 +41,15 @@ module SpatialFeatures
             update_spatial_cache(options.slice(:spatial_cache))
           end
 
+          # Attribute each warning to the file it came from (e.g. `archive.zip/layer.kml`)
+          # so a multi-file or multi-source import makes clear which file was affected.
+          import_warnings = imports.flat_map do |import|
+            import.warnings.map {|warning| [import.source_identifier.presence, warning].compact.join(': ') }
+          end
+          store_feature_update_warnings(import_warnings)
+
           if imports.present? && features.compact_blank.empty? && !allow_blank
-            raise EmptyImportError, "No spatial features were found when updating"
+            raise EmptyImportError, ["No spatial features were found when updating.", *import_warnings].join(' ')
           end
         end
       end

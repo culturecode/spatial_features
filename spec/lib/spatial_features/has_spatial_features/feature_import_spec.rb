@@ -330,6 +330,65 @@ describe SpatialFeatures::FeatureImport do
       end
     end
 
+    context 'when the source contains NetworkLinks alongside embedded features' do
+      subject do
+        new_dummy_class(:spatial_processing_status_cache => :jsonb) do
+          has_spatial_features :import => { :test_kml => :KMLFile }
+
+          def test_kml
+            fixture_file_path("kml_file_with_network_link_and_features.kml")
+          end
+        end.create
+      end
+
+      it 'imports the embedded features' do
+        subject.update_features!
+        expect(subject.features.count).to eq(2)
+      end
+
+      it 'records the skipped NetworkLinks as a warning' do
+        subject.update_features!
+        expect(subject.feature_update_warnings).to include(a_string_matching(/network-linked/i))
+      end
+    end
+
+    context 'when the source contains only NetworkLinks' do
+      subject do
+        new_dummy_class(:spatial_processing_status_cache => :jsonb) do
+          has_spatial_features :import => { :test_kml => :KMLFile }
+
+          def test_kml
+            fixture_file_path("kml_file_with_network_link.kml")
+          end
+        end.create
+      end
+
+      it 'raises an EmptyImportError that explains the skipped NetworkLinks' do
+        expect { subject.update_features! }.to raise_error(SpatialFeatures::EmptyImportError, /network-linked/i)
+      end
+    end
+
+    context 'when multiple source files each contain NetworkLinks' do
+      subject do
+        new_dummy_class(:spatial_processing_status_cache => :jsonb) do
+          has_spatial_features :import => { :test_files => :File }
+
+          def test_files
+            [fixture_file_path("kml_file_with_network_link_and_features.kml"),
+             fixture_file_path("kml_file_with_network_link.kml")]
+          end
+        end.create
+      end
+
+      it 'attributes each warning to the file it came from' do
+        subject.update_features!
+        expect(subject.feature_update_warnings).to include(
+          a_string_matching(%r{\Akml_file_with_network_link_and_features\.kml: Skipped}),
+          a_string_matching(%r{\Akml_file_with_network_link\.kml: Skipped}),
+        )
+      end
+    end
+
     describe 'spatial caching' do
       let(:other_class) { new_dummy_class }
       subject do

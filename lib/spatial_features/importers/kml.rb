@@ -46,9 +46,26 @@ module SpatialFeatures
           doc = Nokogiri::XML(@data)
           doc.remove_namespaces! # We don't care about namespaces since the document is going to be filled with placemark geometry and we want it all without needing to deal with namespaces
           raise ImportError, "Invalid KML document (root node was '#{doc.root&.name}')" unless doc.root&.name.to_s.casecmp?('kml')
-          raise ImportError, "NetworkLink elements are not supported" unless doc.search('NetworkLink').empty?
+          discard_network_links(doc)
           doc
         end
+      end
+
+      # NetworkLinks reference geometry hosted elsewhere (e.g. a remote KMZ) rather
+      # than embedding it, so there is nothing for us to import from them. Rather than
+      # failing the whole file, we drop them and record a warning so any embedded
+      # geometry still imports and the user is told which layers were skipped. If the
+      # file contained nothing but NetworkLinks the import ends up empty and the
+      # EmptyImportError surfaces the warning as the reason.
+      def discard_network_links(doc)
+        network_links = doc.search('NetworkLink')
+        return if network_links.empty?
+
+        names = network_links.map {|link| link.at_css('name')&.text.presence }.compact.uniq
+        described = names.any? ? ": #{names.to_sentence}" : ''
+        @warnings << "Skipped #{network_links.size} network-linked #{'layer'.pluralize(network_links.size)} that reference remote data and cannot be imported#{described}."
+
+        network_links.remove
       end
 
       def blank_feature?(feature)
