@@ -4,12 +4,19 @@ module SpatialFeatures
   module Importers
     class Base
       attr_reader :errors
+
+      # Non-fatal messages about parts of the source that could not be imported but
+      # did not prevent the remaining features from importing (e.g. unsupported
+      # elements). Unlike `errors`, warnings never abort the import.
+      attr_reader :warnings
+
       attr_accessor :source_identifier # An identifier for the source of the features. Used to differentiate groups of features on the spatial model.
 
       def initialize(data, make_valid: false, tmpdir: nil, source_identifier: nil, feature_name: ->(record) { record.name })
         @make_valid = make_valid
         @data = data
         @errors = []
+        @warnings = []
         @tmpdir = tmpdir
         @source_identifier = source_identifier
         @feature_name = feature_name

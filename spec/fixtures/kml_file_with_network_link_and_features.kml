@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom">
+<Document>
+	<name>kml_file_with_network_link_and_features.kml</name>
+	<Folder>
+		<name>Remote folder</name>
+		<NetworkLink>
+			<name>Remote Layer</name>
+			<Link>
+				<href>https://example.com/remote.kmz</href>
+				<viewRefreshMode>onRequest</viewRefreshMode>
+			</Link>
+		</NetworkLink>
+	</Folder>
+	<Folder>
+		<name>Poly folder</name>
+		<open>1</open>
+		<Placemark>
+			<name>Poly 1</name>
+			<description>This is a description</description>
+			<Polygon>
+				<tessellate>1</tessellate>
+				<outerBoundaryIs>
+					<LinearRing>
+						<coordinates>
+							-104.2021395645545,60.47065556909579,0 -98.5406390057758,60.08348491099549,0 -98.40794749318894,63.7611693880032,0 -105.6700904293509,63.9562028375275,0 -104.2021395645545,60.47065556909579,0
+						</coordinates>
+					</LinearRing>
+				</outerBoundaryIs>
+			</Polygon>
+		</Placemark>
+		<Placemark>
+			<name>Poly 2</name>
+			<description>This is a description also</description>
+			<Polygon>
+				<tessellate>1</tessellate>
+				<outerBoundaryIs>
+					<LinearRing>
+						<coordinates>
+							-106.4303166516638,61.16376575099101,0 -100.7627103394292,61.95514185121152,0 -100.2655658472707,65.8275552135498,0 -107.9516815833805,65.21804505333482,0 -106.4303166516638,61.16376575099101,0
+						</coordinates>
+					</LinearRing>
+				</outerBoundaryIs>
+			</Polygon>
+		</Placemark>
+	</Folder>
+</Document>
+</kml>

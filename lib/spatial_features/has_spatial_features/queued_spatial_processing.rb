@@ -45,6 +45,30 @@ module SpatialFeatures
       spatial_processing_status(:update_features!) == :failure
     end
 
+    # Non-fatal messages from the most recent successful feature import (e.g. parts of
+    # the source that were skipped). Stored alongside the status cache so they survive
+    # job completion, since successful Delayed::Jobs are deleted and can't be read back.
+    WARNINGS_CACHE_KEY = 'feature_update_warnings'.freeze
+
+    def feature_update_warnings
+      return [] unless has_attribute?(:spatial_processing_status_cache)
+      Array(spatial_processing_status_cache[WARNINGS_CACHE_KEY])
+    end
+
+    def store_feature_update_warnings(warnings)
+      return unless has_attribute?(:spatial_processing_status_cache)
+
+      cache = spatial_processing_status_cache
+      warnings = Array(warnings).reject(&:blank?)
+      if warnings.present?
+        cache[WARNINGS_CACHE_KEY] = warnings
+      else
+        cache.delete(WARNINGS_CACHE_KEY)
+      end
+      self.spatial_processing_status_cache = cache
+      update_column(:spatial_processing_status_cache, cache) if persisted? && will_save_change_to_spatial_processing_status_cache?
+    end
+
     def spatial_processing_status(method_name, use_cache: true)
       if has_attribute?(:spatial_processing_status_cache)
         update_spatial_processing_status(method_name) unless use_cache
