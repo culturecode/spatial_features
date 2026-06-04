@@ -26,6 +26,10 @@ def kml_file_with_network_link
   open_fixture_file("kml_file_with_network_link.kml")
 end
 
+def kml_file_with_network_link_and_features
+  open_fixture_file("kml_file_with_network_link_and_features.kml")
+end
+
 def kml_file_with_altitude
   open_fixture_file("kml_file_with_altitude.kml")
 end

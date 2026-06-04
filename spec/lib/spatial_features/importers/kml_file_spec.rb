@@ -55,22 +55,46 @@ describe SpatialFeatures::Importers::KMLFile do
     end
   end
 
-  shared_examples_for 'kml importer with unimportable file' do |data|
-    subject { SpatialFeatures::Importers::KMLFile.new(data) }
-
-    describe '#features' do
-      it 'raises an exception' do
-        expect { subject.features }.to raise_exception(SpatialFeatures::ImportError)
-      end
-    end
-  end
-
   shared_examples_for 'kml importer without any features' do |data|
     subject { SpatialFeatures::Importers::KMLFile.new(data) }
 
     describe '#features' do
       it 'has no valid records' do
         expect(subject.features.count).to eq(0)
+      end
+    end
+  end
+
+  shared_examples_for 'kml importer that skips network links' do |data|
+    subject { SpatialFeatures::Importers::KMLFile.new(data) }
+
+    describe '#features' do
+      it 'imports the embedded features' do
+        expect(subject.features.count).to eq(2)
+      end
+    end
+
+    describe '#warnings' do
+      it 'records a warning naming the skipped network-linked layers' do
+        subject.features
+        expect(subject.warnings).to include(a_string_matching(/network-linked/i))
+      end
+    end
+  end
+
+  shared_examples_for 'kml importer with only network links' do |data|
+    subject { SpatialFeatures::Importers::KMLFile.new(data) }
+
+    describe '#features' do
+      it 'imports nothing' do
+        expect(subject.features.count).to eq(0)
+      end
+    end
+
+    describe '#warnings' do
+      it 'records a warning naming the skipped network-linked layers' do
+        subject.features
+        expect(subject.warnings).to include(a_string_matching(/network-linked/i))
       end
     end
   end
@@ -107,7 +131,11 @@ describe SpatialFeatures::Importers::KMLFile do
     it_behaves_like 'kml importer with an invalid placemark', kml_file_with_invalid_placemark
   end
 
-  context 'when given KML with a NetworkLink' do
-    it_behaves_like 'kml importer with unimportable file', kml_file_with_network_link
+  context 'when given KML with only NetworkLinks' do
+    it_behaves_like 'kml importer with only network links', kml_file_with_network_link
+  end
+
+  context 'when given KML with both NetworkLinks and embedded features' do
+    it_behaves_like 'kml importer that skips network links', kml_file_with_network_link_and_features
   end
 end
