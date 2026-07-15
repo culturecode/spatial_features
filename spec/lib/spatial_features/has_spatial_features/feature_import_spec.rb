@@ -198,6 +198,31 @@ describe SpatialFeatures::FeatureImport do
       subject.update_features!(:tmpdir => tmpdir)
     end
 
+    it 'cleans up temporary files after importing when no tmpdir is passed' do
+      subject = new_dummy_class(:parent => FeatureImportMock) do
+        has_spatial_features :import => { :test_files => :File }
+
+        def test_files
+          [shapefile.path]
+        end
+      end.new
+
+      expect { subject.update_features! }.not_to change { Dir.glob("#{Dir.tmpdir}/*").select {|path| File.directory?(path) } }
+    end
+
+    it 'cleans up temporary files when the import fails and skip_invalid is true' do
+      subject = new_dummy_class(:parent => FeatureImportMock) do
+        has_spatial_features :import => { :test_files => :File }
+
+        def test_files
+          [shapefile.path]
+        end
+      end.new
+
+      expect(subject).to receive(:import_features).once.and_raise(StandardError)
+      expect { subject.update_features!(:skip_invalid => true) }.not_to change { Dir.glob("#{Dir.tmpdir}/*").select {|path| File.directory?(path) } }
+    end
+
     it 'aggregates features if multiple sources are specified within a single importer' do
       single = new_dummy_class(:parent => FeatureImportMock) do
         has_spatial_features :import => { :test_kml => :KMLFile }
