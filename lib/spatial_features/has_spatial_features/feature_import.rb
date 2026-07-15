@@ -25,7 +25,7 @@ module SpatialFeatures
       tmpdir = options.fetch(:tmpdir) { Dir.mktmpdir("ruby_spatial_features") }
 
       ActiveRecord::Base.transaction do
-        imports = spatial_feature_imports(options[:import], options[:make_valid], options[:tmpdir])
+        imports = spatial_feature_imports(options[:import], options[:make_valid], tmpdir)
         cache_key = Digest::MD5.hexdigest(imports.collect(&:cache_key).join)
 
         return if !force && features_cache_key_matches?(cache_key)
