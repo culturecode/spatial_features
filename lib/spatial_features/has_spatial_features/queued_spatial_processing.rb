@@ -102,8 +102,10 @@ module SpatialFeatures
       spatial_processing_jobs('update_features!').where(failed_at: nil, locked_at: nil)
     end
 
+    # Most recent first: a record that has failed more than once must report why the
+    # current attempt failed, not whichever row the database happened to return.
     def failed_feature_update_jobs
-      spatial_processing_jobs('update_features!').where.not(failed_at: nil)
+      spatial_processing_jobs('update_features!').where.not(failed_at: nil).order(failed_at: :desc)
     end
 
     def spatial_processing_jobs(method_name = nil)
