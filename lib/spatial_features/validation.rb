@@ -22,11 +22,18 @@ module SpatialFeatures
           component_path = "#{path}.#{ext}"
           next if ::File.file?(component_path) && ::File.readable?(component_path)
 
+          # A shapefile is a set of files that must travel together, and an export that
+          # drops one is the single most common thing wrong with an upload. Name the
+          # missing part and the way out, rather than only the file we couldn't find.
           case ext
             when "prj"
-              raise ::SpatialFeatures::Importers::IndeterminateShapefileProjection, "Shapefile archive is missing a projection file: #{File.basename(component_path)}"
+              raise ::SpatialFeatures::Importers::IndeterminateShapefileProjection,
+                    "This shapefile has no projection file — #{File.basename(component_path)} is missing, " \
+                    "so there is no way to tell where on the earth it belongs. Re-export it with the projection included."
             else
-              raise ::SpatialFeatures::Importers::IncompleteShapefileArchive, "Shapefile archive is missing a required file: #{File.basename(component_path)}"
+              raise ::SpatialFeatures::Importers::IncompleteShapefileArchive,
+                    "This shapefile is incomplete — #{File.basename(component_path)} is missing. " \
+                    "A shapefile is a set of files that have to be zipped up together: .shp, .shx, .dbf and .prj."
             end
         end
 
@@ -41,7 +48,7 @@ module SpatialFeatures
           validate_shapefile!(shp_file, default_proj4_projection: default_proj4_projection)
         end
       rescue Unzip::PathNotFound
-        raise ::SpatialFeatures::Importers::IncompleteShapefileArchive, "Shapefile archive is missing a SHP file" \
+        raise ::SpatialFeatures::Importers::IncompleteShapefileArchive, "This archive has no shapefile (.shp) in it." \
           unless allow_generic_zip_files
       end
     end

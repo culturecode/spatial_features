@@ -72,6 +72,11 @@ describe SpatialFeatures::Importers::File do
       it 'raises an exception' do
         expect { subject.new(archive_without_any_known_file) }.to raise_exception(SpatialFeatures::ImportError)
       end
+
+      it 'names the file types the archive did contain, so the uploader can see what they attached' do
+        expect { subject.new(archive_without_any_known_file) }
+          .to raise_exception(SpatialFeatures::ImportError, /contains 1 WHATEVER file/)
+      end
     end
   end
 
@@ -123,6 +128,21 @@ describe SpatialFeatures::Importers::File do
             'archive_with_multiple_shps.zip/crims_alcids_treatyareas.shp',
             'archive_with_multiple_shps.zip/crims_bald_eagles_3n_24june2021.shp'
           )
+      end
+    end
+
+    # Proponents routinely forward the archive they were emailed — a ZIP holding a ZIP per
+    # layer, or a ZIP holding a KMZ — rather than the layer files themselves.
+    context 'when given a zip archive containing other archives' do
+      it 'unwraps the nested archives and imports each shapefile inside them' do
+        importers = subject.create_all(nested_archive_of_shapefiles)
+        expect(importers.flat_map(&:features)).to be_present
+        expect(importers.count).to eq(2)
+      end
+
+      it 'unwraps a KMZ nested inside a zip archive' do
+        importers = subject.create_all(archive_containing_kmz)
+        expect(importers.flat_map(&:features)).to be_present
       end
     end
 
