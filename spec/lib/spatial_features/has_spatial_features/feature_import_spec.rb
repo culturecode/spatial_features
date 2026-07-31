@@ -193,7 +193,9 @@ describe SpatialFeatures::FeatureImport do
       end.new
 
       tmpdir = Dir.mktmpdir
-      expect(SpatialFeatures::Unzip).to receive(:extract).with(instance_of(File), :tmpdir => tmpdir, :downcase => true).and_call_original
+      # Each source unpacks into its own directory beneath the import's tmpdir, so that
+      # two archives holding identically named entries don't overwrite one another.
+      expect(SpatialFeatures::Unzip).to receive(:extract).with(instance_of(File), :tmpdir => start_with("#{tmpdir}/"), :downcase => true).and_call_original
       expect(FileUtils).to receive(:remove_entry).with(tmpdir)
       subject.update_features!(:tmpdir => tmpdir)
     end
@@ -411,6 +413,87 @@ describe SpatialFeatures::FeatureImport do
           a_string_matching(%r{\Akml_file_with_network_link_and_features\.kml: Skipped}),
           a_string_matching(%r{\Akml_file_with_network_link\.kml: Skipped}),
         )
+      end
+    end
+
+    context 'when one of several source files cannot be read' do
+      subject do
+        new_dummy_class(:spatial_processing_status_cache => :jsonb) do
+          has_spatial_features :import => { :test_files => :File }
+
+          def test_files
+            [fixture_file_path("shapefile.zip"), fixture_file_path("archive_without_any_known_file.zip")]
+          end
+        end.create
+      end
+
+      it 'still imports the files it could read' do
+        subject.update_features!
+        expect(subject.features).to be_present
+      end
+
+      it 'records why the unreadable file was skipped, against that file' do
+        subject.update_features!
+        expect(subject.feature_update_warnings)
+          .to include(a_string_matching(%r{\Aarchive_without_any_known_file\.zip: .*doesn't contain any map data}))
+      end
+    end
+
+    context 'when a source file fails while its features are being read' do
+      subject do
+        new_dummy_class(:spatial_processing_status_cache => :jsonb) do
+          has_spatial_features :import => { :test_files => :File }
+
+          def test_files
+            [fixture_file_path("shapefile.zip"), fixture_file_path("shapefile_without_shape_index.zip")]
+          end
+        end.create
+      end
+
+      it 'still imports the files it could read' do
+        subject.update_features!
+        expect(subject.features).to be_present
+      end
+
+      it 'records the parse failure as a warning rather than discarding the whole import' do
+        subject.update_features!
+        expect(subject.feature_update_warnings).to include(a_string_matching(/shapefile is incomplete/i))
+      end
+    end
+
+    context 'when every source file is unreadable' do
+      subject do
+        new_dummy_class(:spatial_processing_status_cache => :jsonb) do
+          has_spatial_features :import => { :test_files => :File }
+
+          def test_files
+            [fixture_file_path("archive_without_any_known_file.zip")]
+          end
+        end.create
+      end
+
+      it 'raises an EmptyImportError carrying the reason' do
+        expect { subject.update_features! }
+          .to raise_error(SpatialFeatures::EmptyImportError, /doesn't contain any map data/)
+      end
+    end
+
+    # Two KMZs both hold a `doc.kml`. Sharing one directory meant the second extraction
+    # collided with the first and took the whole import down with it.
+    context 'when several sources contain identically named entries' do
+      subject do
+        new_dummy_class(:spatial_processing_status_cache => :jsonb) do
+          has_spatial_features :import => { :test_files => :File }
+
+          def test_files
+            [fixture_file_path("test.kmz"), fixture_file_path("test.kmz")]
+          end
+        end.create
+      end
+
+      it 'unpacks each source without collision' do
+        expect { subject.update_features! }.not_to raise_error
+        expect(subject.features).to be_present
       end
     end
 

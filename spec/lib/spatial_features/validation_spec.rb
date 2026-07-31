@@ -10,7 +10,7 @@ describe SpatialFeatures do
 
     it 'performs validation without allow_generic_zip_files option' do
       expect { SpatialFeatures::Validation.validate_shapefile_archive!(archive_path, allow_generic_zip_files: false) }.to \
-        raise_exception(SpatialFeatures::Importers::IncompleteShapefileArchive, /missing a SHP file/i)
+        raise_exception(SpatialFeatures::Importers::IncompleteShapefileArchive, /no shapefile \(\.shp\) in it/i)
     end
   end
 end

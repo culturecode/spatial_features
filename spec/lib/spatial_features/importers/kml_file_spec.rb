@@ -82,6 +82,25 @@ describe SpatialFeatures::Importers::KMLFile do
     end
   end
 
+  # An overlay drapes a picture over the map instead of marking an area, so it never
+  # contributes geometry — whether or not the file also holds real placemarks.
+  shared_examples_for 'kml importer that skips map images' do |data, expected_feature_count|
+    subject { SpatialFeatures::Importers::KMLFile.new(data) }
+
+    describe '#features' do
+      it "imports the #{expected_feature_count} embedded features and nothing from the overlay" do
+        expect(subject.features.count).to eq(expected_feature_count)
+      end
+    end
+
+    describe '#warnings' do
+      it 'records a warning naming the skipped map image' do
+        subject.features
+        expect(subject.warnings).to include(a_string_matching(/map image.*Provincial Boundary/i))
+      end
+    end
+  end
+
   shared_examples_for 'kml importer with only network links' do |data|
     subject { SpatialFeatures::Importers::KMLFile.new(data) }
 
@@ -137,5 +156,13 @@ describe SpatialFeatures::Importers::KMLFile do
 
   context 'when given KML with both NetworkLinks and embedded features' do
     it_behaves_like 'kml importer that skips network links', kml_file_with_network_link_and_features
+  end
+
+  context 'when given KML with only a GroundOverlay' do
+    it_behaves_like 'kml importer that skips map images', kml_file_with_ground_overlay, 0
+  end
+
+  context 'when given KML with both a GroundOverlay and embedded features' do
+    it_behaves_like 'kml importer that skips map images', kml_file_with_ground_overlay_and_features, 2
   end
 end

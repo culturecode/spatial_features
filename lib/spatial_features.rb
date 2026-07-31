@@ -28,6 +28,7 @@ require 'spatial_features/importers/kml_file'
 require 'spatial_features/importers/kml_file_arcgis'
 require 'spatial_features/importers/geomark'
 require 'spatial_features/importers/shapefile'
+require 'spatial_features/importers/unreadable_file'
 
 require 'spatial_features/engine'
 

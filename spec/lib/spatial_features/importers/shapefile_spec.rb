@@ -41,7 +41,7 @@ describe SpatialFeatures::Importers::Shapefile do
         let(:subject) { SpatialFeatures::Importers::Shapefile.new(shapefile_without_shape_format) }
 
         it 'raises an exception' do
-          expect { subject.features }.to raise_exception(SpatialFeatures::Importers::IncompleteShapefileArchive, /missing a SHP file/)
+          expect { subject.features }.to raise_exception(SpatialFeatures::Importers::IncompleteShapefileArchive, /no shapefile \(\.shp\) in it/)
         end
       end
 

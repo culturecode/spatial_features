@@ -47,8 +47,30 @@ module SpatialFeatures
           doc.remove_namespaces! # We don't care about namespaces since the document is going to be filled with placemark geometry and we want it all without needing to deal with namespaces
           raise ImportError, "Invalid KML document (root node was '#{doc.root&.name}')" unless doc.root&.name.to_s.casecmp?('kml')
           discard_network_links(doc)
+          discard_overlays(doc)
           doc
         end
+      end
+
+      # Overlays drape a georeferenced picture over the map — often a WMS raster exported
+      # from a government catalogue — instead of describing an area, so there is no
+      # geometry in them to import. A PhotoOverlay also carries a `<Point>` marking where
+      # the photo was taken, which is not a footprint either, so the nodes are removed
+      # rather than left for `each_record` to pick up. Treated like NetworkLinks: any real
+      # geometry in the file still imports, and a file that is nothing but overlays fails
+      # with a reason that tells the user what they actually uploaded.
+      OVERLAY_ELEMENTS = %w[GroundOverlay PhotoOverlay ScreenOverlay].freeze
+
+      def discard_overlays(doc)
+        overlays = doc.search(*OVERLAY_ELEMENTS)
+        return if overlays.empty?
+
+        names = overlays.map {|overlay| overlay.at_css('name')&.text.presence }.compact.uniq
+        described = names.any? ? ": #{names.to_sentence}" : ''
+        @warnings << "Skipped #{overlays.size} map #{'image'.pluralize(overlays.size)}#{described}. " \
+                     "A map image is a picture laid over the map, not a marked area, so there is no boundary to import from it."
+
+        overlays.remove
       end
 
       # NetworkLinks reference geometry hosted elsewhere (e.g. a remote KMZ) rather
@@ -63,7 +85,8 @@ module SpatialFeatures
 
         names = network_links.map {|link| link.at_css('name')&.text.presence }.compact.uniq
         described = names.any? ? ": #{names.to_sentence}" : ''
-        @warnings << "Skipped #{network_links.size} network-linked #{'layer'.pluralize(network_links.size)} that reference remote data and cannot be imported#{described}."
+        @warnings << "Skipped #{network_links.size} network-linked #{'layer'.pluralize(network_links.size)}#{described}. " \
+                     "Network links point at data stored somewhere else rather than holding it, so there is nothing to import from them."
 
         network_links.remove
       end

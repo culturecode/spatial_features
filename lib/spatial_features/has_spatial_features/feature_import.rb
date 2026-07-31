@@ -6,6 +6,10 @@ module SpatialFeatures
     extend ActiveSupport::Concern
     include QueuedSpatialProcessing
 
+    # Read by submitters as often as by staff, so it says what happened rather than which
+    # method failed. Any per-file reasons are appended after it.
+    EMPTY_IMPORT_MESSAGE = "No mapped areas could be imported.".freeze
+
     included do
       extend ActiveModel::Callbacks
       define_model_callbacks :update_features
@@ -49,7 +53,7 @@ module SpatialFeatures
           store_feature_update_warnings(import_warnings)
 
           if imports.present? && features.compact_blank.empty? && !allow_blank
-            raise EmptyImportError, ["No spatial features were found when updating.", *import_warnings].join(' ')
+            raise EmptyImportError, [EMPTY_IMPORT_MESSAGE, *import_warnings].join(' ')
           end
         end
       end
@@ -105,12 +109,28 @@ module SpatialFeatures
           options = {}
         end
 
-        Array.wrap(send(data_method)).flat_map do |data|
+        Array.wrap(send(data_method)).each_with_index.flat_map do |data, index|
           next unless data.present?
 
-          spatial_importer_from_name(importer_name).create_all(data, **options, make_valid: make_valid, tmpdir: tmpdir)
+          source_tmpdir = spatial_import_tmpdir(tmpdir, data_method, index)
+
+          begin
+            spatial_importer_from_name(importer_name).create_all(data, **options, make_valid: make_valid, tmpdir: source_tmpdir)
+          rescue ImportError, Zip::Error => e
+            # One unreadable file must not discard the geometry of the files uploaded
+            # beside it. Stand in for it so the rest of the import proceeds and the
+            # reason reaches the user as a warning against that file.
+            Importers::UnreadableFile.new(data, e, **options, make_valid: make_valid, tmpdir: source_tmpdir)
+          end
         end
       end.compact
+    end
+
+    # Every source file unpacks into its own directory. Two KMZs on one record both hold a
+    # `doc.kml`, so sharing one tmpdir means the second extraction collides with the first
+    # and the whole import dies on an archive that is perfectly fine.
+    def spatial_import_tmpdir(tmpdir, data_method, index)
+      ::File.join(tmpdir, "#{data_method}-#{index}").tap {|dir| FileUtils.mkdir_p(dir) }
     end
 
     def spatial_importer_from_name(importer_name)
@@ -133,7 +153,7 @@ module SpatialFeatures
       features.delete_all
       valid, invalid = Feature.defer_aggregate_refresh do
         Feature.without_caching_derivatives do
-          imports.flat_map(&:features).partition do |feature|
+          imports.flat_map {|import| features_from(import) }.partition do |feature|
             feature.spatial_model = self
             if feature.save
               handle_images(feature)
@@ -165,6 +185,16 @@ module SpatialFeatures
       end
 
       valid
+    end
+
+    # Parse failures surface lazily, when an importer's features are first read (e.g. a
+    # shapefile archive missing its `.shx`), so they need the same containment as a file
+    # that couldn't be opened at all: record the reason against that source and keep going.
+    def features_from(import)
+      import.features
+    rescue ImportError => e
+      import.warnings << e.message
+      []
     end
 
     def features_cache_key_matches?(cache_key)

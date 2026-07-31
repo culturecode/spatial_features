@@ -21,8 +21,11 @@ module SpatialFeatures
         Download.open_each(data, unzip: [/\.shp$/], downcase: true).map do |file|
           new(file, **options)
         end
-      rescue Unzip::PathNotFound
-        raise ImportError, INVALID_ARCHIVE
+      rescue Unzip::PathNotFound => e
+        # `INVALID_ARCHIVE` lives on `Importers::File` and isn't in this class's constant
+        # lookup path, so the bare reference here raised NameError instead of the intended
+        # ImportError whenever a model imported with `'Shapefile'` directly.
+        raise ImportError, File.invalid_archive_message(e)
       end
 
       private
@@ -36,7 +39,9 @@ module SpatialFeatures
       rescue Errno::ENOENT => e
         case e.message
         when /No such file or directory @ rb_sysopen - (.+)/
-          raise IncompleteShapefileArchive, "Shapefile archive is missing a required file: #{::File.basename($1)}"
+          raise IncompleteShapefileArchive,
+                "This shapefile is incomplete — #{::File.basename($1)} is missing. " \
+                "A shapefile is a set of files that have to be zipped up together: .shp, .shx, .dbf and .prj."
         else
           raise e
         end
@@ -104,7 +109,7 @@ module SpatialFeatures
         @possible_shp_files ||= begin
           Download.open_each(archive, unzip: /\.shp$/, downcase: true)
         rescue Unzip::PathNotFound
-          raise ::SpatialFeatures::Importers::IncompleteShapefileArchive, "Shapefile archive is missing a SHP file"
+          raise ::SpatialFeatures::Importers::IncompleteShapefileArchive, "This archive has no shapefile (.shp) in it."
         end
       end
 

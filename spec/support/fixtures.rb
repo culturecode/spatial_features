@@ -93,3 +93,19 @@ end
 def archive_with_multiple_kmls
   open_fixture_file("archive_with_multiple_kmls.zip")
 end
+
+def nested_archive_of_shapefiles
+  open_fixture_file("nested_archive_of_shapefiles.zip")
+end
+
+def archive_containing_kmz
+  open_fixture_file("archive_containing_kmz.zip")
+end
+
+def kml_file_with_ground_overlay
+  open_fixture_file("kml_file_with_ground_overlay.kml")
+end
+
+def kml_file_with_ground_overlay_and_features
+  open_fixture_file("kml_file_with_ground_overlay_and_features.kml")
+end
