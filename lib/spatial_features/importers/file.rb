@@ -3,16 +3,27 @@ require 'open-uri'
 module SpatialFeatures
   module Importers
     class File < SimpleDelegator
-      INVALID_ARCHIVE = "Archive did not contain a .kml, .shp, .json, or .geojson file.".freeze
-      SUPPORTED_FORMATS = "Supported formats are KMZ, KML, zipped ArcGIS shapefiles, ESRI JSON, and GeoJSON.".freeze
+      INVALID_ARCHIVE = "This file doesn't contain any map data.".freeze
+      SUPPORTED_FORMATS = "Please upload a KMZ, KML, zipped ArcGIS shapefile, ESRI JSON, or GeoJSON file.".freeze
 
       FILE_PATTERNS = [/\.kml$/, /\.shp$/, /\.json$/, /\.geojson$/]
       def self.create_all(data, **options)
         Download.open_each(data, unzip: FILE_PATTERNS, downcase: true, tmpdir: options[:tmpdir]).map do |file|
           new(data, **options, current_file: file)
         end
-      rescue Unzip::PathNotFound
-        raise ImportError, INVALID_ARCHIVE + " " + SUPPORTED_FORMATS
+      rescue Unzip::PathNotFound => e
+        raise ImportError, invalid_archive_message(e)
+      end
+
+      # Name what the archive held instead of only what we needed — a submitter who is
+      # told their upload contains PDFs knows immediately that they attached the wrong
+      # file, where "did not contain a .shp" leaves them guessing.
+      def self.invalid_archive_message(path_not_found)
+        found = path_not_found.extensions
+        count = path_not_found.paths.count {|path| !path.end_with?('/') }
+        contents = " It contains #{count} #{found.to_sentence} #{'file'.pluralize(count)}." if found.any?
+
+        [INVALID_ARCHIVE, contents, " ", SUPPORTED_FORMATS].compact.join
       end
 
       # The File importer may be initialized multiple times by `::create_all` if it
@@ -24,8 +35,8 @@ module SpatialFeatures
       def initialize(data, current_file: nil, **options)
         begin
           @current_file = current_file || Download.open_each(data, unzip: FILE_PATTERNS, downcase: true, tmpdir: options[:tmpdir]).first
-        rescue Unzip::PathNotFound
-          raise ImportError, INVALID_ARCHIVE
+        rescue Unzip::PathNotFound => e
+          raise ImportError, self.class.invalid_archive_message(e)
         end
 
         case ::File.extname(data).downcase
@@ -43,14 +54,14 @@ module SpatialFeatures
         when '.json', '.geojson'
           __setobj__(ESRIGeoJSON.new(@current_file.path, **options))
         else
-          import_error
+          import_error!
         end
       end
 
       private
 
       def import_error!
-        raise ImportError, "Could not import #{filename}. " + SUPPORTED_FORMATS
+        raise ImportError, "#{::File.basename(filename)} isn't a file type we can read. " + SUPPORTED_FORMATS
       end
 
       def filename
