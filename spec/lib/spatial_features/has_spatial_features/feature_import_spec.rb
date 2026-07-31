@@ -461,6 +461,31 @@ describe SpatialFeatures::FeatureImport do
       end
     end
 
+    # The uploader is shown these reasons, so a file missing from disk must not put a
+    # server filesystem path in front of them.
+    context 'when a source file is missing from disk' do
+      subject do
+        new_dummy_class(:spatial_processing_status_cache => :jsonb) do
+          has_spatial_features :import => { :test_files => :File }
+
+          def test_files
+            [fixture_file_path("shapefile.zip"), "/nonexistent/path/to/missing_upload.zip"]
+          end
+        end.create
+      end
+
+      it 'still imports the files that are present' do
+        subject.update_features!
+        expect(subject.features).to be_present
+      end
+
+      it 'says the file is unavailable without disclosing where it was looked for' do
+        subject.update_features!
+        expect(subject.feature_update_warnings).to include(a_string_matching(/no longer available on the server/))
+        expect(subject.feature_update_warnings.join).not_to include("/nonexistent/path")
+      end
+    end
+
     context 'when every source file is unreadable' do
       subject do
         new_dummy_class(:spatial_processing_status_cache => :jsonb) do

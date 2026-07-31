@@ -11,15 +11,16 @@ module SpatialFeatures
     # raises `EmptyImportError` with these warnings as the reason, the same way a file
     # containing only NetworkLinks does.
     class UnreadableFile < Base
-      # Fallback for a failure that didn't come from an importer (a corrupt archive
-      # surfacing as a Zip error, say), whose own message would mean nothing to the person
-      # who uploaded the file.
+      # Fallbacks for failures that didn't come from an importer, whose own messages would
+      # mean nothing to the person who uploaded the file — and in the missing-file case
+      # would put a server filesystem path in front of them.
       UNREADABLE = "This file couldn't be opened. It may be damaged, or saved in a format we can't read.".freeze
+      MISSING = "This file is no longer available on the server. Please upload it again.".freeze
 
       def initialize(data, error, **options)
         super(data, **options)
         self.source_identifier ||= ::File.basename(data.to_s)
-        @warnings << (error.is_a?(ImportError) ? error.message : UNREADABLE)
+        @warnings << reason_for(error)
       end
 
       # Include the reason so that fixing an importer (or the user re-uploading) produces a
@@ -29,6 +30,14 @@ module SpatialFeatures
       end
 
       private
+
+      def reason_for(error)
+        case error
+        when ImportError then error.message
+        when Errno::ENOENT then MISSING
+        else UNREADABLE
+        end
+      end
 
       def each_record
         # Nothing could be read, so there is nothing to yield.
