@@ -116,7 +116,7 @@ module SpatialFeatures
 
           begin
             spatial_importer_from_name(importer_name).create_all(data, **options, make_valid: make_valid, tmpdir: source_tmpdir)
-          rescue ImportError, Zip::Error => e
+          rescue ImportError, Zip::Error, Errno::ENOENT => e
             # One unreadable file must not discard the geometry of the files uploaded
             # beside it. Stand in for it so the rest of the import proceeds and the
             # reason reaches the user as a warning against that file.
