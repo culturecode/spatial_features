@@ -3,6 +3,28 @@ module SpatialFeatures
     extend ActiveSupport::Concern
     mattr_accessor :priority_offset, default: 0 # Offsets the queued priority of spatial tasks. Lower numbers run with higher priority
 
+    class_methods do
+      # Records whose most recent feature import failed. `->>` yields NULL for a missing
+      # key, so a record that has never been imported is not included.
+      def with_failed_feature_updates
+        where("spatial_processing_status_cache->>'update_features!' = 'failure'")
+      end
+
+      # Re-import everything whose last attempt failed. Nothing else retries these, so a
+      # record broken by a defect stays broken after the defect is fixed unless something
+      # sweeps it up.
+      #
+      # Queued rather than run inline, so a caller (a deploy migration, a console) doesn't
+      # block on reimporting shapefiles, and so `SpatialProcessingJob`'s callbacks maintain
+      # `spatial_processing_status_cache` — calling `#update_features!` directly bypasses
+      # them and leaves a record flagged as failed even when the retry succeeded.
+      def retry_failed_feature_updates!(**options)
+        with_failed_feature_updates.find_each do |record|
+          record.delay_update_features!(**options)
+        end
+      end
+    end
+
     def self.update_cached_status(record, method_name, state)
       return unless record.has_attribute?(:spatial_processing_status_cache)
 
