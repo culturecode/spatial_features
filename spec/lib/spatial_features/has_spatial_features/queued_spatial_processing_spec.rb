@@ -43,6 +43,37 @@ describe SpatialFeatures::QueuedSpatialProcessing do
     end
   end
 
+  describe '::retry_failed_feature_updates!', delayed_job: false do
+    let(:klass) { new_dummy_class(:spatial_processing_status_cache => :jsonb) }
+
+    def status!(record, state)
+      SpatialFeatures::QueuedSpatialProcessing.update_cached_status(record, 'update_features!', state)
+    end
+
+    it 'queues a feature update for each record whose last import failed' do
+      failed = klass.create.tap {|record| status!(record, 'failure') }
+
+      expect { klass.retry_failed_feature_updates! }
+        .to change { failed.spatial_processing_jobs('update_features!').count }
+        .by(1)
+    end
+
+    it 'ignores records that succeeded, and records never imported at all' do
+      klass.create.tap {|record| status!(record, 'success') }
+      klass.create # no import attempted, so no key in the cache at all
+
+      expect { klass.retry_failed_feature_updates! }.not_to change { Delayed::Job.count }
+    end
+
+    it 'passes options through to the queued job' do
+      klass.create.tap {|record| status!(record, 'failure') }
+
+      klass.retry_failed_feature_updates!(:priority => 10)
+
+      expect(Delayed::Job.last.priority).to eq(10)
+    end
+  end
+
   describe '#clear_feature_update_error_status' do
     let(:klass) { new_dummy_class(:spatial_processing_status_cache => :jsonb) }
 
