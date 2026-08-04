@@ -4,20 +4,26 @@ module SpatialFeatures
     mattr_accessor :priority_offset, default: 0 # Offsets the queued priority of spatial tasks. Lower numbers run with higher priority
 
     class_methods do
-      # Records whose most recent feature import failed. `->>` yields NULL for a missing
-      # key, so a record that has never been imported is not included.
+      # Returns the records whose most recent queued feature update failed.
+      #
+      # @return [ActiveRecord::Relation] empty when the model has no
+      #   `spatial_processing_status_cache` column. `->>` yields NULL for a missing key, so
+      #   a record that has never been imported is excluded.
       def with_failed_feature_updates
+        return none unless column_names.include?('spatial_processing_status_cache')
+
         where("spatial_processing_status_cache->>'update_features!' = 'failure'")
       end
 
-      # Re-import everything whose last attempt failed. Nothing else retries these, so a
-      # record broken by a defect stays broken after the defect is fixed unless something
-      # sweeps it up.
+      # Queues a feature update for every record whose most recent queued update failed.
       #
-      # Queued rather than run inline, so a caller (a deploy migration, a console) doesn't
-      # block on reimporting shapefiles, and so `SpatialProcessingJob`'s callbacks maintain
-      # `spatial_processing_status_cache` — calling `#update_features!` directly bypasses
-      # them and leaves a record flagged as failed even when the retry succeeded.
+      # Queuing returns immediately, so a caller does not wait on the imports. Each import
+      # then runs through `SpatialProcessingJob`, whose hooks record the outcome, including
+      # for a record whose sources are unchanged and whose import is a no-op.
+      #
+      # @param options [Hash] passed to `#delay_update_features!`, so `:priority` sets the
+      #   queue priority and the rest reach `#update_features!`.
+      # @return [void]
       def retry_failed_feature_updates!(**options)
         with_failed_feature_updates.find_each do |record|
           record.delay_update_features!(**options)
@@ -63,6 +69,18 @@ module SpatialFeatures
       end
     end
 
+    # Returns true when the most recent queued feature update failed.
+    #
+    # Reports the state of the queued update rather than the outcome of the last import.
+    # `SpatialProcessingJob`'s hooks are what record a failure, so an import run outside a job
+    # never records one. Such an import does clear a failure recorded before it, if it
+    # produced geometry.
+    #
+    # @return [Boolean] false when the model has no `spatial_processing_status_cache` column,
+    #   when no update has been queued, and when the last queued update succeeded or is
+    #   still running.
+    # @note A record can hold usable features and still answer true, so a caller asking
+    #   whether the geometry is usable wants `#features?` as well.
     def updating_features_failed?
       spatial_processing_status(:update_features!) == :failure
     end

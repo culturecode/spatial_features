@@ -58,6 +58,19 @@ module SpatialFeatures
         end
       end
 
+      # This import produced geometry, so a failure recorded before it no longer describes
+      # the record. `SpatialProcessingJob`'s hooks are the only thing that records one, and
+      # an import run outside a job never reaches them.
+      #
+      # Conditioned on features rather than on the import returning, because `allow_blank`
+      # accepts an import that produced none — clearing there would retire the failure on a
+      # record that still has no geometry. Written directly rather than through
+      # `#clear_feature_update_error_status`, whose `with_lock` refuses a record holding
+      # unsaved changes and would turn this successful import into an `ImportError`.
+      if persisted? && features? && updating_features_failed?
+        QueuedSpatialProcessing.update_cached_status(self, 'update_features!', nil)
+      end
+
       return true
     rescue StandardError => e
       raise e if e.is_a?(EmptyImportError)

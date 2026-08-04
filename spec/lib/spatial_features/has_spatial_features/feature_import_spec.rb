@@ -486,6 +486,71 @@ describe SpatialFeatures::FeatureImport do
       end
     end
 
+    # Inline imports don't run the job hooks that maintain the status, so without this a
+    # record repaired by an inline import (a nightly rake task, a console) reads as broken
+    # forever — and is picked up again by every later `::retry_failed_feature_updates!`.
+    context 'when a record with a recorded failure imports successfully' do
+      subject do
+        # `title` is a column the import never writes, so it stays dirty across the import.
+        new_dummy_class(:spatial_processing_status_cache => :jsonb, :title => :string) do
+          has_spatial_features :import => { :test_files => :File }
+
+          def test_files
+            [fixture_file_path("shapefile.zip")]
+          end
+        end.create
+      end
+
+      before do
+        SpatialFeatures::QueuedSpatialProcessing.update_cached_status(subject, 'update_features!', 'failure')
+      end
+
+      it 'stops reporting the stale failure' do
+        expect { subject.update_features!(:force => true) }
+          .to change { subject.updating_features_failed? }
+          .from(true).to(false)
+      end
+
+      it 'is no longer selected for retry' do
+        subject.update_features!(:force => true)
+        expect(subject.class.with_failed_feature_updates).not_to include(subject)
+      end
+
+      # `#clear_feature_update_error_status` locks the row, and `lock!` refuses a record
+      # holding unsaved changes. Reaching it from here would report a successful import as a
+      # failure, and would do it only for records that had already failed.
+      it 'succeeds when the record holds unsaved changes' do
+        subject.title = 'unsaved'
+
+        expect { subject.update_features!(:force => true) }.not_to raise_error
+      end
+    end
+
+    # `allow_blank` accepts an import that produced nothing, so the import completes. The
+    # record still has no geometry, and the nightly geometry task passes this option over
+    # every record, so clearing here would retire failures wholesale.
+    context 'when an import completes without producing features' do
+      subject do
+        new_dummy_class(:spatial_processing_status_cache => :jsonb) do
+          has_spatial_features :import => { :test_files => :File }
+
+          def test_files
+            [fixture_file_path("archive_without_any_known_file.zip")]
+          end
+        end.create
+      end
+
+      before do
+        SpatialFeatures::QueuedSpatialProcessing.update_cached_status(subject, 'update_features!', 'failure')
+      end
+
+      it 'keeps reporting the failure' do
+        expect { subject.update_features!(:force => true, :allow_blank => true) }
+          .not_to change { subject.reload.updating_features_failed? }
+          .from(true)
+      end
+    end
+
     context 'when every source file is unreadable' do
       subject do
         new_dummy_class(:spatial_processing_status_cache => :jsonb) do
