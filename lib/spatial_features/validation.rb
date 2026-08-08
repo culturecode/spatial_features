@@ -28,12 +28,12 @@ module SpatialFeatures
           case ext
             when "prj"
               raise ::SpatialFeatures::Importers::IndeterminateShapefileProjection,
-                    "This shapefile has no projection file — #{File.basename(component_path)} is missing, " \
-                    "so there is no way to tell where on the earth it belongs. Re-export it with the projection included."
+                    "This shapefile has no projection file (#{File.basename(component_path)}), so its place on the " \
+                    "earth is unknown."
             else
               raise ::SpatialFeatures::Importers::IncompleteShapefileArchive,
-                    "This shapefile is incomplete — #{File.basename(component_path)} is missing. " \
-                    "A shapefile is a set of files that have to be zipped up together: .shp, .shx, .dbf and .prj."
+                    "This shapefile is missing #{File.basename(component_path)}. " \
+                    "A shapefile is made up of .shp, .shx, .dbf and .prj files."
             end
         end
 
@@ -48,7 +48,8 @@ module SpatialFeatures
           validate_shapefile!(shp_file, default_proj4_projection: default_proj4_projection)
         end
       rescue Unzip::PathNotFound
-        raise ::SpatialFeatures::Importers::IncompleteShapefileArchive, "This archive has no shapefile (.shp) in it." \
+        raise ::SpatialFeatures::Importers::IncompleteShapefileArchive,
+                "This archive has no shapefile (.shp) in it. #{::SpatialFeatures::Importers::File::SUPPORTED_FORMATS}" \
           unless allow_generic_zip_files
       end
     end

@@ -67,14 +67,27 @@ module SpatialFeatures
       spatial_processing_status(:update_features!) == :failure
     end
 
-    # Non-fatal messages from the most recent successful feature import (e.g. parts of
-    # the source that were skipped). Stored alongside the status cache so they survive
-    # job completion, since successful Delayed::Jobs are deleted and can't be read back.
+    # Non-fatal messages from the most recent feature import (e.g. parts of the source that
+    # were skipped). Stored alongside the status cache so they survive job completion, since
+    # successful Delayed::Jobs are deleted and can't be read back.
     WARNINGS_CACHE_KEY = 'feature_update_warnings'.freeze
 
+    # Returns one entry per warning as `{'file' => String|nil, 'message' => String}`.
+    #
+    # The pair is kept apart rather than pre-joined so a caller can lay the two out as it
+    # sees fit, and group by either one. Joining them here would settle that for every caller.
+    #
+    # @note Warnings recorded before this became a pair are plain strings that already read
+    #   `"file: message"`. They are returned whole as the message, which renders as written.
     def feature_update_warnings
       return [] unless has_attribute?(:spatial_processing_status_cache)
-      Array(spatial_processing_status_cache[WARNINGS_CACHE_KEY])
+
+      Array(spatial_processing_status_cache[WARNINGS_CACHE_KEY]).map do |warning|
+        case warning
+        when Hash then { 'file' => warning['file'].presence, 'message' => warning['message'].to_s }
+        else { 'file' => nil, 'message' => warning.to_s }
+        end
+      end
     end
 
     def store_feature_update_warnings(warnings)

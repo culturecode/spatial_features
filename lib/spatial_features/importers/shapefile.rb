@@ -40,8 +40,8 @@ module SpatialFeatures
         case e.message
         when /No such file or directory @ rb_sysopen - (.+)/
           raise IncompleteShapefileArchive,
-                "This shapefile is incomplete — #{::File.basename($1)} is missing. " \
-                "A shapefile is a set of files that have to be zipped up together: .shp, .shx, .dbf and .prj."
+                "This shapefile is missing #{::File.basename($1)}. " \
+                "A shapefile is made up of .shp, .shx, .dbf and .prj files."
         else
           raise e
         end
@@ -109,7 +109,8 @@ module SpatialFeatures
         @possible_shp_files ||= begin
           Download.open_each(archive, unzip: /\.shp$/, downcase: true)
         rescue Unzip::PathNotFound
-          raise ::SpatialFeatures::Importers::IncompleteShapefileArchive, "This archive has no shapefile (.shp) in it."
+          raise ::SpatialFeatures::Importers::IncompleteShapefileArchive,
+                "This archive has no shapefile (.shp) in it. #{::SpatialFeatures::Importers::File::SUPPORTED_FORMATS}"
         end
       end
 
