@@ -14,8 +14,8 @@ module SpatialFeatures
       # Fallbacks for failures that didn't come from an importer, whose own messages would
       # mean nothing to the person who uploaded the file — and in the missing-file case
       # would put a server filesystem path in front of them.
-      UNREADABLE = "This file couldn't be opened. It may be damaged, or saved in a format we can't read.".freeze
-      MISSING = "This file is no longer available on the server. Please upload it again.".freeze
+      UNREADABLE = "This file could not be opened. It may be damaged or in an unsupported format.".freeze
+      MISSING = "This file is no longer available on the server.".freeze
 
       def initialize(data, error, **options)
         super(data, **options)

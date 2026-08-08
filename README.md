@@ -232,6 +232,27 @@ The gem now relies on virtual columns to set a number of derived column values.
   end
 ```
 
+## Upgrading From 3.11 to 3.12
+`#feature_update_warnings` returns `{'file', 'message'}` hashes rather than pre-joined strings, so a caller can lay the
+file and the explanation out separately instead of rendering one sentence. Warnings stored before the upgrade come back
+with a nil file, so there is no data to migrate.
+
+```ruby
+record.feature_update_warnings
+# => [{ 'file' => 'upload.zip/layer.shp', 'message' => 'This shapefile is missing layer.shx. ...' }]
+
+# A warning stored by 3.11 or earlier, which names its file inside the message
+# => [{ 'file' => nil, 'message' => 'upload.zip: This file contains no map data.' }]
+
+# The 3.11 string, for a caller that wants to keep rendering a sentence
+record.feature_update_warnings.map {|warning| [warning['file'], warning['message']].compact.join(': ') }
+```
+
+The importer messages were also rewritten, `INVALID_ARCHIVE` and `SUPPORTED_FORMATS` included, so a caller matching on
+the text of either constant needs updating. They now state what is wrong with a file and nothing further: the gem is
+handed a file and cannot know how it arrived, so it does not tell a reader to re-export or upload anything. A host that
+knows its own workflow is the right place to add that.
+
 ## Testing
 
 Create a postgres database:

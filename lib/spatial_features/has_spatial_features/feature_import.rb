@@ -28,6 +28,8 @@ module SpatialFeatures
       options = options.reverse_merge(spatial_features_options)
       tmpdir = options.fetch(:tmpdir) { Dir.mktmpdir("ruby_spatial_features") }
 
+      import_warnings = []
+
       ActiveRecord::Base.transaction do
         imports = spatial_feature_imports(options[:import], options[:make_valid], tmpdir)
         cache_key = Digest::MD5.hexdigest(imports.collect(&:cache_key).join)
@@ -45,21 +47,27 @@ module SpatialFeatures
             update_spatial_cache(options.slice(:spatial_cache))
           end
 
-          # Attribute each warning to the file it came from (e.g. `archive.zip/layer.kml`)
-          # so a multi-file or multi-source import makes clear which file was affected.
+          # Name the file each warning came from (e.g. `archive.zip/layer.kml`) so a multi-file
+          # or multi-source import makes clear which file was affected. The file is kept apart
+          # from the message so a reader can lay the two out separately.
           import_warnings = imports.flat_map do |import|
-            import.warnings.map {|warning| [import.source_identifier.presence, warning].compact.join(': ') }
+            import.warnings.map {|warning| { 'file' => import.source_identifier.presence, 'message' => warning } }
           end
           store_feature_update_warnings(import_warnings)
 
           if imports.present? && features.compact_blank.empty? && !allow_blank
-            raise EmptyImportError, [EMPTY_IMPORT_MESSAGE, *import_warnings].join(' ')
+            raise EmptyImportError, [EMPTY_IMPORT_MESSAGE, *import_warnings.map {|warning| warning.values.compact.join(': ') }].join(' ')
           end
         end
       end
 
       return true
     rescue StandardError => e
+      # The transaction that recorded them has rolled back, so without this a failed import
+      # explains itself only through the exception message — which reaches a reader as one
+      # unbroken paragraph, and not at all once the job is cleared.
+      store_feature_update_warnings(import_warnings) if persisted? && import_warnings.present?
+
       raise e if e.is_a?(EmptyImportError)
 
       if skip_invalid
@@ -67,7 +75,8 @@ module SpatialFeatures
         return nil
       elsif ENCODING_ERROR.match?(e.message)
         raise ImportEncodingError,
-              "One or more features you are trying to import has text encoded in an un-supported format (#{e.message})",
+              "This file contains text in an unsupported character encoding (#{e.message}). " \
+              "Text must be encoded as UTF-8.",
               e.backtrace
       else
         raise ImportError, e.message, e.backtrace
