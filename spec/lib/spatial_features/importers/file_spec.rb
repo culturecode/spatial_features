@@ -75,7 +75,7 @@ describe SpatialFeatures::Importers::File do
 
       it 'names the file types the archive did contain, so the uploader can see what they attached' do
         expect { subject.new(archive_without_any_known_file) }
-          .to raise_exception(SpatialFeatures::ImportError, /contains 1 WHATEVER file/)
+          .to raise_exception(SpatialFeatures::ImportError, /only 1 WHATEVER file/)
       end
     end
   end

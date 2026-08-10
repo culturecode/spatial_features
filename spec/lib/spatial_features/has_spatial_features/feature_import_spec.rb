@@ -375,7 +375,7 @@ describe SpatialFeatures::FeatureImport do
 
       it 'records the skipped NetworkLinks as a warning' do
         subject.update_features!
-        expect(subject.feature_update_warnings).to include(a_string_matching(/network-linked/i))
+        expect(subject.feature_update_warnings).to include(a_hash_including('message' => a_string_matching(/network-linked/i)))
       end
     end
 
@@ -410,8 +410,8 @@ describe SpatialFeatures::FeatureImport do
       it 'attributes each warning to the file it came from' do
         subject.update_features!
         expect(subject.feature_update_warnings).to include(
-          a_string_matching(%r{\Akml_file_with_network_link_and_features\.kml: Skipped}),
-          a_string_matching(%r{\Akml_file_with_network_link\.kml: Skipped}),
+          { 'file' => 'kml_file_with_network_link_and_features.kml', 'message' => a_string_matching(/\ASkipped/) },
+          { 'file' => 'kml_file_with_network_link.kml', 'message' => a_string_matching(/\ASkipped/) },
         )
       end
     end
@@ -434,8 +434,9 @@ describe SpatialFeatures::FeatureImport do
 
       it 'records why the unreadable file was skipped, against that file' do
         subject.update_features!
-        expect(subject.feature_update_warnings)
-          .to include(a_string_matching(%r{\Aarchive_without_any_known_file\.zip: .*doesn't contain any map data}))
+        expect(subject.feature_update_warnings).to include(
+          { 'file' => 'archive_without_any_known_file.zip', 'message' => a_string_matching(/contains no map data/) }
+        )
       end
     end
 
@@ -457,7 +458,7 @@ describe SpatialFeatures::FeatureImport do
 
       it 'records the parse failure as a warning rather than discarding the whole import' do
         subject.update_features!
-        expect(subject.feature_update_warnings).to include(a_string_matching(/shapefile is incomplete/i))
+        expect(subject.feature_update_warnings).to include(a_hash_including('message' => a_string_matching(/shapefile is missing/i)))
       end
     end
 
@@ -481,8 +482,8 @@ describe SpatialFeatures::FeatureImport do
 
       it 'says the file is unavailable without disclosing where it was looked for' do
         subject.update_features!
-        expect(subject.feature_update_warnings).to include(a_string_matching(/no longer available on the server/))
-        expect(subject.feature_update_warnings.join).not_to include("/nonexistent/path")
+        expect(subject.feature_update_warnings).to include(a_hash_including('message' => a_string_matching(/no longer available on the server/)))
+        expect(subject.feature_update_warnings.to_s).not_to include("/nonexistent/path")
       end
     end
 
@@ -499,7 +500,16 @@ describe SpatialFeatures::FeatureImport do
 
       it 'raises an EmptyImportError carrying the reason' do
         expect { subject.update_features! }
-          .to raise_error(SpatialFeatures::EmptyImportError, /doesn't contain any map data/)
+          .to raise_error(SpatialFeatures::EmptyImportError, /contains no map data/)
+      end
+
+      # The transaction recording them rolls back with the error, so keeping the warnings takes
+      # a second write. Without it a failed import can only be explained by the exception text,
+      # which is one unbroken paragraph and disappears with the job.
+      it 'keeps the warnings against the record' do
+        expect { subject.update_features! rescue nil }
+          .to change { subject.reload.feature_update_warnings }
+          .to include(a_hash_including('file' => 'archive_without_any_known_file.zip'))
       end
     end
 

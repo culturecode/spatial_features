@@ -45,7 +45,13 @@ module SpatialFeatures
         @kml_document ||= begin
           doc = Nokogiri::XML(@data)
           doc.remove_namespaces! # We don't care about namespaces since the document is going to be filled with placemark geometry and we want it all without needing to deal with namespaces
-          raise ImportError, "Invalid KML document (root node was '#{doc.root&.name}')" unless doc.root&.name.to_s.casecmp?('kml')
+          # Named the root element rather than only calling the document invalid: a KML saved as
+          # a fragment (root `<Folder>`) looks fine in a text editor, so "invalid" alone left the
+          # submitter with nothing to act on.
+          unless doc.root&.name.to_s.casecmp?('kml')
+            raise ImportError, "This KML file could not be read: its root element is "\
+                               "'#{doc.root&.name}', not 'kml'."
+          end
           discard_network_links(doc)
           discard_overlays(doc)
           doc
@@ -66,9 +72,9 @@ module SpatialFeatures
         return if overlays.empty?
 
         names = overlays.map {|overlay| overlay.at_css('name')&.text.presence }.compact.uniq
-        described = names.any? ? ": #{names.to_sentence}" : ''
+        described = names.any? ? " (#{names.to_sentence})" : ''
         @warnings << "Skipped #{overlays.size} map #{'image'.pluralize(overlays.size)}#{described}. " \
-                     "A map image is a picture laid over the map, not a marked area, so there is no boundary to import from it."
+                     "A map image is a picture laid over the map rather than a marked area, so it has no boundary to import."
 
         overlays.remove
       end
@@ -84,9 +90,9 @@ module SpatialFeatures
         return if network_links.empty?
 
         names = network_links.map {|link| link.at_css('name')&.text.presence }.compact.uniq
-        described = names.any? ? ": #{names.to_sentence}" : ''
+        described = names.any? ? " (#{names.to_sentence})" : ''
         @warnings << "Skipped #{network_links.size} network-linked #{'layer'.pluralize(network_links.size)}#{described}. " \
-                     "Network links point at data stored somewhere else rather than holding it, so there is nothing to import from them."
+                     "A network link points at data held on another server rather than containing it, so there is nothing to import."
 
         network_links.remove
       end
