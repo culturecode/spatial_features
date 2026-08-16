@@ -1,6 +1,5 @@
 require 'ostruct'
 require 'digest/md5'
-require 'open3'
 
 module SpatialFeatures
   module Importers
@@ -101,7 +100,7 @@ module SpatialFeatures
       def project_to_4326(file_path)
         output_path = Tempfile.create([::File.basename(file_path, '.shp') + '_epsg_4326_', '.shp']) { |file| file.path }
         return unless (proj4 = proj4_from_file(file_path))
-        return unless system('ogr2ogr', '-s_srs', proj4, '-t_srs', 'EPSG:4326', output_path, file_path)
+        return unless GDAL.run('ogr2ogr', '-s_srs', proj4, '-t_srs', 'EPSG:4326', output_path, file_path)
         return ::File.open(output_path)
       end
 
@@ -112,7 +111,7 @@ module SpatialFeatures
         # Sanitize: "'+proj=utm +zone=11 +datum=NAD83 +units=m +no_defs '\n" and lately
         #           "+proj=utm +zone=11 +datum=NAD83 +units=m +no_defs \n" to
         #           "+proj=utm +zone=11 +datum=NAD83 +units=m +no_defs"
-        Open3.capture2('gdalsrsinfo', file_path, '-o', 'proj4').first.strip.remove(/^'|'$/).presence
+        GDAL.capture('gdalsrsinfo', file_path, '-o', 'proj4').strip.remove(/^'|'$/).presence
       rescue Errno::ENOENT
         nil
       end
