@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>kml_file_with_ground_overlay_and_features.kml</name>
+    <Folder>
+      <name>Overlay folder</name>
+      <GroundOverlay>
+        <name>Basemap Overlay</name>
+        <Icon><href>https://example.com/wms?service=wms&amp;request=GetMap</href></Icon>
+        <LatLonBox><north>41</north><south>39</south><east>31</east><west>29</west></LatLonBox>
+      </GroundOverlay>
+    </Folder>
+    <Folder>
+      <name>Poly folder</name>
+      <Placemark>
+        <name>Poly 1</name>
+        <description>This is a description</description>
+        <Polygon><outerBoundaryIs><LinearRing><coordinates>10,20 11,20 11,21 10,21 10,20</coordinates></LinearRing></outerBoundaryIs></Polygon>
+      </Placemark>
+      <Placemark>
+        <name>Poly 2</name>
+        <description>This is a description also</description>
+        <Polygon><outerBoundaryIs><LinearRing><coordinates>30,40 31,40 31,41 30,41 30,40</coordinates></LinearRing></outerBoundaryIs></Polygon>
+      </Placemark>
+    </Folder>
+  </Document>
+</kml>

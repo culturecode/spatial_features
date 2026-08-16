@@ -109,7 +109,7 @@ describe SpatialFeatures::Importers::File do
       it 'sets different source identifiers for features from each file' do
         importers = subject.create_all(url)
         expect(importers.flat_map(&:features).map(&:source_identifier).uniq)
-          .to contain_exactly('shapefile.zip/firstnationreserves.shp')
+          .to contain_exactly('shapefile.zip/polygons.shp')
       end
     end
 
@@ -125,8 +125,8 @@ describe SpatialFeatures::Importers::File do
         importers = subject.create_all(file)
         expect(importers.flat_map(&:features).map(&:source_identifier).uniq)
           .to contain_exactly(
-            'archive_with_multiple_shps.zip/crims_alcids_treatyareas.shp',
-            'archive_with_multiple_shps.zip/crims_bald_eagles_3n_24june2021.shp'
+            'archive_with_multiple_shps.zip/layer_a.shp',
+            'archive_with_multiple_shps.zip/layer_b.shp'
           )
       end
     end

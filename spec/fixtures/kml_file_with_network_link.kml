@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>Remote Layers</name>
+    <Folder>
+      <name>Remote folder</name>
+      <NetworkLink>
+        <name>Remote Layer 1</name>
+        <Link><href>https://example.com/layers/1.kml</href><viewRefreshMode>onRequest</viewRefreshMode></Link>
+      </NetworkLink>
+      <NetworkLink>
+        <name>Remote Layer 2</name>
+        <Link><href>https://example.com/layers/2.kml</href><viewRefreshMode>onRequest</viewRefreshMode></Link>
+      </NetworkLink>
+      <NetworkLink>
+        <name>Remote Layer 3</name>
+        <Link><href>https://example.com/layers/3.kml</href><viewRefreshMode>onRequest</viewRefreshMode></Link>
+      </NetworkLink>
+    </Folder>
+  </Document>
+</kml>

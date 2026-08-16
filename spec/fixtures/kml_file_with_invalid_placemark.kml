@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>Invalid Placemark Test</name>
+    <Folder>
+      <name>Invalid Placemark Test</name>
+      <Placemark>
+        <name>Point</name>
+        <description>A point</description>
+        <Point><coordinates>10,20</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Line</name>
+        <description>A line</description>
+        <LineString><coordinates>10,20 11,21 12,22</coordinates></LineString>
+      </Placemark>
+      <Placemark>
+        <name>Invalid Line</name>
+        <description>A line with one vertex</description>
+        <LineString><coordinates>10,20</coordinates></LineString>
+      </Placemark>
+    </Folder>
+  </Document>
+</kml>

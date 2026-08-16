@@ -33,7 +33,7 @@ describe SpatialFeatures::Importers::Shapefile do
         let(:subject) { SpatialFeatures::Importers::Shapefile.new(shapefile_without_shape_index) }
 
         it 'raises an exception' do
-          expect { subject.features }.to raise_exception(SpatialFeatures::Importers::IncompleteShapefileArchive, /FirstNationReserves\.shx/i)
+          expect { subject.features }.to raise_exception(SpatialFeatures::Importers::IncompleteShapefileArchive, /polygons\.shx/i)
         end
       end
 
@@ -57,7 +57,7 @@ describe SpatialFeatures::Importers::Shapefile do
         let(:subject) { SpatialFeatures::Importers::Shapefile.new(shapefile_with_incorrect_shx_basename) }
 
         it 'raises an exception' do
-          expect { subject.features }.to raise_exception(SpatialFeatures::Importers::IncompleteShapefileArchive, /FirstNationReserves\.shx/i)
+          expect { subject.features }.to raise_exception(SpatialFeatures::Importers::IncompleteShapefileArchive, /polygons\.shx/i)
         end
       end
 
@@ -66,7 +66,7 @@ describe SpatialFeatures::Importers::Shapefile do
 
         it 'raises an exception if there is no default projection' do
           allow(SpatialFeatures::Importers::Shapefile).to receive(:default_proj4_projection).and_return(nil)
-          expect { subject.features }.to raise_exception(SpatialFeatures::Importers::IndeterminateShapefileProjection, /FirstNationReserves\.prj/i)
+          expect { subject.features }.to raise_exception(SpatialFeatures::Importers::IndeterminateShapefileProjection, /polygons\.prj/i)
         end
 
         it 'uses the `default_proj4_projection` when no projection can be determined from the shapefile' do
@@ -123,8 +123,8 @@ describe SpatialFeatures::Importers::Shapefile do
   context 'when given a zip archive with multiple shapefiles' do
     let(:data) { archive_with_multiple_shps }
     let(:shapefile_features) { {
-      "crims_alcids_treatyareas.shp" => 22,
-      "crims_bald_eagles_3n_24june2021.shp" => 48
+      "layer_a.shp" => 22,
+      "layer_b.shp" => 48
     } }
 
     describe '#new' do
@@ -139,8 +139,8 @@ describe SpatialFeatures::Importers::Shapefile do
         importers = SpatialFeatures::Importers::Shapefile.create_all(data)
         expect(importers.count).to eq(2)
 
-        expect(importers[0].features.count).to eq(shapefile_features["crims_alcids_treatyareas.shp"])
-        expect(importers[1].features.count).to eq(shapefile_features["crims_bald_eagles_3n_24june2021.shp"])
+        expect(importers[0].features.count).to eq(shapefile_features["layer_a.shp"])
+        expect(importers[1].features.count).to eq(shapefile_features["layer_b.shp"])
       end
     end
   end

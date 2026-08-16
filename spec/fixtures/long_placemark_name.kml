@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>Long Placemark Names</name>
+    <Folder>
+      <name>Long Placemark Names</name>
+      <Placemark>
+        <name>Segment description continuing well past the length of the name column so that the importer has to truncate it before the record can be written to the database (part 1)</name>
+        <description><![CDATA[<table><tr><td>Attribute</td><td>Value 1</td></tr></table>]]></description>
+        <MultiGeometry>
+        <Polygon><outerBoundaryIs><LinearRing><coordinates>11,20 12,20 12,21 11,21 11,20</coordinates></LinearRing></outerBoundaryIs></Polygon>
+        </MultiGeometry>
+      </Placemark>
+      <Placemark>
+        <name>Short name 2</name>
+        <description><![CDATA[<table><tr><td>Attribute</td><td>Value 2</td></tr></table>]]></description>
+        <MultiGeometry>
+        <Polygon><outerBoundaryIs><LinearRing><coordinates>12,20 13,20 13,21 12,21 12,20</coordinates></LinearRing></outerBoundaryIs></Polygon>
+        </MultiGeometry>
+      </Placemark>
+      <Placemark>
+        <name>Segment description continuing well past the length of the name column so that the importer has to truncate it before the record can be written to the database (part 3)</name>
+        <description><![CDATA[<table><tr><td>Attribute</td><td>Value 3</td></tr></table>]]></description>
+        <MultiGeometry>
+        <Polygon><outerBoundaryIs><LinearRing><coordinates>13,20 14,20 14,21 13,21 13,20</coordinates></LinearRing></outerBoundaryIs></Polygon>
+        </MultiGeometry>
+      </Placemark>
+      <Placemark>
+        <name>Short name 4</name>
+        <description><![CDATA[<table><tr><td>Attribute</td><td>Value 4</td></tr></table>]]></description>
+        <MultiGeometry>
+        <Polygon><outerBoundaryIs><LinearRing><coordinates>14,20 15,20 15,21 14,21 14,20</coordinates></LinearRing></outerBoundaryIs></Polygon>
+        </MultiGeometry>
+      </Placemark>
+      <Placemark>
+        <name>Segment description continuing well past the length of the name column so that the importer has to truncate it before the record can be written to the database (part 5)</name>
+        <description><![CDATA[<table><tr><td>Attribute</td><td>Value 5</td></tr></table>]]></description>
+        <MultiGeometry>
+        <Polygon><outerBoundaryIs><LinearRing><coordinates>15,20 16,20 16,21 15,21 15,20</coordinates></LinearRing></outerBoundaryIs></Polygon>
+        </MultiGeometry>
+      </Placemark>
+      <Placemark>
+        <name>Short name 6</name>
+        <description><![CDATA[<table><tr><td>Attribute</td><td>Value 6</td></tr></table>]]></description>
+        <MultiGeometry>
+        <Polygon><outerBoundaryIs><LinearRing><coordinates>16,20 17,20 17,21 16,21 16,20</coordinates></LinearRing></outerBoundaryIs></Polygon>
+        </MultiGeometry>
+      </Placemark>
+      <Placemark>
+        <name>Segment description continuing well past the length of the name column so that the importer has to truncate it before the record can be written to the database (part 7)</name>
+        <description><![CDATA[<table><tr><td>Attribute</td><td>Value 7</td></tr></table>]]></description>
+        <MultiGeometry>
+        <Polygon><outerBoundaryIs><LinearRing><coordinates>17,20 18,20 18,21 17,21 17,20</coordinates></LinearRing></outerBoundaryIs></Polygon>
+        </MultiGeometry>
+      </Placemark>
+      <Placemark>
+        <name>Short name 8</name>
+        <description><![CDATA[<table><tr><td>Attribute</td><td>Value 8</td></tr></table>]]></description>
+        <MultiGeometry>
+        <Polygon><outerBoundaryIs><LinearRing><coordinates>18,20 19,20 19,21 18,21 18,20</coordinates></LinearRing></outerBoundaryIs></Polygon>
+        </MultiGeometry>
+      </Placemark>
+      <Placemark>
+        <name>Segment description continuing well past the length of the name column so that the importer has to truncate it before the record can be written to the database (part 9)</name>
+        <description><![CDATA[<table><tr><td>Attribute</td><td>Value 9</td></tr></table>]]></description>
+        <MultiGeometry>
+        <Polygon><outerBoundaryIs><LinearRing><coordinates>19,20 20,20 20,21 19,21 19,20</coordinates></LinearRing></outerBoundaryIs></Polygon>
+        </MultiGeometry>
+      </Placemark>
+      <Placemark>
+        <name>Short name 10</name>
+        <description><![CDATA[<table><tr><td>Attribute</td><td>Value 10</td></tr></table>]]></description>
+        <MultiGeometry>
+        <Polygon><outerBoundaryIs><LinearRing><coordinates>20,20 21,20 21,21 20,21 20,20</coordinates></LinearRing></outerBoundaryIs></Polygon>
+        </MultiGeometry>
+      </Placemark>
+      <Placemark>
+        <name>Segment description continuing well past the length of the name column so that the importer has to truncate it before the record can be written to the database (part 11)</name>
+        <description><![CDATA[<table><tr><td>Attribute</td><td>Value 11</td></tr></table>]]></description>
+        <MultiGeometry>
+        <Polygon><outerBoundaryIs><LinearRing><coordinates>21,20 22,20 22,21 21,21 21,20</coordinates></LinearRing></outerBoundaryIs></Polygon>
+        </MultiGeometry>
+      </Placemark>
+    </Folder>
+  </Document>
+</kml>
