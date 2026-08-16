@@ -109,3 +109,14 @@ end
 def kml_file_with_ground_overlay_and_features
   open_fixture_file("kml_file_with_ground_overlay_and_features.kml")
 end
+
+# Returns an archive whose single entry is named so that a shell reaching the name would
+# treat part of it as a command and write to `marker`.
+def archive_with_shell_metacharacter_entry_name(marker)
+  path = ::File.join(Dir.mktmpdir, 'injection.zip')
+  Zip::OutputStream.open(path) do |zos|
+    zos.put_next_entry(%Q{x";touch #{marker};".shp})
+    zos.write('not a real shapefile')
+  end
+  ::File.open(path)
+end

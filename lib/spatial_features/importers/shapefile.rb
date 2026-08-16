@@ -1,5 +1,6 @@
 require 'ostruct'
 require 'digest/md5'
+require 'open3'
 
 module SpatialFeatures
   module Importers
@@ -55,8 +56,11 @@ module SpatialFeatures
         if proj4 == PROJ4_4326
           data[:geog] = wkt
         else
-          data[:geog] = ActiveRecord::Base.connection.select_value <<-SQL
-            SELECT ST_Transform(ST_GeomFromText('#{wkt}'), '#{proj4}', 4326) AS geog
+          # `proj4` is read out of the uploaded archive's .prj, so it is quoted before it
+          # reaches the statement.
+          conn = ActiveRecord::Base.connection
+          data[:geog] = conn.select_value <<-SQL
+            SELECT ST_Transform(ST_GeomFromText(#{conn.quote(wkt)}), #{conn.quote(proj4)}, 4326) AS geog
           SQL
         end
 
@@ -90,18 +94,27 @@ module SpatialFeatures
       end
 
       # Use OGR2OGR to reproject into EPSG:4326 so we can skip the reprojection step per-feature
+      #
+      # @note Both the projection and the path come from the uploaded archive, so they are
+      #   passed as an argv list and no shell parses them. Assembling a command string here
+      #   would let an uploader run commands of their choosing.
       def project_to_4326(file_path)
         output_path = Tempfile.create([::File.basename(file_path, '.shp') + '_epsg_4326_', '.shp']) { |file| file.path }
         return unless (proj4 = proj4_from_file(file_path))
-        return unless system("ogr2ogr -s_srs '#{proj4}' -t_srs EPSG:4326 '#{output_path}' '#{file_path}'")
+        return unless system('ogr2ogr', '-s_srs', proj4, '-t_srs', 'EPSG:4326', output_path, file_path)
         return ::File.open(output_path)
       end
 
+      # Returns the PROJ.4 projection string GDAL reads out of the file's .prj, or nil when
+      # it can't determine one. Returns nil when `gdalsrsinfo` is not installed, which
+      # `proj4_projection` reports.
       def proj4_from_file(file_path)
         # Sanitize: "'+proj=utm +zone=11 +datum=NAD83 +units=m +no_defs '\n" and lately
         #           "+proj=utm +zone=11 +datum=NAD83 +units=m +no_defs \n" to
         #           "+proj=utm +zone=11 +datum=NAD83 +units=m +no_defs"
-        `gdalsrsinfo "#{file_path}" -o proj4`.strip.remove(/^'|'$/).presence
+        Open3.capture2('gdalsrsinfo', file_path, '-o', 'proj4').first.strip.remove(/^'|'$/).presence
+      rescue Errno::ENOENT
+        nil
       end
 
       # a zip archive may contain multiple SHP files

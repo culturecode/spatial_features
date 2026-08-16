@@ -1,4 +1,5 @@
 require 'fileutils'
+require 'pathname'
 
 module SpatialFeatures
   module Unzip
@@ -51,16 +52,26 @@ module SpatialFeatures
       end
     end
 
+    # Extracts the archive's entries and returns their paths, skipping entries that a name
+    # cannot place inside `tmpdir`.
+    #
+    # @param tmpdir [String] where to extract to. Must already exist, since the destination
+    #   is resolved before anything is written. Defaults to a fresh temporary directory.
     def self.extract(file_path, tmpdir: nil, downcase: false)
       tmpdir ||= Dir.mktmpdir
+      root = Pathname.new(tmpdir).realpath
+
       [].tap do |paths|
         entries(file_path).each do |entry|
           next if entry.name =~ IGNORED_ENTRY_PATHS
+          next if entry.symlink?
 
           output_filename = entry.name
           output_filename = output_filename.downcase if downcase
 
-          path = "#{tmpdir}/#{output_filename}"
+          path = contained_path(root, output_filename)
+          next unless path
+
           directory = File.dirname(path)
           basename = File.basename(path)
 
@@ -71,6 +82,24 @@ module SpatialFeatures
         end
       end
     end
+
+    # Returns where an entry of this name lands under `root`, or nil when the name would place
+    # it outside. Entry names are stored in the archive verbatim, so they can carry `..`
+    # segments that climb out of the directory we extract into.
+    #
+    # @note `root` must already be a real path, and `::extract` skips symlink entries, so
+    #   nothing beneath it is a symlink. `cleanpath` resolves `..` lexically, so a symlink
+    #   under `root` would let an entry name walk back out of the directory unnoticed.
+    def self.contained_path(root, output_filename)
+      path = root.join(output_filename).cleanpath
+
+      return unless path.to_s.start_with?("#{root}#{File::SEPARATOR}")
+
+      # `cleanpath` drops the trailing separator that marks a directory entry, which
+      # `PathNotFound#extensions` reads to tell directories from the files it reports.
+      output_filename.end_with?(File::SEPARATOR) ? "#{path}#{File::SEPARATOR}" : path.to_s
+    end
+    private_class_method :contained_path
 
     def self.names(file_path)
       entries(file_path).collect(&:name)

@@ -1,4 +1,5 @@
 require 'digest/md5'
+require 'open3'
 require 'spatial_features/importers/geo_json'
 
 module SpatialFeatures
@@ -15,11 +16,9 @@ module SpatialFeatures
       private
 
       def esri_json_to_geojson(url)
-        if URI.parse(url).relative?
-          `ogr2ogr -t_srs EPSG:4326 -f GeoJSON /dev/stdout "#{url}"` # It is a local file path
-        else
-          `ogr2ogr -t_srs EPSG:4326 -f GeoJSON /dev/stdout "#{url}" OGRGeoJSON`
-        end
+        args = ['ogr2ogr', '-t_srs', 'EPSG:4326', '-f', 'GeoJSON', '/dev/stdout', url]
+        args << 'OGRGeoJSON' unless URI.parse(url).relative? # A relative URL is a local file path
+        Open3.capture2(*args).first
       end
     end
   end
