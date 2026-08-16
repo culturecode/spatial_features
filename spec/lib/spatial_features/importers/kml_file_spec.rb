@@ -96,7 +96,7 @@ describe SpatialFeatures::Importers::KMLFile do
     describe '#warnings' do
       it 'records a warning naming the skipped map image' do
         subject.features
-        expect(subject.warnings).to include(a_string_matching(/map image.*Provincial Boundary/i))
+        expect(subject.warnings).to include(a_string_matching(/map image.*Basemap Overlay/i))
       end
     end
   end
