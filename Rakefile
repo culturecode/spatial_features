@@ -16,3 +16,5 @@ RSpec::Core::RakeTask.new(:spec) do |task|
 end
 
 task :default => :spec
+
+Dir['tasks/*.rake'].each { |f| load f }
