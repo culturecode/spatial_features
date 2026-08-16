@@ -144,4 +144,66 @@ describe SpatialFeatures::Importers::Shapefile do
       end
     end
   end
+
+  context 'when given an archive whose entry name contains shell metacharacters' do
+    let(:marker) { ::File.join(Dir.mktmpdir, 'injected') }
+    let(:data) { archive_with_shell_metacharacter_entry_name(marker) }
+
+    it 'does not run the injected command' do
+      SpatialFeatures::Importers::Shapefile.create_all(data).each do |importer|
+        importer.features rescue nil # The entry is not a real shapefile, so the import fails either way
+      end
+
+      expect(::File.exist?(marker)).to be false
+    end
+  end
+
+  context 'when given a shapefile whose projection contains shell metacharacters' do
+    let(:marker) { ::File.join(Dir.mktmpdir, 'injected') }
+
+    it 'does not run the injected command' do
+      subject = SpatialFeatures::Importers::Shapefile.new(shapefile)
+      allow(subject).to receive(:proj4_from_file).and_return(%Q{+proj=longlat';touch #{marker};'})
+
+      subject.features rescue nil
+
+      expect(::File.exist?(marker)).to be false
+    end
+  end
+
+  context 'when given a shapefile whose projection contains a SQL quote' do
+    it 'sends the projection as one quoted literal rather than as statements' do
+      subject = SpatialFeatures::Importers::Shapefile.new(shapefile)
+      allow(subject).to receive(:proj4_from_file).and_return("+proj=longlat'; DROP TABLE features; --")
+
+      statements = []
+      allow(ActiveRecord::Base.connection).to receive(:select_value).and_wrap_original do |original, sql, *args|
+        statements << sql
+        original.call(sql, *args)
+      end
+
+      subject.features rescue nil
+
+      # The quote the projection carries is doubled, so everything after it stays inside the
+      # literal instead of closing it and leaving `DROP TABLE` as a statement of its own.
+      expect(statements).to include(a_string_including("'+proj=longlat''; DROP TABLE features; --'"))
+    end
+  end
+
+  context 'when a record geometry renders as WKT containing a SQL quote' do
+    it 'sends the geometry as one quoted literal rather than as statements' do
+      subject = SpatialFeatures::Importers::Shapefile.new(shapefile)
+      record = double(geometry: double(as_text: "POINT(0 0)'; DROP TABLE features; --"), attributes: {})
+
+      statements = []
+      allow(ActiveRecord::Base.connection).to receive(:select_value).and_wrap_original do |original, sql, *args|
+        statements << sql
+        nil
+      end
+
+      subject.send(:data_from_record, record, '+proj=utm +zone=11')
+
+      expect(statements).to include(a_string_including("'POINT(0 0)''; DROP TABLE features; --'"))
+    end
+  end
 end

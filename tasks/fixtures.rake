@@ -21,6 +21,20 @@ module FixtureGenerator
     /9k=
   B64
 
+  # An archive holding a symlink entry beside a regular file. Embedded because rubyzip
+  # declines to write a symlink entry, so the task cannot build this one from its parts.
+  SYMLINK_ARCHIVE = Base64.decode64(<<~B64).freeze
+    UEsDBAoAAAAAAAJQEF0KuR8pCwAAAAsAAAAEABwAbGlua1VUCQADlOyBapTsgWp1eAsAAQT1AQAA
+    BAAAAAAvZXRjL3Bhc3N3ZFBLAwQKAAAAAAACUBBdAAAAAAAAAAAAAAAABwAcAGxheWVycy9VVAkA
+    A5TsgWqU7IFqdXgLAAEE9QEAAAQAAAAAUEsDBAoAAAAAAAJQEF3vi38LEAAAABAAAAAPABwAbGF5
+    ZXJzL2RhdGEuc2hwVVQJAAOU7IFqlOyBanV4CwABBPUBAAAEAAAAAHNoYXBlZmlsZSBieXRlcwpQ
+    SwECHgMKAAAAAAACUBBdCrkfKQsAAAALAAAABAAYAAAAAAAAAAAA7aEAAAAAbGlua1VUBQADlOyB
+    anV4CwABBPUBAAAEAAAAAFBLAQIeAwoAAAAAAAJQEF0AAAAAAAAAAAAAAAAHABgAAAAAAAAAEADt
+    QUkAAABsYXllcnMvVVQFAAOU7IFqdXgLAAEE9QEAAAQAAAAAUEsBAh4DCgAAAAAAAlAQXe+LfwsQ
+    AAAAEAAAAA8AGAAAAAAAAQAAAKSBigAAAGxheWVycy9kYXRhLnNocFVUBQADlOyBanV4CwABBPUB
+    AAAEAAAAAFBLBQYAAAAAAwADAOwAAADjAAAAAAA=
+  B64
+
   class << self
     def build_all(dir)
       FileUtils.mkdir_p(dir)
@@ -82,6 +96,8 @@ module FixtureGenerator
       # Nothing the importer recognises.
       write_zip(::File.join(dir, 'archive_without_any_known_file.zip'),
                 [['notes.whatever', :empty]])
+
+      ::File.binwrite(::File.join(dir, 'archive_with_symlink.zip'), SYMLINK_ARCHIVE)
     end
 
     # Writes `count` square polygons on a regular grid, in metres, as an ESRI Shapefile.
