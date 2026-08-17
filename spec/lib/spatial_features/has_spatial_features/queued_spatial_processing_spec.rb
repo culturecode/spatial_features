@@ -65,6 +65,16 @@ describe SpatialFeatures::QueuedSpatialProcessing do
       expect { klass.retry_failed_feature_updates! }.not_to change { Delayed::Job.count }
     end
 
+    # Every other method in this file guards on the column. Without it the scope raises
+    # `PG::UndefinedColumn` on a spatial model that does not carry one.
+    it 'finds nothing on a model with no status column' do
+      plain = new_dummy_class
+      plain.create
+
+      expect { plain.with_failed_feature_updates.to_a }.not_to raise_error
+      expect(plain.with_failed_feature_updates).to be_empty
+    end
+
     it 'passes options through to the queued job' do
       klass.create.tap {|record| status!(record, 'failure') }
 
