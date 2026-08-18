@@ -150,4 +150,37 @@ describe Feature do
       expect { house.features.first.refresh_aggregate }.to change { house.reload.aggregate_feature.cache_key }
     end
   end
+  describe '::precompute_geometry_validation' do
+    let(:valid_geog) { 'POLYGON((0 0, 0 1, 1 1, 1 0, 0 0))' }
+    let(:invalid_geog) { 'POLYGON((0 0, 2 2, 2 0, 0 2, 0 0))' } # a bowtie, which self-intersects
+
+    it 'gives each record the answer the per-record query gives' do
+      batched = [Feature.new(geog: valid_geog), Feature.new(geog: invalid_geog)]
+      Feature.precompute_geometry_validation(batched)
+
+      individually = [Feature.new(geog: valid_geog), Feature.new(geog: invalid_geog)]
+
+      expect(batched.map {|f| f.send(:geometry_validation_message) })
+        .to eq(individually.map {|f| f.send(:geometry_validation_message) })
+    end
+
+    it 'reads nothing further while the answer holds' do
+      feature = Feature.new(geog: valid_geog)
+      Feature.precompute_geometry_validation([feature])
+
+      expect(Feature.connection).not_to receive(:select_one)
+
+      expect(feature).to be_valid
+    end
+
+    it 'discards the answer once a repair changes the geometry' do
+      feature = Feature.new(geog: invalid_geog)
+      feature.make_valid = true
+      Feature.precompute_geometry_validation([feature])
+
+      expect(feature).to be_valid # repaired, so it is asked again rather than trusting the batch
+      expect(feature.geog).not_to eq(invalid_geog)
+    end
+  end
+
 end

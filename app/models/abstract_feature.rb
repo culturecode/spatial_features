@@ -11,6 +11,12 @@ class AbstractFeature < ActiveRecord::Base
 
   attr_writer :make_valid
 
+  # Set by `::precompute_geometry_validation`. Nil means the geometry is valid.
+  def precomputed_geometry_validation=(message)
+    @geometry_validation_precomputed = true
+    @precomputed_geometry_validation = message
+  end
+
   FEATURE_TYPES = %w(polygon point line)
 
   validates_presence_of :geog
@@ -134,6 +140,32 @@ class AbstractFeature < ActiveRecord::Base
     raise "Can't calculate envelope for Feature #{self.id}" if envelope_json.blank?
 
     return envelope_json.values_at(0,2)
+  end
+
+  # Reads the geometry validation message for many records in one query, so validating a
+  # batch costs one round trip rather than one per record. Each record holds its own
+  # answer afterwards and `valid?` reads it instead of querying.
+  #
+  # Records whose geometry is later replaced (a repair) discard the answer and fall back
+  # to querying, so a batch stays correct when some of its members change.
+  #
+  # @param records [Array<AbstractFeature>] records with `geog` assigned.
+  # @return [void]
+  def self.precompute_geometry_validation(records)
+    records = records.select {|record| record.geog.present? }
+    return if records.empty?
+
+    values = records.each_with_index.map {|record, index| "(#{index}, #{connection.quote(record.geog.to_s)})" }
+    messages = connection.select_rows(<<~SQL).to_h
+      SELECT t.i, ST_IsValidReason(x.geog)
+      FROM (VALUES #{values.join(',')}) AS t(i, wkt),
+      LATERAL (SELECT t.wkt::geography::geometry AS geog) AS x
+      WHERE NOT ST_IsValid(x.geog)
+    SQL
+
+    records.each_with_index do |record, index|
+      record.precomputed_geometry_validation = messages[index]
+    end
   end
 
   def self.without_caching_derivatives(&block)
@@ -276,6 +308,7 @@ class AbstractFeature < ActiveRecord::Base
   private
 
   def make_valid
+    @geometry_validation_precomputed = false # the geometry is about to change, so the batch's answer no longer applies
     self.geog = SpatialFeatures::Utils.select_db_value("SELECT ST_Buffer('#{sanitize}', 0)")
   end
 
@@ -307,6 +340,8 @@ class AbstractFeature < ActiveRecord::Base
   end
 
   def geometry_validation_message
+    return @precomputed_geometry_validation if @geometry_validation_precomputed
+
     klass = self.class.base_class # Use the base class because we don't want to have to include a type column in our select
     error = klass.connection.select_one(klass.unscoped.invalid.from("(SELECT '#{sanitize_input_for_sql(self.geog)}'::geography::geometry AS geog) #{klass.table_name}")) # Ensure we cast to geography because the geog attribute value may not have been coerced to geography yet, so we want it to apply the +-180/90 bounds to any odd geometry that will happen when we save to the database
     return error.fetch('invalid_geometry_message') if error
