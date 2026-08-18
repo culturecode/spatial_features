@@ -22,6 +22,10 @@ def kml_file_with_invalid_placemark
   open_fixture_file("kml_file_with_invalid_placemark.kml")
 end
 
+def kml_file_with_nested_placemarks
+  open_fixture_file("kml_file_with_nested_placemarks.kml")
+end
+
 def kml_file_with_network_link
   open_fixture_file("kml_file_with_network_link.kml")
 end

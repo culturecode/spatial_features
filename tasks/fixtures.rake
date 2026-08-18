@@ -182,6 +182,12 @@ module FixtureGenerator
       write(::File.join(dir, 'kml_file_with_multi_geometry_photos.kml'),
             document('kml_file_with_multi_geometry_photos.kml', multi_geometry_photo_folder))
 
+      # A Placemark holding another, which KML 2.2 does not allow. The inner geometry belongs
+      # to the inner Placemark, so each polygon imports once rather than the outer Placemark
+      # also claiming the inner one.
+      write(::File.join(dir, 'kml_file_with_nested_placemarks.kml'),
+            document('kml_file_with_nested_placemarks.kml', nested_placemark_folder))
+
       # Geometry with no Placemark ancestor, so it imports with no name and no metadata.
       write_kmz(::File.join(dir, 'kmz_file_features_without_placemarks.kmz'),
                 document('Geometry Without Placemarks',
@@ -310,6 +316,14 @@ module FixtureGenerator
 
     def multi_geometry(parts, &block)
       "        <MultiGeometry>\n" + Array.new(parts, &block).join + "        </MultiGeometry>\n"
+    end
+
+    # One Placemark holding a polygon and, beside it, a second Placemark of its own.
+    def nested_placemark_folder
+      inner = placemark('Inner Poly', 'The inner description', polygon(square(30, 40)))
+
+      folder('Nested placemark folder',
+             placemark('Outer Poly', 'This is a description', polygon(square(10, 20)) + inner))
     end
 
     def overlay_folder

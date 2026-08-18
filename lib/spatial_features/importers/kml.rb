@@ -11,6 +11,10 @@ module SpatialFeatures
       GEOMETRY_TYPES = %w[Polygon LineString Point].freeze
       GEOMETRY_SELECTOR = GEOMETRY_TYPES.join(', ').freeze
 
+      # Matches what `GEOMETRY_SELECTOR` matches, for the path that scopes elements to one
+      # Placemark by counting how many Placemarks they sit inside.
+      GEOMETRY_SELF_TEST = GEOMETRY_TYPES.map {|type| "self::#{type}" }.join(' or ').freeze
+
       # Geometry that sits outside any Placemark, which imports with no name and no
       # metadata. One pass over the document matches all of it.
       UNPLACED_GEOMETRY_XPATH =
@@ -35,7 +39,7 @@ module SpatialFeatures
           importable_image_paths = images_from_metadata(metadata)
           name = placemark.css('name').text
 
-          placemark.css(GEOMETRY_SELECTOR).each do |geometry|
+          geometries_in(placemark).each do |geometry|
             # A hash of its own per feature, since each is stored on a separate record.
             yield_feature(geometry, name, metadata.dup, importable_image_paths, &block)
           end
@@ -44,6 +48,31 @@ module SpatialFeatures
         kml_document.xpath(UNPLACED_GEOMETRY_XPATH).each do |geometry|
           yield_feature(geometry, nil, {}, [], &block)
         end
+      end
+
+      # Returns the geometry elements belonging to a Placemark.
+      #
+      # A Placemark inside another Placemark owns its own geometry, so the outer one has to
+      # leave it alone or the same element is read twice. Scoping by depth costs an upward
+      # walk per element, which is 7x the plain selector on a document holding six figures
+      # of geometry, so it is used only for a document that nests.
+      #
+      # @param placemark [Nokogiri::XML::Element]
+      # @return [Nokogiri::XML::NodeSet] the Polygon, LineString and Point elements whose
+      #   nearest enclosing Placemark is this one.
+      def geometries_in(placemark)
+        return placemark.css(GEOMETRY_SELECTOR) unless nested_placemarks?
+
+        depth = placemark.xpath('count(ancestor::Placemark)').to_i + 1
+        placemark.xpath(".//*[#{GEOMETRY_SELF_TEST}][count(ancestor::Placemark) = #{depth}]")
+      end
+
+      # Returns true when any Placemark in the document holds another, which KML 2.2 does
+      # not allow. Read once per document.
+      def nested_placemarks?
+        return @nested_placemarks if defined?(@nested_placemarks)
+
+        @nested_placemarks = kml_document.at_xpath('//Placemark//Placemark').present?
       end
 
       # Yields the feature built from a geometry element.

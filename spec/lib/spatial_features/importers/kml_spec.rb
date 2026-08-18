@@ -162,6 +162,20 @@ describe SpatialFeatures::Importers::KML do
     end
   end
 
+  context 'when a Placemark holds another Placemark' do
+    let(:data) { kml_file_with_nested_placemarks.read }
+
+    describe '#features' do
+      it 'returns one feature per geometry rather than reading the inner one twice' do
+        expect(subject.features.count).to eq(2)
+      end
+
+      it 'returns each geometry once' do
+        expect(subject.features.map(&:geog).uniq.size).to eq(2)
+      end
+    end
+  end
+
   context 'when the input is xml but not kml' do
     let(:data) { "<html><body>hi</body></html>" }
 

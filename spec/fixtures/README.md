@@ -18,7 +18,8 @@ shapefiles and in round degrees for the KML. What matters in each fixture is its
 rather than its coordinates — a missing `.shx`, a `.shx` whose basename does not match the
 `.shp`, a `__MACOSX` decoy carrying a real extension, a single-vertex LineString, a null
 geometry, a name longer than the name column, a Placemark holding many polygons in one
-`MultiGeometry`. The specs assert on feature counts and on those structures, so regenerating
+`MultiGeometry`, a Placemark holding another Placemark. The specs assert on feature counts
+and on those structures, so regenerating
 with different coordinates is safe, while changing a count, a component filename, or a
 placemark name is not.
 
