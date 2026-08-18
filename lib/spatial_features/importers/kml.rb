@@ -22,7 +22,7 @@ module SpatialFeatures
       def each_record(&block)
         {'Polygon' => 'POLYGON', 'LineString' => 'LINE', 'Point' => 'POINT'}.each do |kml_type, sql_type|
           kml_document.css(kml_type).each do |feature|
-            if (placemark = feature.ancestors('Placemark').first)
+            if (placemark = enclosing_placemark(feature))
               metadata = extract_metadata(placemark)
               name = placemark.css('name').text
             else
@@ -38,6 +38,22 @@ module SpatialFeatures
 
             yield OpenStruct.new(geog: geog, name: name, metadata: metadata, importable_image_paths: importable_image_paths)
           end
+        end
+      end
+
+      # Returns the Placemark a geometry node sits inside.
+      #
+      # @param feature [Nokogiri::XML::Node] a Polygon, LineString or Point node.
+      # @return [Nokogiri::XML::Element, nil] the nearest enclosing Placemark. Nil when the
+      #   geometry sits outside one.
+      # @note Walks the parent chain rather than calling `Nokogiri::XML::Node#ancestors` with
+      #   a selector. That method answers the selector by searching the whole document on
+      #   every call, which is minutes of work on a file holding six figures of geometries.
+      def enclosing_placemark(feature)
+        node = feature.parent
+        while node
+          return node if node.name == 'Placemark'
+          node = node.respond_to?(:parent) ? node.parent : nil
         end
       end
 

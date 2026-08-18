@@ -103,6 +103,37 @@ describe SpatialFeatures::Importers::KML do
     end
   end
 
+  context 'when a Placemark holds a MultiGeometry' do
+    let(:data) { kml_file_with_multi_geometry_placemarks.read }
+
+    describe '#features' do
+      it 'returns one feature per part' do
+        expect(subject.features.count).to eq(8)
+      end
+
+      it 'names each part after the Placemark holding it' do
+        expect(subject.features.map(&:name))
+          .to contain_exactly(*['Poly 1'] * 4, *['Poly 2'] * 4)
+      end
+
+      it 'gives each part the metadata of the Placemark holding it' do
+        expect(subject.features)
+          .to all(have_attributes :metadata => include('description' => be_present))
+      end
+
+      # `Nokogiri::XML::Node#ancestors` answers a selector by searching the whole document,
+      # so resolving a part's Placemark that way costs the document's size per part. The
+      # document is parsed first, since parsing searches it for NetworkLinks and overlays.
+      it 'resolves each part without searching the document again' do
+        subject.send(:kml_document)
+
+        expect_any_instance_of(Nokogiri::XML::Document).not_to receive(:search)
+
+        subject.features
+      end
+    end
+  end
+
   context 'when the input is xml but not kml' do
     let(:data) { "<html><body>hi</body></html>" }
 

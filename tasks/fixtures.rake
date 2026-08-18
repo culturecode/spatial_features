@@ -171,6 +171,12 @@ module FixtureGenerator
       write(::File.join(dir, 'kml_file_with_ground_overlay_and_features.kml'),
             document('kml_file_with_ground_overlay_and_features.kml', overlay_folder + poly_folder))
 
+      # Two Placemarks, each holding several polygons in one MultiGeometry, the shape design
+      # software exports when it models an object out of many faces. Each polygon imports as
+      # its own feature, taking the name and metadata of the Placemark holding it.
+      write(::File.join(dir, 'kml_file_with_multi_geometry_placemarks.kml'),
+            document('kml_file_with_multi_geometry_placemarks.kml', multi_geometry_folder))
+
       # Geometry with no Placemark ancestor, so it imports with no name and no metadata.
       write_kmz(::File.join(dir, 'kmz_file_features_without_placemarks.kmz'),
                 document('Geometry Without Placemarks',
@@ -276,6 +282,17 @@ module FixtureGenerator
       folder('Poly folder',
              placemark('Poly 1', 'This is a description', polygon(square(10, 20, :altitude => altitude))) +
              placemark('Poly 2', 'This is a description also', polygon(square(30, 40))))
+    end
+
+    # The two placemarks of `poly_folder`, each holding `parts` polygons rather than one.
+    def multi_geometry_folder(parts: 4)
+      placemarks = [['Poly 1', 'This is a description', 10, 20],
+                    ['Poly 2', 'This is a description also', 30, 40]]
+
+      folder('Multi geometry folder', placemarks.map { |name, description, lon, lat|
+        squares = Array.new(parts) {|i| polygon(square(lon + i, lat, :size => 0.5)) }
+        placemark(name, description, "        <MultiGeometry>\n" + squares.join + "        </MultiGeometry>\n")
+      }.join)
     end
 
     def overlay_folder

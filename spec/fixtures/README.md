@@ -17,9 +17,10 @@ The geometry is deliberately dull: squares on a regular grid, in NAD83 / UTM zon
 shapefiles and in round degrees for the KML. What matters in each fixture is its structure
 rather than its coordinates — a missing `.shx`, a `.shx` whose basename does not match the
 `.shp`, a `__MACOSX` decoy carrying a real extension, a single-vertex LineString, a null
-geometry, a name longer than the name column. The specs assert on feature counts and on those
-structures, so regenerating with different coordinates is safe, while changing a count, a
-component filename, or a placemark name is not.
+geometry, a name longer than the name column, a Placemark holding many polygons in one
+`MultiGeometry`. The specs assert on feature counts and on those structures, so regenerating
+with different coordinates is safe, while changing a count, a component filename, or a
+placemark name is not.
 
 Regenerating rewrites the archives in place, and their entry timestamps change every run, so
 expect git to report them modified even when nothing about their contents has. Run the suite
