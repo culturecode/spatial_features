@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>kml_file_with_multi_geometry_photos.kml</name>
+    <Folder>
+      <name>Multi geometry photo folder</name>
+      <Placemark>
+        <name>Photo Poly</name>
+        <description>This is a description</description>
+        <ExtendedData><SchemaData schemaUrl="#schema0">
+          <SimpleData name="pdfmaps_photos">&lt;img src="images/two_a.jpg"&gt;&lt;img src="images/two_b.jpg"&gt;</SimpleData>
+        </SchemaData></ExtendedData>
+        <MultiGeometry>
+        <Polygon><outerBoundaryIs><LinearRing><coordinates>50,60 50.5,60 50.5,60.5 50,60.5 50,60</coordinates></LinearRing></outerBoundaryIs></Polygon>
+        <Polygon><outerBoundaryIs><LinearRing><coordinates>51,60 51.5,60 51.5,60.5 51,60.5 51,60</coordinates></LinearRing></outerBoundaryIs></Polygon>
+        <Polygon><outerBoundaryIs><LinearRing><coordinates>52,60 52.5,60 52.5,60.5 52,60.5 52,60</coordinates></LinearRing></outerBoundaryIs></Polygon>
+        </MultiGeometry>
+      </Placemark>
+    </Folder>
+  </Document>
+</kml>

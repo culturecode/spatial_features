@@ -6,6 +6,16 @@ module SpatialFeatures
       # <SimpleData name> keys that may contain <img> tags
       IMAGE_METADATA_KEYS = %w[pdfmaps_photos].freeze
 
+      # The elements that become features. A Placemark holds them directly or inside a
+      # MultiGeometry, and each one becomes a feature of its own.
+      GEOMETRY_TYPES = %w[Polygon LineString Point].freeze
+      GEOMETRY_SELECTOR = GEOMETRY_TYPES.join(', ').freeze
+
+      # Geometry that sits outside any Placemark, which imports with no name and no
+      # metadata. One pass over the document matches all of it.
+      UNPLACED_GEOMETRY_XPATH =
+        GEOMETRY_TYPES.map {|type| "//#{type}[not(ancestor::Placemark)]" }.join(' | ').freeze
+
       # matches a coordinate pair with an optional altitude, including invalid altitudes like NaN
       #   -118.1,50.9,NaN
       #   -118.1,50.9,0
@@ -20,41 +30,37 @@ module SpatialFeatures
       private
 
       def each_record(&block)
-        {'Polygon' => 'POLYGON', 'LineString' => 'LINE', 'Point' => 'POINT'}.each do |kml_type, sql_type|
-          kml_document.css(kml_type).each do |feature|
-            if (placemark = enclosing_placemark(feature))
-              metadata = extract_metadata(placemark)
-              name = placemark.css('name').text
-            else
-              metadata = {}
-            end
+        kml_document.css('Placemark').each do |placemark|
+          metadata = extract_metadata(placemark)
+          importable_image_paths = images_from_metadata(metadata)
+          name = placemark.css('name').text
 
-            next if blank_feature?(feature)
-
-            geog = geom_from_kml(feature)
-            next if geog.blank?
-
-            importable_image_paths = images_from_metadata(metadata)
-
-            yield OpenStruct.new(geog: geog, name: name, metadata: metadata, importable_image_paths: importable_image_paths)
+          placemark.css(GEOMETRY_SELECTOR).each do |geometry|
+            # A hash of its own per feature, since each is stored on a separate record.
+            yield_feature(geometry, name, metadata.dup, importable_image_paths, &block)
           end
+        end
+
+        kml_document.xpath(UNPLACED_GEOMETRY_XPATH).each do |geometry|
+          yield_feature(geometry, nil, {}, [], &block)
         end
       end
 
-      # Returns the Placemark a geometry node sits inside.
+      # Yields the feature built from a geometry element.
       #
-      # @param feature [Nokogiri::XML::Node] a Polygon, LineString or Point node.
-      # @return [Nokogiri::XML::Element, nil] the nearest enclosing Placemark. Nil when the
-      #   geometry sits outside one.
-      # @note Walks the parent chain rather than calling `Nokogiri::XML::Node#ancestors` with
-      #   a selector. That method answers the selector by searching the whole document on
-      #   every call, which is minutes of work on a file holding six figures of geometries.
-      def enclosing_placemark(feature)
-        node = feature.parent
-        while node
-          return node if node.name == 'Placemark'
-          node = node.respond_to?(:parent) ? node.parent : nil
-        end
+      # @param geometry [Nokogiri::XML::Element] a Polygon, LineString or Point node.
+      # @param metadata [Hash] stored on the feature as it stands, so it must already have
+      #   had its image keys removed.
+      # @yield [OpenStruct] nothing is yielded when the element holds no coordinates, or
+      #   when PostGIS cannot read it.
+      def yield_feature(geometry, name, metadata, importable_image_paths, &block)
+        return if blank_feature?(geometry)
+
+        geog = geom_from_kml(geometry)
+        return if geog.blank?
+
+        block.call OpenStruct.new(geog: geog, name: name, metadata: metadata,
+                                  importable_image_paths: importable_image_paths)
       end
 
       def kml_document

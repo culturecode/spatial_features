@@ -177,6 +177,11 @@ module FixtureGenerator
       write(::File.join(dir, 'kml_file_with_multi_geometry_placemarks.kml'),
             document('kml_file_with_multi_geometry_placemarks.kml', multi_geometry_folder))
 
+      # The same shape carrying photos, so that the images a Placemark names reach every one
+      # of its parts rather than only the first.
+      write(::File.join(dir, 'kml_file_with_multi_geometry_photos.kml'),
+            document('kml_file_with_multi_geometry_photos.kml', multi_geometry_photo_folder))
+
       # Geometry with no Placemark ancestor, so it imports with no name and no metadata.
       write_kmz(::File.join(dir, 'kmz_file_features_without_placemarks.kmz'),
                 document('Geometry Without Placemarks',
@@ -290,9 +295,21 @@ module FixtureGenerator
                     ['Poly 2', 'This is a description also', 30, 40]]
 
       folder('Multi geometry folder', placemarks.map { |name, description, lon, lat|
-        squares = Array.new(parts) {|i| polygon(square(lon + i, lat, :size => 0.5)) }
-        placemark(name, description, "        <MultiGeometry>\n" + squares.join + "        </MultiGeometry>\n")
+        placemark(name, description, multi_geometry(parts) {|i| polygon(square(lon + i, lat, :size => 0.5)) })
       }.join)
+    end
+
+    # A single placemark whose ExtendedData names two photos, holding `parts` polygons, so
+    # every part of it carries the same images.
+    def multi_geometry_photo_folder(parts: 3)
+      folder('Multi geometry photo folder',
+             placemark('Photo Poly', 'This is a description',
+                       photos('two_a.jpg', 'two_b.jpg') +
+                       multi_geometry(parts) {|i| polygon(square(50 + i, 60, :size => 0.5)) }))
+    end
+
+    def multi_geometry(parts, &block)
+      "        <MultiGeometry>\n" + Array.new(parts, &block).join + "        </MultiGeometry>\n"
     end
 
     def overlay_folder
