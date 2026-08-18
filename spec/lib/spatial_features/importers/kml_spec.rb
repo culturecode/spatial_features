@@ -176,6 +176,24 @@ describe SpatialFeatures::Importers::KML do
     end
   end
 
+  context 'when a batch holds an element PostGIS cannot read' do
+    # A single-vertex LineString is not a geometry PostGIS will parse, and it sits beside
+    # two placemarks that are fine.
+    let(:data) { kml_file_with_invalid_placemark.read }
+
+    describe '#features' do
+      it 'returns the elements it could read' do
+        expect(subject.features.count).to eq(2)
+      end
+
+      it 'reads the batch again one element at a time' do
+        expect(subject).to receive(:geom_from_kml).exactly(3).times.and_call_original
+
+        subject.features
+      end
+    end
+  end
+
   context 'when the input is xml but not kml' do
     let(:data) { "<html><body>hi</body></html>" }
 

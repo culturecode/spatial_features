@@ -20,6 +20,11 @@ module SpatialFeatures
       UNPLACED_GEOMETRY_XPATH =
         GEOMETRY_TYPES.map {|type| "//#{type}[not(ancestor::Placemark)]" }.join(' | ').freeze
 
+      # How many geometry elements are parsed in one query. A batch is sent as a literal list
+      # of KML fragments, so the ceiling is the size of that statement rather than the
+      # element count, and a file of few but very large geometries reaches it first.
+      GEOMETRY_BATCH_SIZE = 200
+
       # matches a coordinate pair with an optional altitude, including invalid altitudes like NaN
       #   -118.1,50.9,NaN
       #   -118.1,50.9,0
@@ -34,6 +39,8 @@ module SpatialFeatures
       private
 
       def each_record(&block)
+        pending = []
+
         kml_document.css('Placemark').each do |placemark|
           metadata = extract_metadata(placemark)
           importable_image_paths = images_from_metadata(metadata)
@@ -41,13 +48,15 @@ module SpatialFeatures
 
           geometries_in(placemark).each do |geometry|
             # A hash of its own per feature, since each is stored on a separate record.
-            yield_feature(geometry, name, metadata.dup, importable_image_paths, &block)
+            hold(pending, geometry, name, metadata.dup, importable_image_paths, &block)
           end
         end
 
         kml_document.xpath(UNPLACED_GEOMETRY_XPATH).each do |geometry|
-          yield_feature(geometry, nil, {}, [], &block)
+          hold(pending, geometry, nil, {}, [], &block)
         end
+
+        yield_batch(pending, &block)
       end
 
       # Returns the geometry elements belonging to a Placemark.
@@ -76,20 +85,64 @@ module SpatialFeatures
       end
 
       # Yields the feature built from a geometry element.
+
+      # Holds a geometry element until there are enough of them to parse in one query.
       #
       # @param geometry [Nokogiri::XML::Element] a Polygon, LineString or Point node.
       # @param metadata [Hash] stored on the feature as it stands, so it must already have
       #   had its image keys removed.
-      # @yield [OpenStruct] nothing is yielded when the element holds no coordinates, or
-      #   when PostGIS cannot read it.
-      def yield_feature(geometry, name, metadata, importable_image_paths, &block)
+      # @return [void] an element holding no coordinates is dropped rather than held.
+      def hold(pending, geometry, name, metadata, importable_image_paths, &block)
         return if blank_feature?(geometry)
 
-        geog = geom_from_kml(geometry)
-        return if geog.blank?
+        pending << [geometry, name, metadata, importable_image_paths]
+        yield_batch(pending, &block) if pending.size >= GEOMETRY_BATCH_SIZE
+      end
 
-        block.call OpenStruct.new(geog: geog, name: name, metadata: metadata,
-                                  importable_image_paths: importable_image_paths)
+      # Yields a feature for each held element, in the order they were held.
+      #
+      # @yield [OpenStruct] an element PostGIS cannot read yields nothing.
+      def yield_batch(pending, &block)
+        return if pending.empty?
+
+        geographies = geom_from_kml_batch(pending.map(&:first))
+
+        pending.each_with_index do |(_, name, metadata, importable_image_paths), index|
+          geog = geographies[index]
+          next if geog.blank?
+
+          block.call OpenStruct.new(geog: geog, name: name, metadata: metadata,
+                                    importable_image_paths: importable_image_paths)
+        end
+
+        pending.clear
+      end
+
+      # Parses many KML geometry elements in one query.
+      #
+      # @param geometries [Array<Nokogiri::XML::Element>]
+      # @return [Array<String, nil>] one geography per element, in the order given, nil
+      #   where the element could not be read. A batch holding an element PostGIS rejects
+      #   fails as a whole, so it is re-read one element at a time and only that element
+      #   is lost.
+      def geom_from_kml_batch(geometries)
+        return [geom_from_kml(geometries.first)] if geometries.one?
+
+        geometries.each {|geometry| strip_altitude(geometry) }
+        connection = ActiveRecord::Base.connection
+        values = geometries.each_with_index.map {|geometry, index| "(#{index}, #{connection.quote(geometry.to_s)})" }
+
+        rows = ActiveRecord::Base.transaction(requires_new: true) do
+          connection.select_rows(<<~SQL)
+            SELECT t.i, ST_GeomFromKML(t.kml)
+            FROM (VALUES #{values.join(',')}) AS t(i, kml)
+            ORDER BY t.i
+          SQL
+        end
+
+        rows.map(&:last)
+      rescue ActiveRecord::StatementInvalid
+        geometries.map {|geometry| geom_from_kml(geometry) }
       end
 
       def kml_document
