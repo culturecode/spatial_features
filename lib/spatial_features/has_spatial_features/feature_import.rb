@@ -10,6 +10,11 @@ module SpatialFeatures
     # method failed. Any per-file reasons are appended after it.
     EMPTY_IMPORT_MESSAGE = "No mapped areas could be imported.".freeze
 
+    # How many features have their geometry validity read in one query. A batch is sent as a
+    # literal list of geometries, so the ceiling is the size of that statement rather than
+    # the record count, and a file of few but very large geometries reaches it first.
+    FEATURE_VALIDATION_BATCH_SIZE = 500
+
     included do
       extend ActiveModel::Callbacks
       define_model_callbacks :update_features
@@ -153,15 +158,7 @@ module SpatialFeatures
       features.delete_all
       valid, invalid = Feature.defer_aggregate_refresh do
         Feature.without_caching_derivatives do
-          imports.flat_map {|import| features_from(import) }.partition do |feature|
-            feature.spatial_model = self
-            if feature.save
-              handle_images(feature)
-              true
-            else
-              false
-            end
-          end
+          save_features(imports.flat_map {|import| features_from(import) })
         end
       end
 
@@ -190,6 +187,33 @@ module SpatialFeatures
     # Parse failures surface lazily, when an importer's features are first read (e.g. a
     # shapefile archive missing its `.shx`), so they need the same containment as a file
     # that couldn't be opened at all: record the reason against that source and keep going.
+    # Saves each feature, reading the geometry validity of a batch at a time rather than of
+    # one record at a time. Saving is unchanged and still runs every callback.
+    #
+    # @param new_features [Array<Feature>] unsaved features, in the order they were read.
+    # @return [Array(Array<Feature>, Array<Feature>)] those that saved and those that did
+    #   not, each in the order given.
+    def save_features(new_features)
+      saved = []
+      rejected = []
+
+      new_features.each_slice(FEATURE_VALIDATION_BATCH_SIZE) do |batch|
+        batch.each {|feature| feature.spatial_model = self }
+        Feature.precompute_geometry_validation(batch)
+
+        batch.each do |feature|
+          if feature.save
+            handle_images(feature)
+            saved << feature
+          else
+            rejected << feature
+          end
+        end
+      end
+
+      [saved, rejected]
+    end
+
     def features_from(import)
       import.features
     rescue ImportError => e
