@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>kml_file_with_multi_geometry_placemarks.kml</name>
+    <Folder>
+      <name>Multi geometry folder</name>
+      <Placemark>
+        <name>Poly 1</name>
+        <description>This is a description</description>
+        <MultiGeometry>
+        <Polygon><outerBoundaryIs><LinearRing><coordinates>10,20 10.5,20 10.5,20.5 10,20.5 10,20</coordinates></LinearRing></outerBoundaryIs></Polygon>
+        <Polygon><outerBoundaryIs><LinearRing><coordinates>11,20 11.5,20 11.5,20.5 11,20.5 11,20</coordinates></LinearRing></outerBoundaryIs></Polygon>
+        <Polygon><outerBoundaryIs><LinearRing><coordinates>12,20 12.5,20 12.5,20.5 12,20.5 12,20</coordinates></LinearRing></outerBoundaryIs></Polygon>
+        <Polygon><outerBoundaryIs><LinearRing><coordinates>13,20 13.5,20 13.5,20.5 13,20.5 13,20</coordinates></LinearRing></outerBoundaryIs></Polygon>
+        </MultiGeometry>
+      </Placemark>
+      <Placemark>
+        <name>Poly 2</name>
+        <description>This is a description also</description>
+        <MultiGeometry>
+        <Polygon><outerBoundaryIs><LinearRing><coordinates>30,40 30.5,40 30.5,40.5 30,40.5 30,40</coordinates></LinearRing></outerBoundaryIs></Polygon>
+        <Polygon><outerBoundaryIs><LinearRing><coordinates>31,40 31.5,40 31.5,40.5 31,40.5 31,40</coordinates></LinearRing></outerBoundaryIs></Polygon>
+        <Polygon><outerBoundaryIs><LinearRing><coordinates>32,40 32.5,40 32.5,40.5 32,40.5 32,40</coordinates></LinearRing></outerBoundaryIs></Polygon>
+        <Polygon><outerBoundaryIs><LinearRing><coordinates>33,40 33.5,40 33.5,40.5 33,40.5 33,40</coordinates></LinearRing></outerBoundaryIs></Polygon>
+        </MultiGeometry>
+      </Placemark>
+    </Folder>
+  </Document>
+</kml>

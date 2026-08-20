@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>kml_file_with_nested_placemarks.kml</name>
+    <Folder>
+      <name>Nested placemark folder</name>
+      <Placemark>
+        <name>Outer Poly</name>
+        <description>This is a description</description>
+        <Polygon><outerBoundaryIs><LinearRing><coordinates>10,20 11,20 11,21 10,21 10,20</coordinates></LinearRing></outerBoundaryIs></Polygon>
+      <Placemark>
+        <name>Inner Poly</name>
+        <description>The inner description</description>
+        <Polygon><outerBoundaryIs><LinearRing><coordinates>30,40 31,40 31,41 30,41 30,40</coordinates></LinearRing></outerBoundaryIs></Polygon>
+      </Placemark>
+      </Placemark>
+    </Folder>
+  </Document>
+</kml>
