@@ -3,8 +3,8 @@ require 'open-uri'
 module SpatialFeatures
   module Importers
     class File < SimpleDelegator
-      INVALID_ARCHIVE = "This file doesn't contain any map data.".freeze
-      SUPPORTED_FORMATS = "Please upload a KMZ, KML, zipped ArcGIS shapefile, ESRI JSON, or GeoJSON file.".freeze
+      INVALID_ARCHIVE = "This file contains no map data.".freeze
+      SUPPORTED_FORMATS = "Supported formats are KMZ, KML, zipped ArcGIS shapefile, ESRI JSON, and GeoJSON.".freeze
 
       FILE_PATTERNS = [/\.kml$/, /\.shp$/, /\.json$/, /\.geojson$/]
       def self.create_all(data, **options)
@@ -21,9 +21,13 @@ module SpatialFeatures
       def self.invalid_archive_message(path_not_found)
         found = path_not_found.extensions
         count = path_not_found.paths.count {|path| !path.end_with?('/') }
-        contents = " It contains #{count} #{found.to_sentence} #{'file'.pluralize(count)}." if found.any?
+        problem = if found.any?
+                    "This file contains no map data, only #{count} #{found.to_sentence} #{'file'.pluralize(count)}."
+                  else
+                    INVALID_ARCHIVE
+                  end
 
-        [INVALID_ARCHIVE, contents, " ", SUPPORTED_FORMATS].compact.join
+        [problem, SUPPORTED_FORMATS].join(' ')
       end
 
       # The File importer may be initialized multiple times by `::create_all` if it
@@ -61,7 +65,7 @@ module SpatialFeatures
       private
 
       def import_error!
-        raise ImportError, "#{::File.basename(filename)} isn't a file type we can read. " + SUPPORTED_FORMATS
+        raise ImportError, "This file type is not supported. " + SUPPORTED_FORMATS
       end
 
       def filename

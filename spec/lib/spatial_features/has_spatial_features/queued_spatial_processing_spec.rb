@@ -74,6 +74,29 @@ describe SpatialFeatures::QueuedSpatialProcessing do
     end
   end
 
+  describe '#feature_update_warnings' do
+    let(:klass) { new_dummy_class(:spatial_processing_status_cache => :jsonb) }
+
+    it 'returns the file and the message apart' do
+      record.store_feature_update_warnings([{ 'file' => 'upload.zip', 'message' => 'Skipped 1 map image.' }])
+
+      expect(record.feature_update_warnings)
+        .to eq([{ 'file' => 'upload.zip', 'message' => 'Skipped 1 map image.' }])
+    end
+
+    # Records imported before the pair was stored hold a single pre-joined string. They keep
+    # rendering as written rather than being guessed apart on a colon a filename may contain.
+    it 'reads a warning stored as a plain string as the message' do
+      SpatialFeatures::QueuedSpatialProcessing.update_cached_status(record, 'update_features!', 'failure')
+      cache = record.spatial_processing_status_cache
+      cache[SpatialFeatures::QueuedSpatialProcessing::WARNINGS_CACHE_KEY] = ['upload.zip: Skipped 1 map image.']
+      record.update_column(:spatial_processing_status_cache, cache)
+
+      expect(record.reload.feature_update_warnings)
+        .to eq([{ 'file' => nil, 'message' => 'upload.zip: Skipped 1 map image.' }])
+    end
+  end
+
   describe '#clear_feature_update_error_status' do
     let(:klass) { new_dummy_class(:spatial_processing_status_cache => :jsonb) }
 
