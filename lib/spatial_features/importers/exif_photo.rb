@@ -17,7 +17,8 @@ module SpatialFeatures
             'capture_time' => photo.date_time_original.strftime('%Y-%m-%d %H:%M:%S'),
             'altitude' => gps.altitude.to_s,
             'camera_model' => photo.model
-          }
+          },
+          importable_image_paths: [@data]
         )
       end
     end

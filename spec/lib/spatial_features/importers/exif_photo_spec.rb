@@ -25,5 +25,9 @@ describe SpatialFeatures::Importers::ExifPhoto do
       'camera_model' => 'NIKON D7500'
     )
     end
+
+    it 'makes the photo available for attachment importing' do
+      expect(features.first.importable_image_paths).to eq([photo_path])
+    end
   end
 end
