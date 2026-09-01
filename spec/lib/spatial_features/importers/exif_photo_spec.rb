@@ -11,10 +11,19 @@ describe SpatialFeatures::Importers::ExifPhoto do
     it 'imports one feature from a geotagged photo' do
       expect(features.count).to eq(1)
     end
+
     it 'places the feature at the EXIF GPS coordinates' do
       expect(features.first.geog).to eq(
         'POINT(-125.12249 50.36145)'
       )
+    end
+
+    it 'includes EXIF metadata' do
+    expect(features.first.metadata).to eq(
+      'capture_time' => '2025-08-08 16:48:16',
+      'altitude' => '109.4',
+      'camera_model' => 'NIKON D7500'
+    )
     end
   end
 end

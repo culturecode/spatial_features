@@ -13,7 +13,11 @@ module SpatialFeatures
         yield OpenStruct.new(
           name: ::File.basename(@data),
           geog: "POINT(#{gps.longitude} #{gps.latitude})",
-          metadata: {}
+          metadata: {
+            'capture_time' => photo.date_time_original.strftime('%Y-%m-%d %H:%M:%S'),
+            'altitude' => gps.altitude.to_s,
+            'camera_model' => photo.model
+          }
         )
       end
     end
