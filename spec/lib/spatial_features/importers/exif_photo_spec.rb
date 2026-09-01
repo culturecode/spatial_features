@@ -70,6 +70,17 @@ describe SpatialFeatures::Importers::ExifPhoto do
     end
   end
 
+  context 'when the JPEG is malformed' do
+    before do
+      allow(EXIFR::JPEG).to receive(:new).with(photo_path).and_raise(EXIFR::MalformedJPEG)
+    end
+
+    it 'raises an import error with a useful message' do
+      expect { features }
+        .to raise_error(SpatialFeatures::ImportError, /photo couldn't be read/i)
+    end
+  end
+
   describe '.create_all' do
     let(:tmpdir) { Dir.mktmpdir }
 

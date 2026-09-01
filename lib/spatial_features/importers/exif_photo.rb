@@ -6,6 +6,7 @@ module SpatialFeatures
     class ExifPhoto < Base
       JPEG_PATTERN = /\.jpe?g\z/i.freeze
       NO_PHOTOS = "This archive doesn't contain any JPEG photos.".freeze
+      UNREADABLE_PHOTO = "This photo couldn't be read. It may be damaged, or saved in a JPEG format we don't support.".freeze
 
       def self.create_all(data, **options)
         Download.open_each(data, unzip: JPEG_PATTERN, tmpdir: options[:tmpdir]).map do |file|
@@ -40,6 +41,8 @@ module SpatialFeatures
           metadata: metadata_from(photo, gps),
           importable_image_paths: [@data]
         )
+      rescue EXIFR::MalformedImage
+        raise ImportError, UNREADABLE_PHOTO
       end
 
       def usable_gps?(gps)
