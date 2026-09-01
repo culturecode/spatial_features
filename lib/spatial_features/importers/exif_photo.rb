@@ -4,9 +4,24 @@ require 'ostruct'
 module SpatialFeatures
   module Importers
     class ExifPhoto < Base
+      JPEG_PATTERN = /\.jpe?g\z/i.freeze
+      NO_PHOTOS = "This archive doesn't contain any JPEG photos.".freeze
+
+      def self.create_all(data, **options)
+        Download.open_each(data, unzip: JPEG_PATTERN, tmpdir: options[:tmpdir]).map do |file|
+          new(file.path, **options)
+        end
+      rescue Unzip::PathNotFound
+        raise ImportError, NO_PHOTOS
+      end
+
       def initialize(data, **options)
         options[:source_identifier] ||= ::File.basename(data.to_s)
         super(data, **options)
+      end
+
+      def cache_key
+        @cache_key ||= Digest::MD5.file(@data).hexdigest
       end
 
       private
