@@ -1,5 +1,6 @@
 require 'exifr/jpeg'
 require 'ostruct'
+require 'fileutils'
 
 module SpatialFeatures
   module Importers
@@ -9,11 +10,34 @@ module SpatialFeatures
       UNREADABLE_PHOTO = "This photo couldn't be read. It may be damaged, or saved in a JPEG format we don't support.".freeze
 
       def self.create_all(data, **options)
-        Download.open_each(data, unzip: JPEG_PATTERN, tmpdir: options[:tmpdir]).map do |file|
-          new(file.path, **options)
+        tmpdir = options.fetch(:tmpdir)
+        photos_dir = ::File.join(tmpdir, 'exif_photos')
+        FileUtils.mkdir_p(photos_dir)
+
+        files = Download.open_each(data, unzip: JPEG_PATTERN, tmpdir: tmpdir)
+        files.map.with_index do |file, index|
+          filename = ::File.basename(file.path)
+
+          # Separate directories prevent two photos with the same filename colliding,
+          # while keeping the original filename for feature names and warnings.
+          staged_path = ::File.join(photos_dir, index.to_s, filename)
+          FileUtils.mkdir_p(::File.dirname(staged_path))
+
+          begin
+            file.rewind
+            ::File.open(staged_path, 'wb') do |staged_file|
+              IO.copy_stream(file, staged_file)
+            end
+          ensure
+            file.close
+          end
+
+          new(staged_path, **options)
         end
       rescue Unzip::PathNotFound
         raise ImportError, NO_PHOTOS
+      ensure
+        Array(files).each {|file| file.close unless file.closed? }
       end
 
       def initialize(data, **options)
