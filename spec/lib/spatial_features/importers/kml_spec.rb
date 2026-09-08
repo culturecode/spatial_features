@@ -103,6 +103,79 @@ describe SpatialFeatures::Importers::KML do
     end
   end
 
+  context 'when a Placemark holds a MultiGeometry' do
+    let(:data) { kml_file_with_multi_geometry_placemarks.read }
+
+    describe '#features' do
+      it 'returns one feature per part' do
+        expect(subject.features.count).to eq(8)
+      end
+
+      it 'names each part after the Placemark holding it' do
+        expect(subject.features.map(&:name))
+          .to contain_exactly(*['Poly 1'] * 4, *['Poly 2'] * 4)
+      end
+
+      it 'gives each part the metadata of the Placemark holding it' do
+        expect(subject.features)
+          .to all(have_attributes :metadata => include('description' => be_present))
+      end
+
+      # Reading a part's Placemark by searching the document, or by asking the part for its
+      # ancestors, costs the document's size per part. The document is parsed first, since
+      # parsing searches it for NetworkLinks and overlays.
+      it 'reads the parts without searching the document again' do
+        subject.send(:kml_document)
+
+        expect_any_instance_of(Nokogiri::XML::Document).not_to receive(:search)
+
+        subject.features
+      end
+
+      it 'reads a Placemark\'s metadata once however many parts it holds' do
+        expect(subject).to receive(:extract_metadata).twice.and_call_original
+
+        subject.features
+      end
+    end
+  end
+
+  context 'when a Placemark holding a MultiGeometry names photos' do
+    subject { SpatialFeatures::Importers::KML.new(data, :base_dir => Pathname.new('/base')) }
+    let(:data) { kml_file_with_multi_geometry_photos.read }
+
+    describe '#features' do
+      it 'returns one feature per part' do
+        expect(subject.features.count).to eq(3)
+      end
+
+      it 'gives every part the photos the Placemark names' do
+        expect(subject.features).to all(have_attributes :importable_image_paths =>
+          [Pathname.new('/base/images/two_a.jpg'), Pathname.new('/base/images/two_b.jpg')])
+      end
+
+      it 'leaves the image keys out of every part\'s metadata' do
+        keys = subject.features.flat_map {|feature| feature.metadata.keys }
+
+        expect(keys & SpatialFeatures::Importers::KML::IMAGE_METADATA_KEYS).to eq([])
+      end
+    end
+  end
+
+  context 'when a Placemark holds another Placemark' do
+    let(:data) { kml_file_with_nested_placemarks.read }
+
+    describe '#features' do
+      it 'returns one feature per geometry rather than reading the inner one twice' do
+        expect(subject.features.count).to eq(2)
+      end
+
+      it 'returns each geometry once' do
+        expect(subject.features.map(&:geog).uniq.size).to eq(2)
+      end
+    end
+  end
+
   context 'when the input is xml but not kml' do
     let(:data) { "<html><body>hi</body></html>" }
 
