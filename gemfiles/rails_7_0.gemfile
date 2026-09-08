@@ -3,3 +3,8 @@ source "https://rubygems.org"
 gem "activerecord", "~> 7"
 
 gemspec path: "../"
+
+# json 3.0 dropped the positional options argument that ActiveSupport::JSON.decode still
+# passes, so every JSON column read raises ArgumentError. Drop this once a Rails release
+# includes rails/rails#58601.
+gem "json", "< 3"
