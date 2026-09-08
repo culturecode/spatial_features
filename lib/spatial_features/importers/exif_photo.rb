@@ -25,8 +25,8 @@ module SpatialFeatures
         rescue Unzip::PathNotFound
           raise ImportError, NO_PHOTOS
         end
-        files.each_with_index do |file, index|
-          importers << stage_photo(file, index, **options, filename: filename)
+        files.each do |file|
+          importers << stage_photo(file, **options, filename: filename)
         end
         complete = true
 
@@ -70,10 +70,9 @@ module SpatialFeatures
       end
       private_class_method :remote_photo_filename
 
-      def self.stage_photo(file, index, filename: nil, **options)
+      def self.stage_photo(file, filename: nil, **options)
         owned_directory = Dir.mktmpdir('spatial_features_photo') unless options[:tmpdir]
-        directory = owned_directory || ::File.join(options[:tmpdir], 'exif_photos', index.to_s)
-        FileUtils.mkdir_p(directory)
+        directory = owned_directory || Dir.mktmpdir('spatial_features_photo', options[:tmpdir])
         staged_path = ::File.join(directory, filename || ::File.basename(file.path))
 
         file.rewind

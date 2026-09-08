@@ -99,7 +99,8 @@ describe SpatialFeatures::Importers::ExifPhoto do
         staged_path = created_importer.features.first.importable_image_paths.first
 
         expect(created_importer.features.count).to eq(1)
-        expect(staged_path).to eq(::File.join(tmpdir, 'exif_photos', '0', 'bc25_bt_0030.JPG'))
+        expect(staged_path).to start_with("#{tmpdir}/")
+        expect(::File.basename(staged_path)).to eq('bc25_bt_0030.JPG')
         expect(staged_path).not_to eq(photo_path)
         expect(::File.binread(staged_path)).to eq(::File.binread(photo_path))
       end
@@ -203,7 +204,7 @@ describe SpatialFeatures::Importers::ExifPhoto do
       it 'stages every photo below the managed temporary directory' do
         image_paths = importers.flat_map(&:features).flat_map(&:importable_image_paths)
 
-        expect(image_paths).to all(start_with("#{tmpdir}/exif_photos/"))
+        expect(image_paths).to all(start_with("#{tmpdir}/"))
       end
     end
 
