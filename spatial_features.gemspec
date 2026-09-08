@@ -24,6 +24,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "rubyzip", "~> 3.0"
   s.add_runtime_dependency "nokogiri"
   s.add_runtime_dependency "ostruct"
+  s.add_runtime_dependency "exifr"
 
   s.add_development_dependency "rails", '>= 7', '< 9'
   s.add_development_dependency "pg", '~> 1'

@@ -21,6 +21,7 @@ require 'spatial_features/has_spatial_features/queued_spatial_processing'
 require 'spatial_features/has_spatial_features/feature_import'
 
 require 'spatial_features/importers/base'
+require 'spatial_features/importers/exif_photo'
 require 'spatial_features/importers/file'
 require 'spatial_features/importers/geo_json'
 require 'spatial_features/importers/esri_geo_json'
