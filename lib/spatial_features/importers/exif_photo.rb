@@ -54,7 +54,9 @@ module SpatialFeatures
       end
 
       def cache_key
-        @cache_key ||= Digest::MD5.file(@data).hexdigest
+        @cache_key ||= Digest::MD5.hexdigest(
+          [Digest::MD5.file(@data).hexdigest, ::File.basename(@data), source_identifier].to_json
+        )
       end
 
       private

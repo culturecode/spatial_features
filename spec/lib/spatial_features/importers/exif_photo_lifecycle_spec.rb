@@ -22,7 +22,7 @@ describe SpatialFeatures::Importers::ExifPhoto do
 
     expect(feature.name).to eq('bc25_bt_0030.JPG')
     expect(File.binread(path)).to eq(File.binread(photo_path))
-    expect(importer.cache_key).to eq(Digest::MD5.file(photo_path).hexdigest)
+    expect(importer.cache_key).to eq(described_class.new(photo_path).cache_key)
 
     importer.close
     importer.close

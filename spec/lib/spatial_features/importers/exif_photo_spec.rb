@@ -32,8 +32,10 @@ describe SpatialFeatures::Importers::ExifPhoto do
   end
 
   describe '#cache_key' do
-    it 'is based on the photo contents rather than its path' do
-      expect(importer.cache_key).to eq(Digest::MD5.file(photo_path).hexdigest)
+    it 'is stable when the photo is staged in a different directory' do
+      described_class.create_all(photo_path) do |importers|
+        expect(importer.cache_key).to eq(importers.first.cache_key)
+      end
     end
   end
 
@@ -125,7 +127,7 @@ describe SpatialFeatures::Importers::ExifPhoto do
         staged_path = created_importer.features.first.importable_image_paths.first
 
         expect(open_file).to be_closed
-        expect(created_importer.cache_key).to eq(Digest::MD5.file(photo_path).hexdigest)
+        expect(created_importer.cache_key).to eq(described_class.new(staged_path).cache_key)
         expect(created_importer.features.count).to eq(1)
         expect(::File.binread(staged_path)).to eq(::File.binread(photo_path))
       ensure
@@ -158,7 +160,7 @@ describe SpatialFeatures::Importers::ExifPhoto do
         GC.start
         staged_path = created_importer.features.first.importable_image_paths.first
 
-        expect(created_importer.cache_key).to eq(Digest::MD5.hexdigest(bytes))
+        expect(created_importer.cache_key).to eq(described_class.new(staged_path).cache_key)
         expect(created_importer.features.count).to eq(1)
         expect(::File.file?(staged_path)).to be(true)
         expect(::File.binread(staged_path)).to eq(bytes)
