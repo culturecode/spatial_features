@@ -118,6 +118,7 @@ describe SpatialFeatures::Importers::ExifPhoto do
         owner.close!
 
         expect(::File.exist?(open_file.path)).to be(false)
+        allow(SpatialFeatures::Download).to receive(:open).and_return(open_file)
         allow(SpatialFeatures::Download).to receive(:open_each).and_return([open_file])
 
         created_importer = described_class.create_all('https://example.test/photo.JPG', tmpdir: tmpdir).first

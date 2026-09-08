@@ -15,19 +15,27 @@ module SpatialFeatures
         source_directory = Dir.mktmpdir('spatial_features_exif') unless options[:tmpdir]
         tmpdir = options[:tmpdir] || source_directory
         FileUtils.mkdir_p(tmpdir)
+        if data.is_a?(String) && data.match?(Download::REMOTE_URL)
+          download = Download.open(data)
+          filename = remote_photo_filename(data) unless Unzip.is_zip?(download)
+          data = download.path
+        end
         files = begin
           Download.open_each(data, unzip: JPEG_PATTERN, tmpdir: tmpdir)
         rescue Unzip::PathNotFound
           raise ImportError, NO_PHOTOS
         end
         files.each_with_index do |file, index|
-          importers << stage_photo(file, index, **options)
+          importers << stage_photo(file, index, **options, filename: filename)
         end
         complete = true
 
         block_given? ? yield(importers) : importers
       ensure
         Array(files).each {|file| file.close unless file.closed? }
+        if download && !download.closed?
+          download.respond_to?(:close!) ? download.close! : download.close
+        end
         importers&.each(&:close) if block_given? || !complete
         FileUtils.remove_entry(source_directory) if source_directory && Dir.exist?(source_directory)
       end
@@ -51,11 +59,20 @@ module SpatialFeatures
 
       private
 
-      def self.stage_photo(file, index, **options)
+      def self.remote_photo_filename(url)
+        path = URI::DEFAULT_PARSER.unescape(URI.parse(url).path.to_s).tr('\\', '/')
+        filename = ::File.basename(path)
+        return if filename.empty? || %w[/ . ..].include?(filename) || filename.include?("\0")
+
+        filename
+      end
+      private_class_method :remote_photo_filename
+
+      def self.stage_photo(file, index, filename: nil, **options)
         owned_directory = Dir.mktmpdir('spatial_features_photo') unless options[:tmpdir]
         directory = owned_directory || ::File.join(options[:tmpdir], 'exif_photos', index.to_s)
         FileUtils.mkdir_p(directory)
-        staged_path = ::File.join(directory, ::File.basename(file.path))
+        staged_path = ::File.join(directory, filename || ::File.basename(file.path))
 
         file.rewind
         ::File.open(staged_path, 'wb') {|staged_file| IO.copy_stream(file, staged_file) }
