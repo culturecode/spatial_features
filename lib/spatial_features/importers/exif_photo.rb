@@ -1,6 +1,7 @@
 require 'exifr/jpeg'
 require 'ostruct'
 require 'fileutils'
+require 'tmpdir'
 
 module SpatialFeatures
   module Importers
@@ -10,39 +11,38 @@ module SpatialFeatures
       UNREADABLE_PHOTO = "This photo couldn't be read. It may be damaged, or saved in a JPEG format we don't support.".freeze
 
       def self.create_all(data, **options)
-        tmpdir = options.fetch(:tmpdir)
-        photos_dir = ::File.join(tmpdir, 'exif_photos')
-        FileUtils.mkdir_p(photos_dir)
-
-        files = Download.open_each(data, unzip: JPEG_PATTERN, tmpdir: tmpdir)
-        files.map.with_index do |file, index|
-          filename = ::File.basename(file.path)
-
-          # Separate directories prevent two photos with the same filename colliding,
-          # while keeping the original filename for feature names and warnings.
-          staged_path = ::File.join(photos_dir, index.to_s, filename)
-          FileUtils.mkdir_p(::File.dirname(staged_path))
-
-          begin
-            file.rewind
-            ::File.open(staged_path, 'wb') do |staged_file|
-              IO.copy_stream(file, staged_file)
-            end
-          ensure
-            file.close
-          end
-
-          new(staged_path, **options)
+        importers = []
+        source_directory = Dir.mktmpdir('spatial_features_exif') unless options[:tmpdir]
+        tmpdir = options[:tmpdir] || source_directory
+        FileUtils.mkdir_p(tmpdir)
+        files = begin
+          Download.open_each(data, unzip: JPEG_PATTERN, tmpdir: tmpdir)
+        rescue Unzip::PathNotFound
+          raise ImportError, NO_PHOTOS
         end
-      rescue Unzip::PathNotFound
-        raise ImportError, NO_PHOTOS
+        files.each_with_index do |file, index|
+          importers << stage_photo(file, index, **options)
+        end
+        complete = true
+
+        block_given? ? yield(importers) : importers
       ensure
         Array(files).each {|file| file.close unless file.closed? }
+        importers&.each(&:close) if block_given? || !complete
+        FileUtils.remove_entry(source_directory) if source_directory && Dir.exist?(source_directory)
       end
 
-      def initialize(data, **options)
+      def initialize(data, owned_directory: nil, **options)
+        @owned_directory = owned_directory
         options[:source_identifier] ||= ::File.basename(data.to_s)
         super(data, **options)
+      end
+
+      # Call after every consumer has finished with importable_image_paths. Supplied
+      # tmpdir directories belong to the caller and are never removed here.
+      def close
+        FileUtils.remove_entry(@owned_directory) if @owned_directory && Dir.exist?(@owned_directory)
+        @owned_directory = nil
       end
 
       def cache_key
@@ -50,6 +50,23 @@ module SpatialFeatures
       end
 
       private
+
+      def self.stage_photo(file, index, **options)
+        owned_directory = Dir.mktmpdir('spatial_features_photo') unless options[:tmpdir]
+        directory = owned_directory || ::File.join(options[:tmpdir], 'exif_photos', index.to_s)
+        FileUtils.mkdir_p(directory)
+        staged_path = ::File.join(directory, ::File.basename(file.path))
+
+        file.rewind
+        ::File.open(staged_path, 'wb') {|staged_file| IO.copy_stream(file, staged_file) }
+        importer = new(staged_path, **options, owned_directory: owned_directory)
+      ensure
+        file.close
+        if !importer && owned_directory && Dir.exist?(owned_directory)
+          FileUtils.remove_entry(owned_directory)
+        end
+      end
+      private_class_method :stage_photo
 
       def each_record
         photo = EXIFR::JPEG.new(@data)
