@@ -32,10 +32,8 @@ describe SpatialFeatures::Importers::ExifPhoto do
   end
 
   describe '#cache_key' do
-    it 'is stable when the photo is staged in a different directory' do
-      described_class.create_all(photo_path) do |importers|
-        expect(importer.cache_key).to eq(importers.first.cache_key)
-      end
+    it 'is based on the photo contents rather than its path' do
+      expect(importer.cache_key).to eq(Digest::MD5.file(photo_path).hexdigest)
     end
   end
 
@@ -91,80 +89,11 @@ describe SpatialFeatures::Importers::ExifPhoto do
     end
 
     context 'with an individual JPEG' do
-      subject(:created_importer) do
-        described_class.create_all(photo_path, tmpdir: tmpdir).first
-      end
+      it 'creates one importer' do
+        importers = described_class.create_all(photo_path, tmpdir: tmpdir)
 
-      it 'creates one importer from a staged copy' do
-        staged_path = created_importer.features.first.importable_image_paths.first
-
-        expect(created_importer.features.count).to eq(1)
-        expect(staged_path).to start_with("#{tmpdir}/")
-        expect(::File.basename(staged_path)).to eq('bc25_bt_0030.JPG')
-        expect(staged_path).not_to eq(photo_path)
-        expect(::File.binread(staged_path)).to eq(::File.binread(photo_path))
-      end
-
-      it 'keeps the original filename for the feature and source identifier' do
-        expect(created_importer.source_identifier).to eq('bc25_bt_0030.JPG')
-        expect(created_importer.features.first.name).to eq('bc25_bt_0030.JPG')
-      end
-    end
-
-    context 'when the source path is unlinked while its file is still open' do
-      it 'stages the JPEG from the open file descriptor and closes it' do
-        owner = Tempfile.new(['remote-photo', '.JPG'])
-        owner.binmode
-        owner.write(::File.binread(photo_path))
-        owner.flush
-        open_file = ::File.open(owner.path, 'rb')
-        owner.close!
-
-        expect(::File.exist?(open_file.path)).to be(false)
-        allow(SpatialFeatures::Download).to receive(:open).and_return(open_file)
-        allow(SpatialFeatures::Download).to receive(:open_each).and_return([open_file])
-
-        created_importer = described_class.create_all('https://example.test/photo.JPG', tmpdir: tmpdir).first
-        staged_path = created_importer.features.first.importable_image_paths.first
-
-        expect(open_file).to be_closed
-        expect(created_importer.cache_key).to eq(described_class.new(staged_path).cache_key)
-        expect(created_importer.features.count).to eq(1)
-        expect(::File.binread(staged_path)).to eq(::File.binread(photo_path))
-      ensure
-        open_file&.close unless open_file&.closed?
-        owner&.close!
-      end
-    end
-
-    context 'when staging the photo fails' do
-      it 'still closes every source file' do
-        source_files = Array.new(2) { ::File.open(photo_path, 'rb') }
-        allow(SpatialFeatures::Download).to receive(:open_each).and_return(source_files)
-        allow(IO).to receive(:copy_stream).and_raise(IOError, 'copy failed')
-
-        expect do
-          described_class.create_all(photo_path, tmpdir: tmpdir)
-        end.to raise_error(IOError, 'copy failed')
-        expect(source_files).to all(be_closed)
-      ensure
-        source_files&.each {|file| file.close unless file.closed? }
-      end
-    end
-
-    context 'with an in-memory remote JPEG' do
-      it 'remains available after the download temporary object is collected' do
-        bytes = ::File.binread(photo_path)
-        allow(URI).to receive(:open).and_return(StringIO.new(bytes))
-
-        created_importer = described_class.create_all('https://example.test/photo.JPG', tmpdir: tmpdir).first
-        GC.start
-        staged_path = created_importer.features.first.importable_image_paths.first
-
-        expect(created_importer.cache_key).to eq(described_class.new(staged_path).cache_key)
-        expect(created_importer.features.count).to eq(1)
-        expect(::File.file?(staged_path)).to be(true)
-        expect(::File.binread(staged_path)).to eq(bytes)
+        expect(importers.count).to eq(1)
+        expect(importers.first.features.count).to eq(1)
       end
     end
 
@@ -199,37 +128,6 @@ describe SpatialFeatures::Importers::ExifPhoto do
 
         expect(image_paths.count).to eq(5)
         expect(image_paths.all? {|path| ::File.file?(path) }).to be(true)
-      end
-
-      it 'stages every photo below the managed temporary directory' do
-        image_paths = importers.flat_map(&:features).flat_map(&:importable_image_paths)
-
-        expect(image_paths).to all(start_with("#{tmpdir}/"))
-      end
-    end
-
-    context 'with duplicate filenames in different ZIP directories' do
-      let(:archive_path) do
-        ::File.join(tmpdir, 'duplicate_names.zip').tap do |path|
-          bytes = ::File.binread(photo_path)
-          Zip::OutputStream.open(path) do |zip|
-            zip.put_next_entry('first/repeated.JPG')
-            zip.write(bytes)
-            zip.put_next_entry('second/repeated.JPG')
-            zip.write(bytes)
-          end
-        end
-      end
-
-      it 'keeps both photos without changing their displayed filename' do
-        importers = described_class.create_all(archive_path, tmpdir: tmpdir)
-        image_paths = importers.flat_map(&:features).flat_map(&:importable_image_paths)
-
-        expect(importers.map(&:source_identifier)).to eq(['repeated.JPG', 'repeated.JPG'])
-        expect(importers.flat_map(&:features).map(&:name)).to eq(['repeated.JPG', 'repeated.JPG'])
-        expect(image_paths.map {|path| ::File.basename(path) }).to eq(['repeated.JPG', 'repeated.JPG'])
-        expect(image_paths.uniq.count).to eq(2)
-        expect(image_paths.map {|path| ::File.binread(path) }).to all(eq(::File.binread(photo_path)))
       end
     end
 

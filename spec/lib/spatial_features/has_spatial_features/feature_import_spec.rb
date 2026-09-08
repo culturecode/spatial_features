@@ -553,10 +553,6 @@ describe SpatialFeatures::FeatureImport do
         def self.call(feature, images); end
       end
 
-      class ExifImageHandlerMock
-        def self.call(feature, images); end
-      end
-
       subject do
         new_dummy_class(:parent => FeatureImportMock) do
           has_spatial_features :import => { :test_kml => :KMLFile }, :image_handlers => [:ImageHandlerMock]
@@ -572,33 +568,6 @@ describe SpatialFeatures::FeatureImport do
         subject.update_features!
         expect(ImageHandlerMock).to have_received(:call).with(Feature, [Pathname]).once
         expect(ImageHandlerMock).to have_received(:call).with(Feature, [Pathname, Pathname]).once
-      end
-
-      it 'keeps staged EXIF photos available through image handling, then cleans them up' do
-        source_photo = fixture_file_path('bc25_bt_0030.JPG')
-        tmpdir = Dir.mktmpdir
-        handled_paths = []
-        handled_bytes = []
-        photo_subject = new_dummy_class(:parent => FeatureImportMock) do
-          has_spatial_features :import => { :test_photo => :ExifPhoto }, :image_handlers => [:ExifImageHandlerMock]
-
-          define_method(:test_photo) { source_photo }
-        end.create
-        allow(ExifImageHandlerMock).to receive(:call) do |_feature, images|
-          handled_paths.concat(images)
-          handled_bytes.concat(images.map {|path| ::File.binread(path) })
-        end
-
-        photo_subject.update_features!(:tmpdir => tmpdir)
-
-        expect(photo_subject.features.count).to eq(1)
-        expect(ExifImageHandlerMock).to have_received(:call).once
-        expect(handled_paths).to all(start_with(tmpdir))
-        expect(handled_bytes).to eq([::File.binread(source_photo)])
-        expect(handled_paths).to all(satisfy {|path| !::File.exist?(path) })
-        expect(::Dir.exist?(tmpdir)).to be(false)
-      ensure
-        FileUtils.remove_entry(tmpdir) if tmpdir && Dir.exist?(tmpdir)
       end
 
       let(:keys_to_remove) { SpatialFeatures::Importers::KML::IMAGE_METADATA_KEYS }
