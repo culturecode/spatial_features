@@ -34,17 +34,19 @@ module SpatialFeatures
         fetch(path_or_url).read
       end
 
-      # Returns an open File for each source in `path_or_url`, unwrapping an archive when
+      # Returns an open file for each source in `path_or_url`, unwrapping an archive when
       # `unzip` is given a pattern its entries can match.
+      #
+      # @note A remote or IO-backed source is held in a `Tempfile`, which unlinks its path
+      #   when it is garbage collected. The `Tempfile` itself is returned, rather than a fresh
+      #   `File` opened on its path, so the path stays valid for as long as the caller holds
+      #   the result. Entries extracted from an archive are ordinary files on disk and are
+      #   opened by path.
       def open_each(path_or_url, unzip: nil, **unzip_options)
         file = Download.open(path_or_url)
-        files = if unzip && Unzip.is_zip?(file)
-          find_in_zip(file, find: unzip, **unzip_options)
-        else
-          [file]
-        end
+        return [file] unless unzip && Unzip.is_zip?(file)
 
-        return files.map { |f| File.open(f) }
+        find_in_zip(file, find: unzip, **unzip_options).map { |path| File.open(path) }
       end
 
       def normalize_file(file)
